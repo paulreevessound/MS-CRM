@@ -360,65 +360,261 @@ const daysBetween=(a,b)=>Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:
 const tk=(id,nm,sd,ed,st,pct,who)=>({id,name:nm,startDate:sd,endDate:ed,status:st,pct:pct||0,assignee:who||'Paul R'});
 const taskDef=name=>TASK_DEFS.find(t=>t.name===name)||TASK_DEFS[0];
 
-// ── Master Gantt Data ──────────────────────────────────────────────────────
+// ── Initial Master Gantt — pre-populated from live schedule ────────────────
 const INIT_MASTER_GANTT=[
-  {id:'mg1',code:'MS1039',name:'Shark Net',client:'Pocket Money Prods',type:'film',
-   episodes:[
-     {id:'e1',name:'Film',tasks:[
-       tk('a1','Ingest',   '2026-06-01','2026-06-03','Done',100,'Paul R'),
-       tk('a2','DX Edit',  '2026-06-03','2026-06-10','In Progress',60,'Paul R'),
-       tk('a3','MX Edit',  '2026-06-03','2026-06-10','In Progress',40,'Matthew P'),
-       tk('a4','SFX Edit', '2026-06-04','2026-06-11','Not Started',0,'Paul R'),
-       tk('a5','Pre Mix',  '2026-06-15','2026-06-18','Not Started',0,'Paul R'),
-       tk('a6','Final Mix','2026-06-22','2026-06-26','Not Started',0,'Matthew P'),
-       tk('a7','QC',       '2026-06-26','2026-06-28','Not Started',0,'Kristen S'),
-       tk('a8','Delivery', '2026-06-29','2026-06-30','Not Started',0,'Kristen S'),
-     ]}]},
-  {id:'mg2',code:'MS0972',name:'Sydney Fish Markets',client:'FMC Productions',type:'series',
+  {id:'mg1',code:'MS1039',name:'Shark Net',client:'Pocket Money Productions',type:'film',
+   episodes:[{id:'e1',name:'Film',tasks:[
+     tk('sn1','Ingest',   '2026-05-04','2026-05-04','Done',100,'Paul R'),
+     tk('sn2','DX Edit',  '2026-05-04','2026-05-29','In Progress',60,'Paul R'),
+     tk('sn3','MX Edit',  '2026-06-10','2026-06-14','Not Started',0,'Matthew P'),
+     tk('sn4','SFX Edit', '2026-06-02','2026-06-09','Not Started',0,'Matthew P'),
+     tk('sn5','Pre Mix',  '2026-06-15','2026-06-21','Not Started',0,'Paul R'),
+     tk('sn6','Final Mix','2026-06-22','2026-06-26','Not Started',0,'Paul R'),
+     tk('sn7','QC',       '2026-06-27','2026-06-28','Not Started',0,'Kristen S'),
+     tk('sn8','Delivery', '2026-06-29','2026-06-29','Not Started',0,'Kristen S'),
+   ]}]},
+  {id:'mg2',code:'MS0972',name:'Inside Sydney Fish Markets',client:'Butter Films',type:'series',
    episodes:[
      {id:'e1',name:'Ep 1',tasks:[
-       tk('b1','Ingest',   '2026-04-18','2026-04-19','Done',100,'Paul R'),
-       tk('b2','DX Edit',  '2026-04-20','2026-04-21','Done',100,'Paul R'),
-       tk('b3','MX Edit',  '2026-04-20','2026-04-21','In Progress',70,'Matthew P'),
-       tk('b4','SFX Edit', '2026-04-21','2026-04-22','Not Started',0,'Tom B'),
-       tk('b5','Pre Mix',  '2026-04-23','2026-04-24','Not Started',0,'Paul R'),
-       tk('b6','Final Mix','2026-04-24','2026-04-26','Not Started',0,'Matthew P'),
-       tk('b7','QC',       '2026-04-26','2026-04-27','Not Started',0,'Kristen S'),
-       tk('b8','Delivery', '2026-04-28','2026-04-28','Not Started',0,'Kristen S'),
+       tk('f1a','Ingest',   '2026-05-25','2026-05-25','Not Started',0,'Paul R'),
+       tk('f1b','DX Edit',  '2026-05-26','2026-05-27','Not Started',0,'Paul R'),
+       tk('f1c','MX Edit',  '2026-05-27','2026-05-28','Not Started',0,'Paul R'),
+       tk('f1d','SFX Edit', '2026-05-28','2026-05-29','Not Started',0,'Paul R'),
+       tk('f1e','Pre Mix',  '2026-05-29','2026-05-30','Not Started',0,'Paul R'),
+       tk('f1f','Final Mix','2026-05-30','2026-06-01','Not Started',0,'Paul R'),
+       tk('f1g','QC',       '2026-06-01','2026-06-02','Not Started',0,'Kristen S'),
+       tk('f1h','Delivery', '2026-06-02','2026-06-02','Not Started',0,'Kristen S'),
      ]},
      {id:'e2',name:'Ep 2',tasks:[
-       tk('c1','Ingest',   '2026-04-25','2026-04-26','In Progress',45,'Alex R'),
-       tk('c2','DX Edit',  '2026-04-27','2026-04-29','Not Started',0,'Paul R'),
-       tk('c3','MX Edit',  '2026-04-27','2026-04-29','Not Started',0,'Matthew P'),
-       tk('c4','SFX Edit', '2026-04-29','2026-05-01','Not Started',0,'Tom B'),
-       tk('c5','Pre Mix',  '2026-05-02','2026-05-04','Not Started',0,'Paul R'),
-       tk('c6','Final Mix','2026-05-04','2026-05-06','Not Started',0,'Matthew P'),
-       tk('c7','QC',       '2026-05-06','2026-05-07','Not Started',0,'Kristen S'),
-       tk('c8','Delivery', '2026-05-07','2026-05-08','Not Started',0,'Kristen S'),
+       tk('f2a','Ingest',   '2026-06-29','2026-06-29','Not Started',0,'Paul R'),
+       tk('f2b','DX Edit',  '2026-06-30','2026-07-01','Not Started',0,'Paul R'),
+       tk('f2c','MX Edit',  '2026-07-01','2026-07-02','Not Started',0,'Paul R'),
+       tk('f2d','SFX Edit', '2026-07-02','2026-07-03','Not Started',0,'Paul R'),
+       tk('f2e','Pre Mix',  '2026-07-03','2026-07-04','Not Started',0,'Paul R'),
+       tk('f2f','Final Mix','2026-07-04','2026-07-06','Not Started',0,'Paul R'),
+       tk('f2g','QC',       '2026-07-06','2026-07-07','Not Started',0,'Kristen S'),
+       tk('f2h','Delivery', '2026-08-24','2026-08-24','Not Started',0,'Kristen S'),
      ]},
      {id:'e3',name:'Ep 3',tasks:[
-       tk('d1','Ingest',   '2026-05-04','2026-05-05','Not Started',0,'Alex R'),
-       tk('d2','DX Edit',  '2026-05-05','2026-05-07','Not Started',0,'Paul R'),
-       tk('d3','MX Edit',  '2026-05-05','2026-05-07','Not Started',0,'Matthew P'),
-       tk('d4','SFX Edit', '2026-05-07','2026-05-09','Not Started',0,'Tom B'),
-       tk('d5','Pre Mix',  '2026-05-09','2026-05-11','Not Started',0,'Paul R'),
-       tk('d6','Final Mix','2026-05-11','2026-05-13','Not Started',0,'Matthew P'),
-       tk('d7','QC',       '2026-05-13','2026-05-14','Not Started',0,'Kristen S'),
-       tk('d8','Delivery', '2026-05-14','2026-05-15','Not Started',0,'Kristen S'),
+       tk('f3a','Ingest',   '2026-07-06','2026-07-06','Not Started',0,'Paul R'),
+       tk('f3b','DX Edit',  '2026-07-07','2026-07-08','Not Started',0,'Paul R'),
+       tk('f3c','MX Edit',  '2026-07-08','2026-07-10','Not Started',0,'Paul R'),
+       tk('f3d','SFX Edit', '2026-07-10','2026-07-11','Not Started',0,'Paul R'),
+       tk('f3e','Pre Mix',  '2026-07-11','2026-07-12','Not Started',0,'Paul R'),
+       tk('f3f','Final Mix','2026-07-12','2026-07-14','Not Started',0,'Paul R'),
+       tk('f3g','QC',       '2026-07-14','2026-07-14','Not Started',0,'Kristen S'),
+       tk('f3h','Delivery', '2026-08-31','2026-08-31','Not Started',0,'Kristen S'),
+     ]},
+     {id:'e4',name:'Ep 4',tasks:[
+       tk('f4a','Ingest',   '2026-07-28','2026-07-28','Not Started',0,'Paul R'),
+       tk('f4b','DX Edit',  '2026-07-29','2026-07-30','Not Started',0,'Paul R'),
+       tk('f4c','MX Edit',  '2026-07-30','2026-07-31','Not Started',0,'Paul R'),
+       tk('f4d','SFX Edit', '2026-07-31','2026-08-01','Not Started',0,'Paul R'),
+       tk('f4e','Pre Mix',  '2026-08-01','2026-08-02','Not Started',0,'Paul R'),
+       tk('f4f','Final Mix','2026-08-03','2026-08-05','Not Started',0,'Paul R'),
+       tk('f4g','QC',       '2026-08-05','2026-08-05','Not Started',0,'Kristen S'),
+       tk('f4h','Delivery', '2026-09-07','2026-09-07','Not Started',0,'Kristen S'),
+     ]},
+     {id:'e5',name:'Ep 5',tasks:[
+       tk('f5a','Ingest',   '2026-08-10','2026-08-10','Not Started',0,'Paul R'),
+       tk('f5b','DX Edit',  '2026-08-11','2026-08-12','Not Started',0,'Paul R'),
+       tk('f5c','MX Edit',  '2026-08-12','2026-08-14','Not Started',0,'Paul R'),
+       tk('f5d','SFX Edit', '2026-08-14','2026-08-15','Not Started',0,'Paul R'),
+       tk('f5e','Pre Mix',  '2026-08-15','2026-08-16','Not Started',0,'Paul R'),
+       tk('f5f','Final Mix','2026-08-16','2026-08-18','Not Started',0,'Paul R'),
+       tk('f5g','QC',       '2026-08-18','2026-08-18','Not Started',0,'Kristen S'),
+       tk('f5h','Delivery', '2026-09-14','2026-09-14','Not Started',0,'Kristen S'),
+     ]},
+     {id:'e6',name:'Ep 6',tasks:[
+       tk('f6a','Ingest',   '2026-08-24','2026-08-24','Not Started',0,'Paul R'),
+       tk('f6b','DX Edit',  '2026-08-25','2026-08-26','Not Started',0,'Paul R'),
+       tk('f6c','MX Edit',  '2026-08-26','2026-08-28','Not Started',0,'Paul R'),
+       tk('f6d','SFX Edit', '2026-08-28','2026-08-29','Not Started',0,'Paul R'),
+       tk('f6e','Pre Mix',  '2026-08-29','2026-08-30','Not Started',0,'Paul R'),
+       tk('f6f','Final Mix','2026-08-30','2026-09-01','Not Started',0,'Paul R'),
+       tk('f6g','QC',       '2026-09-01','2026-09-01','Not Started',0,'Kristen S'),
+       tk('f6h','Delivery', '2026-09-21','2026-09-21','Not Started',0,'Kristen S'),
      ]},
    ]},
-  {id:'mg3',code:'MS1041',name:'Nike TVC Campaign',client:'Nike ANZ',type:'film',
+  {id:'mg3',code:'MS1052',name:'Dancing Reality Show',client:'BBC Studios',type:'series',
    episodes:[
-     {id:'e1',name:'Film',tasks:[
-       tk('e1','Ingest',   '2026-04-13','2026-04-13','Done',100,'Paul R'),
-       tk('e2','DX Edit',  '2026-04-13','2026-04-14','Done',100,'Paul R'),
-       tk('e3','MX Edit',  '2026-04-13','2026-04-14','In Progress',80,'Matthew P'),
-       tk('e4','SFX Edit', '2026-04-14','2026-04-15','Not Started',0,'Tom B'),
-       tk('e5','Pre Mix',  '2026-04-15','2026-04-16','Not Started',0,'Paul R'),
-       tk('e6','Final Mix','2026-04-16','2026-04-18','Not Started',0,'Paul R'),
-       tk('e7','QC',       '2026-04-18','2026-04-19','Not Started',0,'Kristen S'),
-       tk('e8','Delivery', '2026-04-20','2026-04-20','Not Started',0,'Kristen S'),
-     ]}]},
+     {id:'d1',name:'Ep 1',tasks:[
+       tk('d1a','Ingest',   '2026-05-30','2026-05-30','Not Started',0,'Matthew P'),
+       tk('d1b','DX Edit',  '2026-05-30','2026-06-04','Not Started',0,'Matthew P'),
+       tk('d1c','MX Edit',  '2026-06-04','2026-06-09','Not Started',0,'Matthew P'),
+       tk('d1d','SFX Edit', '2026-06-09','2026-06-12','Not Started',0,'Matthew P'),
+       tk('d1e','Pre Mix',  '2026-06-12','2026-06-15','Not Started',0,'Matthew P'),
+       tk('d1f','Final Mix','2026-06-15','2026-06-18','Not Started',0,'Matthew P'),
+       tk('d1g','QC',       '2026-06-23','2026-06-23','Not Started',0,'Kristen S'),
+       tk('d1h','Delivery', '2026-07-04','2026-07-05','Not Started',0,'Kristen S'),
+     ]},
+     {id:'d2',name:'Ep 2',tasks:[
+       tk('d2a','Ingest',   '2026-06-12','2026-06-12','Not Started',0,'Matthew P'),
+       tk('d2b','DX Edit',  '2026-06-12','2026-06-16','Not Started',0,'Matthew P'),
+       tk('d2c','MX Edit',  '2026-06-16','2026-06-20','Not Started',0,'Matthew P'),
+       tk('d2d','SFX Edit', '2026-06-20','2026-06-22','Not Started',0,'Matthew P'),
+       tk('d2e','Pre Mix',  '2026-06-22','2026-06-24','Not Started',0,'Matthew P'),
+       tk('d2f','Final Mix','2026-06-24','2026-06-25','Not Started',0,'Matthew P'),
+       tk('d2g','QC',       '2026-06-30','2026-06-30','Not Started',0,'Kristen S'),
+       tk('d2h','Delivery', '2026-07-11','2026-07-12','Not Started',0,'Kristen S'),
+     ]},
+     {id:'d3',name:'Ep 3',tasks:[
+       tk('d3a','Ingest',   '2026-06-23','2026-06-23','Not Started',0,'Matthew P'),
+       tk('d3b','DX Edit',  '2026-06-23','2026-06-26','Not Started',0,'Matthew P'),
+       tk('d3c','MX Edit',  '2026-06-26','2026-06-29','Not Started',0,'Matthew P'),
+       tk('d3d','SFX Edit', '2026-06-29','2026-07-01','Not Started',0,'Matthew P'),
+       tk('d3e','Pre Mix',  '2026-07-01','2026-07-02','Not Started',0,'Matthew P'),
+       tk('d3f','Final Mix','2026-07-02','2026-07-03','Not Started',0,'Matthew P'),
+       tk('d3g','QC',       '2026-07-07','2026-07-07','Not Started',0,'Kristen S'),
+       tk('d3h','Delivery', '2026-07-18','2026-07-19','Not Started',0,'Kristen S'),
+     ]},
+     {id:'d4',name:'Ep 4',tasks:[
+       tk('d4a','Ingest',   '2026-06-24','2026-06-24','Not Started',0,'Matthew P'),
+       tk('d4b','DX Edit',  '2026-06-24','2026-06-29','Not Started',0,'Matthew P'),
+       tk('d4c','MX Edit',  '2026-06-29','2026-07-03','Not Started',0,'Matthew P'),
+       tk('d4d','SFX Edit', '2026-07-03','2026-07-06','Not Started',0,'Matthew P'),
+       tk('d4e','Pre Mix',  '2026-07-06','2026-07-08','Not Started',0,'Matthew P'),
+       tk('d4f','Final Mix','2026-07-08','2026-07-09','Not Started',0,'Matthew P'),
+       tk('d4g','QC',       '2026-07-14','2026-07-14','Not Started',0,'Kristen S'),
+       tk('d4h','Delivery', '2026-07-25','2026-07-26','Not Started',0,'Kristen S'),
+     ]},
+     {id:'d5',name:'Ep 5',tasks:[
+       tk('d5a','Ingest',   '2026-06-26','2026-06-26','Not Started',0,'Matthew P'),
+       tk('d5b','DX Edit',  '2026-06-26','2026-07-02','Not Started',0,'Matthew P'),
+       tk('d5c','MX Edit',  '2026-07-02','2026-07-07','Not Started',0,'Matthew P'),
+       tk('d5d','SFX Edit', '2026-07-07','2026-07-10','Not Started',0,'Matthew P'),
+       tk('d5e','Pre Mix',  '2026-07-10','2026-07-13','Not Started',0,'Matthew P'),
+       tk('d5f','Final Mix','2026-07-13','2026-07-16','Not Started',0,'Matthew P'),
+       tk('d5g','QC',       '2026-07-21','2026-07-22','Not Started',0,'Kristen S'),
+       tk('d5h','Delivery', '2026-08-01','2026-08-02','Not Started',0,'Kristen S'),
+     ]},
+     {id:'d6',name:'Ep 6',tasks:[
+       tk('d6a','Ingest',   '2026-07-03','2026-07-03','Not Started',0,'Matthew P'),
+       tk('d6b','DX Edit',  '2026-07-03','2026-07-09','Not Started',0,'Matthew P'),
+       tk('d6c','MX Edit',  '2026-07-09','2026-07-14','Not Started',0,'Matthew P'),
+       tk('d6d','SFX Edit', '2026-07-14','2026-07-17','Not Started',0,'Matthew P'),
+       tk('d6e','Pre Mix',  '2026-07-17','2026-07-21','Not Started',0,'Matthew P'),
+       tk('d6f','Final Mix','2026-07-21','2026-07-23','Not Started',0,'Matthew P'),
+       tk('d6g','QC',       '2026-07-28','2026-07-28','Not Started',0,'Kristen S'),
+       tk('d6h','Delivery', '2026-08-08','2026-08-09','Not Started',0,'Kristen S'),
+     ]},
+     {id:'d7',name:'Ep 7',tasks:[
+       tk('d7a','Ingest',   '2026-07-10','2026-07-10','Not Started',0,'Matthew P'),
+       tk('d7b','DX Edit',  '2026-07-10','2026-07-16','Not Started',0,'Matthew P'),
+       tk('d7c','MX Edit',  '2026-07-16','2026-07-22','Not Started',0,'Matthew P'),
+       tk('d7d','SFX Edit', '2026-07-22','2026-07-26','Not Started',0,'Matthew P'),
+       tk('d7e','Pre Mix',  '2026-07-26','2026-07-29','Not Started',0,'Matthew P'),
+       tk('d7f','Final Mix','2026-07-29','2026-07-30','Not Started',0,'Matthew P'),
+       tk('d7g','QC',       '2026-08-04','2026-08-04','Not Started',0,'Kristen S'),
+       tk('d7h','Delivery', '2026-08-15','2026-08-16','Not Started',0,'Kristen S'),
+     ]},
+     {id:'d8',name:'Ep 8',tasks:[
+       tk('d8a','Ingest',   '2026-07-31','2026-07-31','Not Started',0,'Matthew P'),
+       tk('d8b','DX Edit',  '2026-07-31','2026-08-02','Not Started',0,'Matthew P'),
+       tk('d8c','MX Edit',  '2026-08-02','2026-08-04','Not Started',0,'Matthew P'),
+       tk('d8d','SFX Edit', '2026-08-04','2026-08-05','Not Started',0,'Matthew P'),
+       tk('d8e','Pre Mix',  '2026-08-05','2026-08-06','Not Started',0,'Matthew P'),
+       tk('d8f','Final Mix','2026-08-06','2026-08-06','Not Started',0,'Matthew P'),
+       tk('d8g','QC',       '2026-08-13','2026-08-14','Not Started',0,'Kristen S'),
+       tk('d8h','Delivery', '2026-08-22','2026-08-23','Not Started',0,'Kristen S'),
+     ]},
+   ]},
+  {id:'mg4',code:'MS1073',name:'Deadliest Dinners S1',client:'Foxtel',type:'series',
+   episodes:[
+     {id:'dd1',name:'Ep 1',tasks:[
+       tk('dd1a','Ingest',   '2026-06-04','2026-06-04','Not Started',0,'Paul R'),
+       tk('dd1b','DX Edit',  '2026-06-04','2026-06-08','Not Started',0,'Paul R'),
+       tk('dd1c','MX Edit',  '2026-06-08','2026-06-11','Not Started',0,'Paul R'),
+       tk('dd1d','SFX Edit', '2026-06-11','2026-06-14','Not Started',0,'Paul R'),
+       tk('dd1e','Pre Mix',  '2026-06-14','2026-06-16','Not Started',0,'Paul R'),
+       tk('dd1f','Final Mix','2026-06-16','2026-06-19','Not Started',0,'Paul R'),
+       tk('dd1g','QC',       '2026-06-30','2026-06-30','Not Started',0,'Kristen S'),
+       tk('dd1h','Delivery', '2026-07-01','2026-07-01','Not Started',0,'Kristen S'),
+     ]},
+     {id:'dd2',name:'Ep 2',tasks:[
+       tk('dd2a','Ingest',   '2026-06-11','2026-06-11','Not Started',0,'Paul R'),
+       tk('dd2b','DX Edit',  '2026-06-12','2026-06-15','Not Started',0,'Paul R'),
+       tk('dd2c','MX Edit',  '2026-06-15','2026-06-19','Not Started',0,'Paul R'),
+       tk('dd2d','SFX Edit', '2026-06-19','2026-06-22','Not Started',0,'Paul R'),
+       tk('dd2e','Pre Mix',  '2026-06-22','2026-06-24','Not Started',0,'Paul R'),
+       tk('dd2f','Final Mix','2026-06-24','2026-06-27','Not Started',0,'Paul R'),
+       tk('dd2g','QC',       '2026-07-07','2026-07-07','Not Started',0,'Kristen S'),
+       tk('dd2h','Delivery', '2026-07-08','2026-07-08','Not Started',0,'Kristen S'),
+     ]},
+     {id:'dd3',name:'Ep 3',tasks:[
+       tk('dd3a','Ingest',   '2026-06-16','2026-06-16','Not Started',0,'Paul R'),
+       tk('dd3b','DX Edit',  '2026-06-17','2026-06-20','Not Started',0,'Paul R'),
+       tk('dd3c','MX Edit',  '2026-06-20','2026-06-24','Not Started',0,'Paul R'),
+       tk('dd3d','SFX Edit', '2026-06-24','2026-06-27','Not Started',0,'Paul R'),
+       tk('dd3e','Pre Mix',  '2026-06-27','2026-07-01','Not Started',0,'Paul R'),
+       tk('dd3f','Final Mix','2026-07-01','2026-07-04','Not Started',0,'Paul R'),
+       tk('dd3g','QC',       '2026-07-14','2026-07-14','Not Started',0,'Kristen S'),
+       tk('dd3h','Delivery', '2026-07-15','2026-07-15','Not Started',0,'Kristen S'),
+     ]},
+     {id:'dd4',name:'Ep 4',tasks:[
+       tk('dd4a','Ingest',   '2026-07-08','2026-07-08','Not Started',0,'Paul R'),
+       tk('dd4b','DX Edit',  '2026-07-08','2026-07-10','Not Started',0,'Paul R'),
+       tk('dd4c','MX Edit',  '2026-07-10','2026-07-12','Not Started',0,'Paul R'),
+       tk('dd4d','SFX Edit', '2026-07-12','2026-07-13','Not Started',0,'Paul R'),
+       tk('dd4e','Pre Mix',  '2026-07-13','2026-07-14','Not Started',0,'Paul R'),
+       tk('dd4f','Final Mix','2026-07-14','2026-07-14','Not Started',0,'Paul R'),
+       tk('dd4g','QC',       '2026-07-21','2026-07-21','Not Started',0,'Kristen S'),
+       tk('dd4h','Delivery', '2026-07-22','2026-07-22','Not Started',0,'Kristen S'),
+     ]},
+     {id:'dd5',name:'Ep 5',tasks:[
+       tk('dd5a','Ingest',   '2026-07-14','2026-07-14','Not Started',0,'Paul R'),
+       tk('dd5b','DX Edit',  '2026-07-14','2026-07-15','Not Started',0,'Paul R'),
+       tk('dd5c','MX Edit',  '2026-07-15','2026-07-16','Not Started',0,'Paul R'),
+       tk('dd5d','SFX Edit', '2026-07-16','2026-07-17','Not Started',0,'Paul R'),
+       tk('dd5e','Pre Mix',  '2026-07-17','2026-07-17','Not Started',0,'Paul R'),
+       tk('dd5f','Final Mix','2026-07-17','2026-07-18','Not Started',0,'Paul R'),
+       tk('dd5g','QC',       '2026-07-28','2026-07-28','Not Started',0,'Kristen S'),
+       tk('dd5h','Delivery', '2026-07-29','2026-07-29','Not Started',0,'Kristen S'),
+     ]},
+     {id:'dd6',name:'Ep 6',tasks:[
+       tk('dd6a','Ingest',   '2026-07-21','2026-07-21','Not Started',0,'Paul R'),
+       tk('dd6b','DX Edit',  '2026-07-21','2026-07-22','Not Started',0,'Paul R'),
+       tk('dd6c','MX Edit',  '2026-07-22','2026-07-23','Not Started',0,'Paul R'),
+       tk('dd6d','SFX Edit', '2026-07-23','2026-07-24','Not Started',0,'Paul R'),
+       tk('dd6e','Pre Mix',  '2026-07-24','2026-07-24','Not Started',0,'Paul R'),
+       tk('dd6f','Final Mix','2026-07-24','2026-07-25','Not Started',0,'Paul R'),
+       tk('dd6g','QC',       '2026-08-04','2026-08-04','Not Started',0,'Kristen S'),
+       tk('dd6h','Delivery', '2026-08-05','2026-08-05','Not Started',0,'Kristen S'),
+     ]},
+     {id:'dd7',name:'Ep 7',tasks:[
+       tk('dd7a','Ingest',   '2026-07-28','2026-07-28','Not Started',0,'Paul R'),
+       tk('dd7b','DX Edit',  '2026-07-28','2026-07-29','Not Started',0,'Paul R'),
+       tk('dd7c','MX Edit',  '2026-07-29','2026-07-30','Not Started',0,'Paul R'),
+       tk('dd7d','SFX Edit', '2026-07-30','2026-07-31','Not Started',0,'Paul R'),
+       tk('dd7e','Pre Mix',  '2026-07-31','2026-08-01','Not Started',0,'Paul R'),
+       tk('dd7f','Final Mix','2026-08-01','2026-08-01','Not Started',0,'Paul R'),
+       tk('dd7g','QC',       '2026-08-11','2026-08-11','Not Started',0,'Kristen S'),
+       tk('dd7h','Delivery', '2026-08-12','2026-08-12','Not Started',0,'Kristen S'),
+     ]},
+     {id:'dd8',name:'Ep 8',tasks:[
+       tk('dd8a','Ingest',   '2026-08-11','2026-08-11','Not Started',0,'Paul R'),
+       tk('dd8b','DX Edit',  '2026-08-11','2026-08-12','Not Started',0,'Paul R'),
+       tk('dd8c','MX Edit',  '2026-08-12','2026-08-13','Not Started',0,'Paul R'),
+       tk('dd8d','SFX Edit', '2026-08-13','2026-08-14','Not Started',0,'Paul R'),
+       tk('dd8e','Pre Mix',  '2026-08-14','2026-08-14','Not Started',0,'Paul R'),
+       tk('dd8f','Final Mix','2026-08-14','2026-08-15','Not Started',0,'Paul R'),
+       tk('dd8g','QC',       '2026-08-20','2026-08-20','Not Started',0,'Kristen S'),
+       tk('dd8h','Delivery', '2026-08-21','2026-08-22','Not Started',0,'Kristen S'),
+     ]},
+   ]},
+  {id:'mg5',code:'MS0733',name:'FTLOP S3',client:'Context Media',type:'series',
+   episodes:[
+     {id:'ft1',name:'Series',tasks:[
+       tk('ft1a','Ingest',   '2026-08-24','2026-08-28','Not Started',0,'Paul R'),
+       tk('ft1b','DX Edit',  '2026-08-28','2026-09-07','Not Started',0,'Paul R'),
+       tk('ft1c','MX Edit',  '2026-09-07','2026-09-14','Not Started',0,'Paul R'),
+       tk('ft1d','SFX Edit', '2026-09-14','2026-09-21','Not Started',0,'Paul R'),
+       tk('ft1e','Pre Mix',  '2026-09-21','2026-09-28','Not Started',0,'Paul R'),
+       tk('ft1f','Final Mix','2026-09-28','2026-10-07','Not Started',0,'Matthew P'),
+       tk('ft1g','QC',       '2026-10-07','2026-10-14','Not Started',0,'Kristen S'),
+       tk('ft1h','Delivery', '2026-10-21','2026-10-26','Not Started',0,'Kristen S'),
+     ]},
+   ]},
 ];
 
 // ── Initial App Data ───────────────────────────────────────────────────────
@@ -707,68 +903,311 @@ function DatePickerPopup({anchorRef,onSelect,onClose}){
   );
 }
 
-// ── MASTER GANTT SCHEDULER ─────────────────────────────────────────────────
-function MasterGantt({ganttData,onImport,onUpdateGantt}){
+// ── GOOGLE SHEETS SYNC ────────────────────────────────────────────────────
+// Replace GSHEETS_CLIENT_ID with your Google Cloud OAuth 2.0 Client ID
+const GSHEETS_CLIENT_ID='375953047409-g264eo7tghcg1g82s6f8khfg8p5f0jh4.apps.googleusercontent.com';
+const GSHEETS_SCOPES='https://www.googleapis.com/auth/spreadsheets';
+
+function useGoogleSheets(ganttData,onUpdateGantt){
+  const [connected,setConnected]=useState(false);
+  const [sheetId,setSheetId]=useState('');
+  const [syncStatus,setSyncStatus]=useState('idle'); // idle | syncing | error | ok
+  const [lastSync,setLastSync]=useState(null);
+  const [accessToken,setAccessToken]=useState(null);
+  const pollRef=useRef(null);
+
+  // OAuth implicit flow
+  const connectGoogle=()=>{
+    if(GSHEETS_CLIENT_ID==='YOUR_GOOGLE_CLIENT_ID_HERE'){
+      alert('Add your Google OAuth Client ID to enable Sheets sync. See the build notes.');
+      return;
+    }
+    const params=new URLSearchParams({
+      client_id:GSHEETS_CLIENT_ID,
+      redirect_uri:window.location.origin+window.location.pathname,
+      response_type:'token',
+      scope:GSHEETS_SCOPES,
+      include_granted_scopes:'true',
+    });
+    window.location.href='https://accounts.google.com/o/oauth2/v2/auth?'+params;
+  };
+
+  // Handle OAuth redirect token
+  useEffect(()=>{
+    const hash=new URLSearchParams(window.location.hash.replace('#',''));
+    const token=hash.get('access_token');
+    if(token){
+      setAccessToken(token);setConnected(true);
+      window.history.replaceState(null,'',window.location.pathname);
+    }
+  },[]);
+
+  // Parse MASTER sheet rows → gantt projects
+  // Format: Col A=Event, Col B=Engineer, Col C=Start Date, Col D=End Date, Col E=Days
+  // Section headers: all-caps row with no dates → new project group
+  // Episode rows: MS code in name + valid dates → episode with date range
+  // Task rows: known task names (DX, MX, BGX, SFX, Pre Mix, Final Mix, QC, Deliverables)
+  const parseSheetToGantt=(rows,sheetTitle)=>{
+    if(!rows||rows.length<2)return null;
+    const TASK_MAP=[
+      {keys:['ingest','rough cut','rushes'],       std:'Ingest'},
+      {keys:['dx edit','dx ','dialogue'],           std:'DX Edit'},
+      {keys:['mx edit','mx ','music edit'],         std:'MX Edit'},
+      {keys:['bgx','sfx','sfx edit','bkgd'],        std:'SFX Edit'},
+      {keys:['pre mix','pre-mix','premix'],          std:'Pre Mix'},
+      {keys:['final mix','final-mix','mix ','dub'],  std:'Final Mix'},
+      {keys:['qc','quality','review'],               std:'QC'},
+      {keys:['deliver','deliverable'],               std:'Delivery'},
+    ];
+    const matchTask=name=>{const n=name.toLowerCase();return TASK_MAP.find(t=>t.keys.some(k=>n.includes(k)))?.std||null};
+    const isDate=v=>v&&(v instanceof Date||String(v).match(/^\d{4}-\d{2}-\d{2}$/));
+    const toDate=v=>{if(!v)return null;if(v instanceof Date)return v.toISOString().split('T')[0];const s=String(v).trim();if(s.match(/^\d{4}-\d{2}-\d{2}$/))return s;return null};
+    const isError=v=>!v||String(v).match(/^#(REF|N\/A|VALUE|DIV)/);
+
+    const projects=[];
+    let curProj=null;
+    let curEp=null;
+
+    rows.forEach((row,ri)=>{
+      if(ri<4)return; // skip header rows
+      const a=row[0]?String(row[0]).trim():'';
+      const b=row[1];
+      const startD=toDate(row[2]);
+      const endD=toDate(row[3]);
+      if(!a)return;
+
+      // Section header: all-caps, no valid dates → new project
+      const isHeader=a===a.toUpperCase()&&a.length>3&&!startD&&!a.match(/^MS\d/);
+      // MS code row with valid dates → episode/summary
+      const isMSRow=a.match(/^[\s]*MS\d+/)&&isDate(row[2])&&!isError(row[2]);
+      // Task row: known task name
+      const taskType=matchTask(a);
+
+      if(isHeader&&!isMSRow){
+        // New project section
+        const code=a.match(/MS\d+/)?.[0]||null;
+        if(code&&projects.find(p=>p.code===code)){
+          curProj=projects.find(p=>p.code===code);
+        } else {
+          curProj={
+            id:uid(),
+            code:code||'MS'+Math.floor(Math.random()*9000+1000),
+            name:a.replace(/MS\d+\s*/,'').trim().replace(/\s+-\s+.*$/,'').trim()||a,
+            client:'Live Sheet',type:'series',sheetId,episodes:[]
+          };
+          projects.push(curProj);
+        }
+        curEp=null;
+        return;
+      }
+
+      if(isMSRow&&curProj){
+        // Episode summary row — extract ep number if present
+        const epMatch=a.match(/ep(?:isode)?\s*(\d+)/i);
+        const epName=epMatch?`Ep ${epMatch[1].padStart(2,'0')}`:(curProj.episodes.length===0?'Film':'Ep '+(curProj.episodes.length+1));
+        curEp={id:uid(),name:epName,tasks:[]};
+        // If no engineer ref error, extract it
+        if(b&&!isError(b)&&typeof b==='string')curEp.engineer=b;
+        curProj.episodes.push(curEp);
+        // Add a placeholder Ingest from this summary row's dates if no tasks yet
+        if(startD){
+          curEp._startDate=startD;
+          curEp._endDate=endD||addDays(startD,14);
+        }
+        return;
+      }
+
+      if(taskType&&curEp){
+        // Task row — dates come from col C/D when read from Sheets API
+        const sd=(!isError(row[2])&&isDate(row[2]))?toDate(row[2]):(curEp._startDate||today());
+        const ed=(!isError(row[3])&&isDate(row[3]))?toDate(row[3]):addDays(sd,3);
+        const eng=(!isError(b)&&b&&typeof b==='string')?b:(curEp.engineer||'Paul R');
+        curEp.tasks.push(tk(uid(),taskType,sd,ed,'Not Started',0,eng));
+        return;
+      }
+
+      // Standalone MS row without a current project
+      if(isMSRow&&!curProj){
+        const code=a.match(/MS\d+/)?.[0]||'MS'+Math.floor(Math.random()*9000+1000);
+        const name=a.replace(/MS\d+\s*/,'').split('-')[0].trim();
+        curProj={id:uid(),code,name,client:'Live Sheet',type:'film',sheetId,episodes:[]};
+        projects.push(curProj);
+        curEp={id:uid(),name:'Film',tasks:[]};
+        if(startD){curEp._startDate=startD;curEp._endDate=endD||addDays(startD,14)}
+        curProj.episodes.push(curEp);
+      }
+    });
+
+    // Fill any episodes with no tasks with defaults based on date range
+    projects.forEach(proj=>proj.episodes.forEach(ep=>{
+      if(ep.tasks.length===0&&ep._startDate){
+        const totalDays=daysBetween(ep._startDate,ep._endDate||addDays(ep._startDate,14));
+        const step=Math.max(1,Math.floor(totalDays/8));
+        ep.tasks=TASK_DEFS.map((td,i)=>tk(uid(),td.name,addDays(ep._startDate,i*step),addDays(ep._startDate,(i+1)*step),'Not Started',0,'Paul R'));
+      }
+      delete ep._startDate;delete ep._endDate;delete ep.engineer;
+    }));
+
+    return projects.length>0?{
+      id:uid(),code:'MASTER',name:sheetTitle||'Live Schedule',
+      client:'Google Sheets',type:'master',sheetId,
+      _isMulti:true,_projects:projects
+    }:null;
+  };
+
+  // Write gantt status changes back to sheet
+  const writeBack=async(rowIndex,statusValue)=>{
+    if(!accessToken||!sheetId)return;
+    try{
+      await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!E${rowIndex+2}?valueInputOption=RAW`,{
+        method:'PUT',
+        headers:{'Authorization':`Bearer ${accessToken}`,'Content-Type':'application/json'},
+        body:JSON.stringify({values:[[statusValue]]})
+      });
+    }catch(e){console.warn('Write back failed:',e)}
+  };
+
+  // Poll sheet for changes every 30s
+  const pollSheet=useCallback(async()=>{
+    if(!accessToken||!sheetId)return;
+    setSyncStatus('syncing');
+    try{
+      // Read MASTER sheet (main gantt data)
+      const range='MASTER!A:E';
+      const resp=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(range)}`,{
+        headers:{'Authorization':`Bearer ${accessToken}`}
+      });
+      if(!resp.ok)throw new Error('Sheet fetch failed: '+resp.status);
+      const data=await resp.json();
+      const rows=data.values||[];
+      // Get sheet title
+      const metaResp=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}?fields=properties.title`,{
+        headers:{'Authorization':`Bearer ${accessToken}`}
+      });
+      const meta=await metaResp.json();
+      const title=meta.properties?.title||'Live Schedule';
+      const result=parseSheetToGantt(rows,title);
+      if(result&&result._isMulti){
+        // Multi-project MASTER sheet — merge each project into ganttData
+        onUpdateGantt(prev=>{
+          let next=[...prev];
+          result._projects.forEach(proj=>{
+            const existing=next.findIndex(p=>p.code===proj.code&&p.sheetId===sheetId);
+            if(existing>=0){next[existing]={...proj,id:next[existing].id}}
+            else next.push(proj);
+          });
+          return next;
+        });
+      } else if(result){
+        onUpdateGantt(prev=>{
+          const existing=prev.findIndex(p=>p.sheetId===sheetId);
+          if(existing>=0){const next=[...prev];next[existing]={...result,id:prev[existing].id};return next}
+          return[...prev,result];
+        });
+      }
+      setSyncStatus('ok');setLastSync(new Date());
+    }catch(e){setSyncStatus('error');console.warn('Poll failed:',e.message)}
+  },[accessToken,sheetId,onUpdateGantt]);
+
+  useEffect(()=>{
+    if(connected&&sheetId&&accessToken){
+      pollSheet();
+      pollRef.current=setInterval(pollSheet,30000);
+    }
+    return()=>clearInterval(pollRef.current);
+  },[connected,sheetId,accessToken]);
+
+  return{connected,sheetId,setSheetId,syncStatus,lastSync,connectGoogle,pollSheet,writeBack};
+}
+
+// ── MASTER GANTT SCHEDULER ────────────────────────────────────────────────
+function MasterGantt({ganttData,onUpdateGantt}){
   const [collapsed,setCollapsed]=useState({});
   const [epCollapsed,setEpCollapsed]=useState({});
-  const [anchorDate,setAnchorDate]=useState(today());// the date pinned to left of view
-  const [viewMode,setViewMode]=useState('days');// days | weeks | months
+  const [viewMode,setViewMode]=useState('days');
   const [showImport,setShowImport]=useState(false);
   const [showDatePicker,setShowDatePicker]=useState(false);
+  const [showSheetsPanel,setShowSheetsPanel]=useState(false);
   const datePickerBtnRef=useRef();
+  const scrollRef=useRef();       // the scrollable container
+  const headerScrollRef=useRef(); // synced header scroll
   const todayD=today();
-
   const cfg=useMemo(()=>VIEW_CFG[viewMode],[viewMode]);
-
-  const startDate=useMemo(()=>{
-    // Snap anchorDate to week start for days mode
-    if(viewMode==='days'){const dt=new Date(anchorDate+'T00:00:00');dt.setDate(dt.getDate()-dt.getDay());return dt.toISOString().split('T')[0]}
-    if(viewMode==='weeks'){const dt=new Date(anchorDate+'T00:00:00');dt.setDate(1);return dt.toISOString().split('T')[0]}
-    if(viewMode==='months'){const dt=new Date(anchorDate+'T00:00:00');dt.setMonth(dt.getMonth()-dt.getMonth()%3,1);return dt.toISOString().split('T')[0]}
-    return anchorDate;
-  },[anchorDate,viewMode]);
-
-  const colsArr=useMemo(()=>Array.from({length:cfg.units},(_,i)=>{
-    const d=addDays(startDate,i*cfg.step);
-    return{date:d,...cfg.labelFn(d)};
-  }),[startDate,cfg]);
-
-  const totalPx=cfg.units*cfg.pxPer;
   const LBL_W=220;
 
-  const dToX=useCallback(d=>{
-    const days=daysBetween(startDate,d);
-    return Math.max(0,Math.min(totalPx,days*(cfg.pxPer/cfg.step)));
-  },[startDate,cfg,totalPx]);
+  // Google Sheets hook
+  const sheets=useGoogleSheets(ganttData,onUpdateGantt);
 
-  const todayX=useMemo(()=>{
-    const days=daysBetween(startDate,todayD);
-    return days*(cfg.pxPer/cfg.step);
-  },[startDate,todayD,cfg]);
+  // ── Continuous timeline — render 18 months centred on today ──────────────
+  const TOTAL_DAYS=540; // 18 months
+  const ORIGIN=useMemo(()=>{
+    // Start of timeline = today minus 60 days
+    const dt=new Date(todayD+'T00:00:00');
+    dt.setDate(dt.getDate()-60);
+    if(viewMode==='days'){dt.setDate(dt.getDate()-dt.getDay())} // snap to week
+    return dt.toISOString().split('T')[0];
+  },[todayD,viewMode]);
+
+  const totalUnits=useMemo(()=>Math.ceil(TOTAL_DAYS/cfg.step),[cfg]);
+  const totalPx=totalUnits*cfg.pxPer;
+  const todayPx=useMemo(()=>daysBetween(ORIGIN,todayD)*(cfg.pxPer/cfg.step),[ORIGIN,todayD,cfg]);
+
+  const colsArr=useMemo(()=>Array.from({length:totalUnits},(_,i)=>{
+    const d=addDays(ORIGIN,i*cfg.step);
+    return{date:d,...cfg.labelFn(d)};
+  }),[ORIGIN,cfg,totalUnits]);
 
   const weekendCols=useMemo(()=>{
     if(viewMode!=='days')return[];
-    return colsArr.filter(d=>d.isWeekend).map((d,i)=>({key:i,left:daysBetween(startDate,d.date)*cfg.pxPer}));
-  },[colsArr,startDate,cfg,viewMode]);
+    return colsArr.filter(c=>c.isWeekend).map((c,i)=>({key:i,left:daysBetween(ORIGIN,c.date)*cfg.pxPer}));
+  },[colsArr,ORIGIN,cfg,viewMode]);
 
-  const navigate=n=>setAnchorDate(d=>addDays(d,cfg.navStep*n));
-  const goToDate=d=>setAnchorDate(d);
-  const goToday=()=>setAnchorDate(todayD);
+  const dToX=useCallback(d=>{
+    const days=daysBetween(ORIGIN,d);
+    return Math.max(0,days*(cfg.pxPer/cfg.step));
+  },[ORIGIN,cfg]);
 
-  // Conflict detection — simple O(n²) overlap check, no while loop
+  // Scroll to today on mount or view change
+  useEffect(()=>{
+    if(scrollRef.current){
+      const target=todayPx-300; // show 300px of past on left
+      scrollRef.current.scrollLeft=Math.max(0,target);
+    }
+  },[todayPx,viewMode]);
+
+  // Sync header scroll (horizontal) and label column (vertical) with body scroll
+  const labelScrollRef=useRef();
+  const onScroll=e=>{
+    if(headerScrollRef.current)headerScrollRef.current.scrollLeft=e.target.scrollLeft;
+    if(labelScrollRef.current)labelScrollRef.current.scrollTop=e.target.scrollTop;
+  };
+
+  // ── Month label row — show month names above day columns ─────────────────
+  const monthGroups=useMemo(()=>{
+    if(viewMode!=='days')return[];
+    const groups=[];let cur=null;
+    colsArr.forEach((c,i)=>{
+      const dt=new Date(c.date+'T00:00:00');
+      const label=dt.toLocaleDateString('en-AU',{month:'long',year:'numeric'});
+      if(label!==cur){groups.push({label,startIdx:i});cur=label}
+    });
+    return groups.map((g,i)=>{
+      const endIdx=i<groups.length-1?groups[i+1].startIdx:colsArr.length;
+      return{...g,width:(endIdx-g.startIdx)*cfg.pxPer,left:g.startIdx*cfg.pxPer};
+    });
+  },[colsArr,cfg,viewMode]);
+
+  // Conflict detection
   const conflicts=useMemo(()=>{
     const tasks=[];
     ganttData.forEach(proj=>proj.episodes.forEach(ep=>ep.tasks.forEach(t=>{
       if(t.assignee&&t.status!=='Done'&&t.startDate&&t.endDate)tasks.push({...t,projName:proj.name});
     })));
     const conf=[];
-    for(let i=0;i<tasks.length;i++){
-      for(let j=i+1;j<tasks.length;j++){
-        const a=tasks[i],b=tasks[j];
-        if(a.assignee===b.assignee&&a.startDate<=b.endDate&&b.startDate<=a.endDate){
-          conf.push(`${a.projName}:${a.name} overlaps ${b.projName}:${b.name} (${a.assignee})`);
-        }
-      }
+    for(let i=0;i<tasks.length;i++)for(let j=i+1;j<tasks.length;j++){
+      const a=tasks[i],b=tasks[j];
+      if(a.assignee===b.assignee&&a.startDate<=b.endDate&&b.startDate<=a.endDate)
+        conf.push(`${a.projName}: ${a.name} overlaps with ${b.projName}: ${b.name} (${a.assignee})`);
     }
     return conf;
   },[ganttData]);
@@ -776,34 +1215,42 @@ function MasterGantt({ganttData,onImport,onUpdateGantt}){
   const toggleProj=id=>setCollapsed(p=>({...p,[id]:!p[id]}));
   const toggleEp=id=>setEpCollapsed(p=>({...p,[id]:!p[id]}));
 
-  const getBarStyle=(task)=>{
+  const getBarStyle=task=>{
     const x1=dToX(task.startDate);const x2=dToX(task.endDate);
-    const w=Math.max(x2-x1,cfg.pxPer*0.3);
-    if(w<=0&&x1===0&&x2===0)return null;
+    const w=Math.max(x2-x1,cfg.pxPer*0.4);
+    if(w<=0)return null;
     const td=taskDef(task.name);
-    return{left:x1,width:w,color:td.text,bgColor:td.color};
+    return{left:x1,width:w,td};
   };
 
-  const getEpSpan=(ep)=>{
+  const getEpSpan=ep=>{
     const ts=ep.tasks;if(!ts.length)return null;
     const s=ts.reduce((m,t)=>t.startDate<m?t.startDate:m,ts[0].startDate);
     const e=ts.reduce((m,t)=>t.endDate>m?t.endDate:m,ts[0].endDate);
-    return{left:dToX(s),width:dToX(e)-dToX(s)};
+    return{left:dToX(s),width:Math.max(dToX(e)-dToX(s),4)};
   };
 
-  const endDate=addDays(startDate,(cfg.units-1)*cfg.step);
+  const scrollToToday=()=>{
+    if(scrollRef.current)scrollRef.current.scrollTo({left:Math.max(0,todayPx-300),behavior:'smooth'});
+  };
+  const scrollByWeeks=n=>{
+    if(scrollRef.current)scrollRef.current.scrollBy({left:n*cfg.pxPer*(viewMode==='days'?7:1),behavior:'smooth'});
+  };
 
   return(
     <div className="mg-wrap">
+      {/* Conflict banner */}
       {conflicts.length>0&&(
         <div className="mg-conflict-banner">
           <span>⚠</span>
-          <span>{conflicts.length} schedule conflict{conflicts.length!==1?'s':''} detected</span>
-          <button className="resolve-btn">View Conflicts</button>
+          <span style={{flex:1}}>{conflicts.length} engineer conflict{conflicts.length!==1?'s':''} detected</span>
+          <button className="resolve-btn" onClick={()=>alert(conflicts.slice(0,5).join('\n'))}>View</button>
         </div>
       )}
+
+      {/* Toolbar */}
       <div className="mg-toolbar">
-        {/* View mode toggle */}
+        {/* View toggle */}
         <div style={{display:'flex',gap:0,border:'1px solid #ddd',borderRadius:7,overflow:'hidden',flexShrink:0}}>
           {['days','weeks','months'].map(m=>(
             <button key={m} onClick={()=>setViewMode(m)}
@@ -812,112 +1259,197 @@ function MasterGantt({ganttData,onImport,onUpdateGantt}){
             </button>
           ))}
         </div>
-        {/* Nav */}
-        <button className="mg-nav-btn" onClick={()=>navigate(-1)}>‹</button>
-        {/* Date range — click to open picker */}
+        <button className="mg-nav-btn" onClick={()=>scrollByWeeks(-1)}>‹</button>
+        {/* Date picker */}
         <div style={{position:'relative'}}>
           <button ref={datePickerBtnRef} className="mg-nav-btn"
             onClick={()=>setShowDatePicker(p=>!p)}
-            style={{display:'flex',alignItems:'center',gap:6,fontWeight:600,minWidth:160,justifyContent:'center',background:showDatePicker?'#111':'#fff',color:showDatePicker?'#fff':'#555'}}>
-            <span>📅</span>
-            <span>{fmtD(startDate)} — {fmtD(endDate)}</span>
+            style={{display:'flex',alignItems:'center',gap:6,fontWeight:600,background:showDatePicker?'#111':'#fff',color:showDatePicker?'#fff':'#555'}}>
+            📅 Jump to date
           </button>
-          {showDatePicker&&<DatePickerPopup anchorRef={datePickerBtnRef} onSelect={goToDate} onClose={()=>setShowDatePicker(false)}/>}
+          {showDatePicker&&<DatePickerPopup anchorRef={datePickerBtnRef}
+            onSelect={d=>{
+              if(scrollRef.current)scrollRef.current.scrollTo({left:Math.max(0,dToX(d)-300),behavior:'smooth'});
+              setShowDatePicker(false);
+            }}
+            onClose={()=>setShowDatePicker(false)}/>}
         </div>
-        <button className="mg-nav-btn" onClick={()=>navigate(1)}>›</button>
-        <button className="mg-nav-btn" onClick={goToday} style={{fontSize:11,letterSpacing:'.03em',textTransform:'uppercase',fontWeight:700}}>Today</button>
-        <div style={{marginLeft:'auto',display:'flex',gap:6}}>
+        <button className="mg-nav-btn" onClick={()=>scrollByWeeks(1)}>›</button>
+        <button className="mg-nav-btn" onClick={scrollToToday} style={{fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:'.03em'}}>Today</button>
+
+        <div style={{marginLeft:'auto',display:'flex',gap:6,alignItems:'center'}}>
+          {/* Google Sheets sync status */}
+          {sheets.connected&&(
+            <div style={{display:'flex',alignItems:'center',gap:6,fontSize:11,fontWeight:600,color:sheets.syncStatus==='ok'?'#2e7d32':sheets.syncStatus==='error'?'#c62828':'#888'}}>
+              <span style={{width:7,height:7,borderRadius:'50%',background:sheets.syncStatus==='ok'?'#43a047':sheets.syncStatus==='syncing'?'#fb8c00':'#c62828',display:'inline-block'}}/>
+              {sheets.syncStatus==='ok'?`Synced ${sheets.lastSync?.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'})}`:sheets.syncStatus==='syncing'?'Syncing…':'Sync error'}
+              <button onClick={sheets.pollSheet} className="mg-nav-btn" style={{fontSize:10,padding:'3px 8px'}}>↻</button>
+            </div>
+          )}
+          <button className="t-btn" onClick={()=>setShowSheetsPanel(p=>!p)}
+            style={{fontWeight:700,fontSize:12,background:sheets.connected?'#e8f5e9':'#fff',borderColor:sheets.connected?'#a5d6a7':'#ddd',color:sheets.connected?'#2e7d32':'#444'}}>
+            {sheets.connected?'🟢 Sheets':'📊 Connect Sheets'}
+          </button>
           <button className="t-btn" onClick={()=>setShowImport(true)} style={{fontWeight:700,fontSize:12}}>⬆ Import</button>
           <button className="t-btn" onClick={()=>exportICS(ganttData)} style={{fontWeight:700,fontSize:12}}>📅 .ics</button>
         </div>
       </div>
-      <div className="mg-gantt-container">
-        <div style={{minWidth:LBL_W+totalPx}}>
-          <div className="mg-head-sticky">
-            <div className="mg-head-row">
-              <div className="mg-left-header">Project / Task</div>
-              {colsArr.map((d,i)=>(
-                <div key={i} className={`mg-day-cell${d.isWeekend?' weekend':''}`} style={{width:cfg.pxPer,flex:`0 0 ${cfg.pxPer}px`,borderRight:'1px solid #e8e8e8'}}>
-                  <div className="mg-day-top">{d.top}</div>
-                  <div className={`mg-day-num${d.date===todayD?' today-num':''}`}>{d.bot}</div>
+
+      {/* Google Sheets panel */}
+      {showSheetsPanel&&(
+        <div style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:8,padding:'12px 14px',marginBottom:10,display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
+          <div style={{flex:'0 0 auto'}}>
+            {sheets.connected
+              ?<span style={{fontSize:12,fontWeight:700,color:'#2e7d32'}}>✓ Connected to Google</span>
+              :<button className="btn-p" onClick={sheets.connectGoogle} style={{padding:'6px 14px',fontSize:12}}>Sign in with Google</button>}
+          </div>
+          {sheets.connected&&(<>
+            <div style={{flex:1,minWidth:220}}>
+              <input className="m-in" style={{marginBottom:0,fontSize:12}} placeholder="Paste Google Sheet ID or URL…"
+                value={sheets.sheetId} onChange={e=>{
+                  const v=e.target.value;
+                  // Extract sheet ID from URL if pasted
+                  const m=v.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+                  sheets.setSheetId(m?m[1]:v);
+                }}/>
+            </div>
+            <button className="btn-p" onClick={sheets.pollSheet} style={{padding:'6px 14px',fontSize:12,flexShrink:0}}>Sync Now</button>
+            <span style={{fontSize:11,color:'#aaa',fontWeight:500}}>Auto-syncs every 30s. Changes to status update the sheet in real time.</span>
+          </>)}
+        </div>
+      )}
+
+      {/* Gantt body — split into frozen labels + scrollable timeline */}
+      <div className="mg-gantt-container" style={{display:'flex',minHeight:0,flex:1}}>
+
+        {/* FROZEN LABEL COLUMN */}
+        <div style={{width:LBL_W,flexShrink:0,borderRight:'1px solid #ddd',background:'#fff',overflowY:'hidden',zIndex:12,display:'flex',flexDirection:'column'}}>
+          {/* Header spacer matching the timeline header height */}
+          <div style={{height:viewMode==='days'?52:34,flexShrink:0,background:'#f5f5f5',borderBottom:'1px solid #ddd'}}/>
+          {/* Label rows */}
+          <div ref={labelScrollRef} style={{overflowY:'hidden',flex:1}} id="gantt-label-scroll">
+            {ganttData.map(proj=>(
+              <React.Fragment key={proj.id}>
+                <div className="mg-project-row" style={{cursor:'pointer'}} onClick={()=>toggleProj(proj.id)}>
+                  <div className="mg-project-label" style={{width:'100%',borderRight:'none'}}>
+                    <span style={{fontSize:9,color:'rgba(255,255,255,.4)',transform:collapsed[proj.id]?'rotate(0)':'rotate(90deg)',display:'inline-block',transition:'transform .15s',flexShrink:0}}>▶</span>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div className="mg-project-code">{proj.code}</div>
+                      <div className="mg-project-name" style={{fontSize:11}}>{proj.name}</div>
+                    </div>
+                  </div>
                 </div>
+                {!collapsed[proj.id]&&proj.episodes.map(ep=>{
+                  const isEpOpen=!epCollapsed[ep.id];
+                  return(<React.Fragment key={ep.id}>
+                    <div className="mg-ep-row" style={{cursor:'pointer'}} onClick={()=>toggleEp(ep.id)}>
+                      <div className="mg-ep-label" style={{width:'100%',borderRight:'none'}}>
+                        <span style={{fontSize:9,color:'#bbb',transform:isEpOpen?'rotate(90deg)':'rotate(0)',display:'inline-block',transition:'transform .15s',flexShrink:0}}>▶</span>
+                        <div className="mg-ep-name">{ep.name}</div>
+                      </div>
+                    </div>
+                    {isEpOpen&&ep.tasks.map(task=>{
+                      const td=taskDef(task.name);
+                      return(<div key={task.id} className="mg-task-row">
+                        <div className="mg-task-label" style={{width:'100%',borderRight:'none'}}>
+                          <span style={{width:8,height:8,borderRadius:2,background:td.color,display:'inline-block',flexShrink:0}}/>
+                          <span className="mg-task-name">{task.name}</span>
+                          {task.assignee&&<span className="mg-task-eng" style={{color:td.color,fontSize:9}}>{task.assignee.split(' ')[0]}</span>}
+                        </div>
+                      </div>);
+                    })}
+                  </React.Fragment>);
+                })}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+
+        {/* SCROLLABLE TIMELINE */}
+        <div style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column',minWidth:0}}>
+
+          {/* Sticky header — separate non-scrolling wrapper */}
+          <div ref={headerScrollRef} style={{overflowX:'hidden',flexShrink:0,background:'#f5f5f5',borderBottom:'1px solid #ddd'}}>
+            <div style={{width:totalPx,position:'relative'}}>
+              {/* Month row (days mode only) */}
+              {viewMode==='days'&&(
+                <div style={{display:'flex',height:18,borderBottom:'1px solid #e8e8e8'}}>
+                  {monthGroups.map((g,i)=>(
+                    <div key={i} style={{position:'absolute',left:g.left,width:g.width,padding:'2px 6px',fontSize:10,fontWeight:800,color:'#555',letterSpacing:'.04em',textTransform:'uppercase',overflow:'hidden',whiteSpace:'nowrap',textOverflow:'ellipsis',borderRight:'1px solid #e8e8e8'}}>
+                      {g.label}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* Day/Week/Month cells */}
+              <div style={{display:'flex',height:viewMode==='days'?34:34}}>
+                {colsArr.map((c,i)=>(
+                  <div key={i} className={`mg-day-cell${c.isWeekend?' weekend':''}`}
+                    style={{width:cfg.pxPer,flexShrink:0,borderRight:'1px solid #e8e8e8'}}>
+                    <div className="mg-day-top">{c.top}</div>
+                    <div className={`mg-day-num${c.date===todayD?' today-num':''}`}>{c.bot}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Scrollable rows */}
+          <div ref={scrollRef} style={{overflowX:'scroll',overflowY:'auto',flex:1}} onScroll={onScroll}>
+            <div style={{width:totalPx,position:'relative'}}>
+              {/* Weekend tint columns — rendered once as background */}
+              {weekendCols.map(w=>(
+                <div key={w.key} className="mg-weekend-col" style={{left:w.left,width:cfg.pxPer,top:0,bottom:0,height:'100%'}}/>
+              ))}
+              {/* Today line */}
+              <div className="mg-today-line" style={{left:todayPx,top:0,bottom:0,height:'100%',zIndex:6}}/>
+
+              {ganttData.map(proj=>(
+                <React.Fragment key={proj.id}>
+                  {/* Project row */}
+                  <div className="mg-project-timeline" style={{minWidth:totalPx,height:34,position:'relative'}}/>
+                  {!collapsed[proj.id]&&proj.episodes.map(ep=>{
+                    const span=getEpSpan(ep);
+                    const isEpOpen=!epCollapsed[ep.id];
+                    return(<React.Fragment key={ep.id}>
+                      {/* Episode row */}
+                      <div className="mg-ep-timeline" style={{minWidth:totalPx,height:28,position:'relative',background:'#f8f8f8',borderBottom:'1px solid #eee'}}>
+                        {span&&<div className="mg-ep-spine" style={{left:span.left,width:span.width}}/>}
+                        {span&&<span style={{position:'absolute',left:span.left+span.width+4,top:'50%',transform:'translateY(-50%)',fontSize:10,color:'#aaa',fontWeight:600,whiteSpace:'nowrap'}}>{fmtD(ep.tasks[ep.tasks.length-1]?.endDate)}</span>}
+                      </div>
+                      {/* Task rows */}
+                      {isEpOpen&&ep.tasks.map(task=>{
+                        const bs=getBarStyle(task);
+                        const td=bs?.td;
+                        const isDone=task.status==='Done';
+                        const isIP=task.status==='In Progress';
+                        return(<div key={task.id} className="mg-task-timeline" style={{minWidth:totalPx,height:30,position:'relative',borderBottom:'1px solid #f5f5f5',background:'#fff'}}>
+                          {bs&&bs.width>0&&(
+                            <div className="mg-task-bar" style={{left:bs.left,width:bs.width}}>
+                              <div className="mg-bar-bg" style={{background:td.color,opacity:isDone?0.92:isIP?0.72:0.32}}/>
+                              <div className="mg-bar-content" style={{color:isDone||isIP?td.text:'#555'}}>
+                                <span className="mg-bar-abbr">{bs.width>55?task.name:td.abbr}</span>
+                                {task.assignee&&<span className="mg-bar-eng">{inits(task.assignee)}</span>}
+                              </div>
+                              {isIP&&task.pct>0&&<div style={{position:'absolute',bottom:0,left:0,height:3,width:`${task.pct}%`,background:td.color,opacity:.9}}/>}
+                            </div>
+                          )}
+                        </div>);
+                      })}
+                    </React.Fragment>);
+                  })}
+                </React.Fragment>
               ))}
             </div>
           </div>
-          {/* Rows */}
-          {ganttData.map(proj=>(
-            <React.Fragment key={proj.id}>
-              <div className="mg-project-row" onClick={()=>toggleProj(proj.id)}>
-                <div className="mg-project-label">
-                  <span style={{fontSize:9,color:'rgba(255,255,255,.4)',transform:collapsed[proj.id]?'rotate(0)':'rotate(90deg)',display:'inline-block',transition:'transform .15s'}}>▶</span>
-                  <div style={{flex:1,minWidth:0}}>
-                    <div className="mg-project-code">{proj.code}</div>
-                    <div className="mg-project-name">{proj.name}</div>
-                  </div>
-                  <span style={{fontSize:10,color:'rgba(255,255,255,.3)',flex:'0 0 auto',fontSize:9}}>{proj.client}</span>
-                </div>
-                <div className="mg-project-timeline" style={{minWidth:totalPx,position:'relative'}}>
-                  {todayX>=0&&todayX<=totalPx&&<div className="mg-today-line" style={{left:todayX}}/>}
-                  {weekendCols.map(w=><div key={w.key} className="mg-weekend-col" style={{left:w.left,width:cfg.pxPer}}/>)}
-                </div>
-              </div>
-              {!collapsed[proj.id]&&proj.episodes.map(ep=>{
-                const span=getEpSpan(ep);
-                const isEpOpen=!epCollapsed[ep.id];
-                return(<React.Fragment key={ep.id}>
-                  <div className="mg-ep-row" onClick={()=>toggleEp(ep.id)}>
-                    <div className="mg-ep-label">
-                      <span style={{fontSize:9,color:'#bbb',transform:isEpOpen?'rotate(90deg)':'rotate(0)',display:'inline-block',transition:'transform .15s',flex:'0 0 auto'}}>▶</span>
-                      <div>
-                        <div className="mg-ep-name">{ep.name}</div>
-                        {span&&span.width>0&&<div className="mg-ep-dates">{fmtD(ep.tasks[0]?.startDate)} – {fmtD(ep.tasks[ep.tasks.length-1]?.endDate)}</div>}
-                      </div>
-                    </div>
-                    <div className="mg-ep-timeline" style={{minWidth:totalPx}}>
-                      {todayX>=0&&todayX<=totalPx&&<div className="mg-today-line" style={{left:todayX}}/>}
-                      {weekendCols.map(w=><div key={w.key} className="mg-weekend-col" style={{left:w.left,width:cfg.pxPer}}/>)}
-                      {span&&span.width>0&&<div className="mg-ep-spine" style={{left:span.left,width:Math.max(span.width,4)}}/>}
-                      <span style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',fontSize:10,color:'#bbb',fontWeight:600}}>{fmtD(ep.tasks[ep.tasks.length-1]?.endDate)}</span>
-                    </div>
-                  </div>
-                  {isEpOpen&&ep.tasks.map(task=>{
-                    const bs=getBarStyle(task);
-                    const td=taskDef(task.name);
-                    const isDone=task.status==='Done';
-                    const isIP=task.status==='In Progress';
-                    return(<div key={task.id} className="mg-task-row">
-                      <div className="mg-task-label">
-                        <span style={{width:8,height:8,borderRadius:2,background:td.color,display:'inline-block',flex:'0 0 8px'}}/>
-                        <span className="mg-task-name">{task.name}</span>
-                        {task.assignee&&<span className="mg-task-eng" style={{color:td.color}}>{task.assignee}</span>}
-                      </div>
-                      <div className="mg-task-timeline" style={{minWidth:totalPx,position:'relative'}}>
-                        {todayX>=0&&todayX<=totalPx&&<div className="mg-today-line" style={{left:todayX}}/>}
-                        {weekendCols.map(w=><div key={w.key} className="mg-weekend-col" style={{left:w.left,width:cfg.pxPer}}/>)}
-                        {bs&&bs.width>0&&(
-                          <div className="mg-task-bar" style={{left:bs.left,width:bs.width}}>
-                            <div className="mg-bar-bg" style={{background:td.color,opacity:isDone?0.9:isIP?0.7:0.35}}/>
-                            <div className="mg-bar-content" style={{color:isDone||isIP?td.text:'#333'}}>
-                              <span className="mg-bar-abbr">{bs.width>55?task.name:td.abbr}</span>
-                              {task.assignee&&<span className="mg-bar-eng">{inits(task.assignee)}</span>}
-                              <span className="mg-bar-edit">E</span>
-                            </div>
-                            {isIP&&task.pct>0&&<div style={{position:'absolute',bottom:0,left:0,height:3,width:`${task.pct}%`,background:td.color,borderRadius:'0 0 0 4px',opacity:.9}}/>}
-                          </div>
-                        )}
-                      </div>
-                    </div>);
-                  })}
-                </React.Fragment>);
-              })}
-            </React.Fragment>
-          ))}
         </div>
       </div>
+
       {showImport&&<ImportModal onClose={()=>setShowImport(false)} onImport={proj=>{onUpdateGantt(p=>[...p,proj]);setShowImport(false)}}/>}
     </div>
   );
 }
+
 
 
 // ── iCal Export ────────────────────────────────────────────────────────────
@@ -1776,7 +2308,7 @@ function App(){
             <span className="bcount">{data.masterGantt.reduce((n,p)=>n+p.episodes.reduce((m,e)=>m+e.tasks.length,0),0)} tasks across {data.masterGantt.length} projects</span>
           </div>
           <div style={{flex:1,overflow:'hidden',minHeight:0,display:'flex',flexDirection:'column'}}>
-            <MasterGantt ganttData={data.masterGantt} onUpdateGantt={updMasterGantt} onImport={()=>{}}/>
+            <MasterGantt ganttData={data.masterGantt} onUpdateGantt={updMasterGantt}/>
           </div>
         </div>
       ):isLongform?(
