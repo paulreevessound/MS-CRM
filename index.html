@@ -932,16 +932,383 @@ function exportICS(ganttData){
   const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='mighty_sound_schedule.ics';a.click();URL.revokeObjectURL(url);
 }
 
-// ── Import Modal ───────────────────────────────────────────────────────────
+// ── IMPORT MODAL ───────────────────────────────────────────────────────────
+const CONTENT_TYPES=[
+  {id:'series',  icon:'📺', label:'TV Series',     desc:'Multiple episodes, each with a full audio post pipeline'},
+  {id:'film',    icon:'🎬', label:'Film',           desc:'Single feature or short film, one pipeline'},
+  {id:'doco',    icon:'🎥', label:'Documentary',    desc:'Single doc or doc series — treated as one pipeline per ep'},
+  {id:'short',   icon:'⚡', label:'Short Form',     desc:'TVCs, social, podcasts — multiple assets by duration/count'},
+];
+
 function ImportModal({onClose,onImport}){
-  const [stage,setStage]=useState('upload');// upload | processing | preview | done
+  const [step,setStep]=useState('type');   // type | upload | processing | preview
+  const [contentType,setContentType]=useState('');
   const [fileName,setFileName]=useState('');
-  const [fileType,setFileType]=useState('');
+  const [fileExt,setFileExt]=useState('');
   const [progress,setProgress]=useState(0);
   const [parsed,setParsed]=useState(null);
   const [dragOver,setDragOver]=useState(false);
   const [error,setError]=useState('');
+  const [processingMsg,setProcessingMsg]=useState('');
   const fileRef=useRef();
+
+  const handleFile=async(file)=>{
+    if(!file)return;
+    setFileName(file.name);
+    const ext=file.name.split('.').pop().toLowerCase();
+    setFileExt(ext);
+    setStep('processing');setProgress(10);setError('');
+    try{
+      if(ext==='xlsx'||ext==='xls'){setProcessingMsg('Reading spreadsheet…');await parseXLSX(file)}
+      else if(ext==='pdf'){setProcessingMsg('Sending PDF to AI…');await parsePDF(file)}
+      else if(['png','jpg','jpeg'].includes(ext)){setProcessingMsg('Sending image to AI…');await parseImage(file)}
+      else{setError('Unsupported file type. Use XLSX, PDF, PNG or JPG.');setStep('upload')}
+    }catch(e){setError('Failed to parse: '+e.message);setStep('upload')}
+  };
+
+  // ── Build prompt based on content type ──────────────────────────────────
+  const buildPrompt=()=>{
+    const base=`You are parsing a ${contentType==='series'?'TV series':contentType==='doco'?'documentary':contentType==='short'?'short form content':'film'} audio post-production schedule.
+Return ONLY valid JSON, no markdown, no explanation, no code fences.
+
+The 8 audio post tasks in order are:
+Ingest → DX Edit → MX Edit → SFX Edit → Pre Mix → Final Mix → QC → Delivery
+
+Milestone/column name mapping:
+- "Picture Lock" / "Final Lock" / "Pic Lock" / "Lock" = Ingest startDate
+- "Online Playback" / "Conform" / "Online" = DX Edit startDate  
+- "Mix Playback" / "Pre-dub" = Pre Mix startDate
+- "Deliver for QC" / "QC" = QC startDate
+- "Final Delivery" / "TX" / "Broadcast" = Delivery startDate
+- Estimate endDate as startDate + 2 days unless another milestone is closer
+`;
+
+    if(contentType==='series'){
+      return base+`
+This is a TV SERIES. Find ALL episode numbers (Ep 1, Ep 2, EP01, 101, 102, etc).
+Create one episode per episode number. Each episode must have all 8 tasks.
+
+JSON structure:
+{"projectName":"show name","type":"series","totalEpisodes":N,"episodes":[{"name":"Ep 01","tasks":[{"task":"Ingest","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD"},{"task":"DX Edit","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD"},{"task":"MX Edit","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD"},{"task":"SFX Edit","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD"},{"task":"Pre Mix","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD"},{"task":"Final Mix","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD"},{"task":"QC","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD"},{"task":"Delivery","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD"}]}]}
+
+CRITICAL: Return one episode object for EVERY episode in the schedule. If you see Ep1 through Ep10 you must return 10 episode objects.`;
+    }
+    if(contentType==='short'){
+      return base+`
+This is SHORT FORM content (TVCs, social, podcasts, etc).
+Identify: asset type (e.g. "30sec TVC"), duration, and quantity.
+Each unique asset (by version or number) is one "episode" entry.
+
+JSON structure:
+{"projectName":"campaign name","type":"short","assetType":"30sec TVC","assetCount":N,"episodes":[{"name":"30sec :01","durationSecs":30,"tasks":[{"task":"Ingest","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD"},{"task":"DX Edit","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD"},{"task":"MX Edit","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD"},{"task":"SFX Edit","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD"},{"task":"Pre Mix","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD"},{"task":"Final Mix","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD"},{"task":"QC","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD"},{"task":"Delivery","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD"}]}]}`;
+    }
+    // film or doco — single pipeline
+    return base+`
+This is a ${contentType==='doco'?'documentary':'film'}. Single pipeline, no episode breakdown.
+
+JSON structure:
+{"projectName":"title","type":"${contentType}","episodes":[{"name":"${contentType==='doco'?'Documentary':'Film'}","tasks":[{"task":"Ingest","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD"},{"task":"DX Edit","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD"},{"task":"MX Edit","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD"},{"task":"SFX Edit","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD"},{"task":"Pre Mix","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD"},{"task":"Final Mix","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD"},{"task":"QC","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD"},{"task":"Delivery","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD"}]}]}`;
+  };
+
+  // ── Parse XLSX ───────────────────────────────────────────────────────────
+  const parseXLSX=async(file)=>{
+    setProgress(30);
+    const buf=await file.arrayBuffer();
+    const wb=window.XLSX.read(buf,{type:'array',cellDates:true});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const rows=window.XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
+    setProgress(55);
+    const projName=rows.slice(0,3).flatMap(r=>r).find(c=>c&&typeof c==='string'&&c.length>2&&!/^(SAT|SUN|MON|TUE|WED|THU|FRI|SATURDAY|SUNDAY|MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY)$/i.test(c))||file.name.replace(/\.[^.]+$/,'');
+    const projCode='MS'+Math.floor(Math.random()*9000+1000);
+
+    const AUDIO_TASKS=[
+      {keys:['ingest','rushes','rush'],name:'Ingest'},
+      {keys:['dx edit','dialogue edit','dx '],name:'DX Edit'},
+      {keys:['mx edit','music edit','mx '],name:'MX Edit'},
+      {keys:['sfx edit','sound fx','sfx ','foley','bkgd'],name:'SFX Edit'},
+      {keys:['pre-mix','pre mix','premix','predub'],name:'Pre Mix'},
+      {keys:['final mix','final-mix','m&e'],name:'Final Mix'},
+      {keys:['qc','quality check','review playback','mix playback'],name:'QC'},
+      {keys:['deliver','deliverable','tx ','on air','broadcast','final delivery'],name:'Delivery'},
+    ];
+
+    // Collect all dated rows
+    const datedRows=[];let lastDate=null;
+    rows.forEach(row=>{
+      let d=null;
+      for(const ci of [2,1,0]){
+        const cell=row[ci];
+        if(cell instanceof Date&&!isNaN(cell)){d=cell.toISOString().split('T')[0];break}
+        if(typeof cell==='string'){const dt=new Date(cell);if(!isNaN(dt)&&cell.match(/\d{4}/)){d=dt.toISOString().split('T')[0];break}}
+      }
+      if(d)lastDate=d;
+      if(lastDate){
+        const text=row.filter(c=>c!=null).map(c=>typeof c==='string'?c:String(c)).join(' ');
+        datedRows.push({date:lastDate,text,row});
+      }
+    });
+
+    // Detect episodes
+    const allText=datedRows.map(r=>r.text).join(' ');
+    const epNums=new Set();
+    const epRe=/\bep(?:isode)?\s*(\d+)\b/gi;
+    let m;while((m=epRe.exec(allText))!==null)epNums.add(parseInt(m[1]));
+
+    let episodes=[];
+
+    if((contentType==='series'||contentType==='doco')&&epNums.size>1){
+      // Group by episode
+      const epMap={};
+      datedRows.forEach(({date,text})=>{
+        const matches=[...text.matchAll(/\bep(?:isode)?\s*(\d+)\b/gi)];
+        const nums=matches.map(x=>parseInt(x[1]));
+        AUDIO_TASKS.forEach(at=>{
+          if(at.keys.some(k=>text.toLowerCase().includes(k))){
+            (nums.length>0?nums:[0]).forEach(n=>{
+              if(!epMap[n])epMap[n]={};
+              if(!epMap[n][at.name])epMap[n][at.name]=date;
+            });
+          }
+        });
+      });
+      episodes=Object.keys(epMap).map(Number).sort((a,b)=>a-b).map(n=>{
+        const epData=epMap[n];
+        const orderedTasks=TASK_DEFS.map(td=>{
+          const startDate=epData[td.name]||null;
+          return startDate?tk(uid(),td.name,startDate,addDays(startDate,3),'Not Started',0,'Paul R'):null;
+        }).filter(Boolean);
+        return{id:uid(),name:`Ep ${String(n).padStart(2,'0')}`,tasks:orderedTasks.length>0?orderedTasks:TASK_DEFS.map((td,i)=>tk(uid(),td.name,addDays(today(),i*5),addDays(today(),i*5+4),'Not Started',0,'Paul R'))};
+      });
+    } else {
+      // Single pipeline
+      const taskMap={};
+      datedRows.forEach(({date,text})=>{
+        AUDIO_TASKS.forEach(at=>{if(!taskMap[at.name]&&at.keys.some(k=>text.toLowerCase().includes(k)))taskMap[at.name]=date});
+      });
+      const tasks=TASK_DEFS.map(td=>taskMap[td.name]?tk(uid(),td.name,taskMap[td.name],addDays(taskMap[td.name],3),'Not Started',0,'Paul R'):null).filter(Boolean);
+      episodes=[{id:uid(),name:contentType==='doco'?'Documentary':contentType==='short'?'Asset 01':'Film',tasks:tasks.length>0?tasks:TASK_DEFS.map((td,i)=>tk(uid(),td.name,addDays(today(),i*5),addDays(today(),i*5+4),'Not Started',0,'Paul R'))}];
+    }
+
+    setProgress(90);
+    const proj={id:uid(),code:projCode,name:projName.toString().trim().slice(0,40),client:'Imported',type:contentType,episodes};
+    setParsed(proj);setStep('preview');setProgress(100);
+  };
+
+  // ── Parse PDF — send as base64 document to AI (not text) ─────────────────
+  const parsePDF=async(file)=>{
+    setProgress(20);
+    setProcessingMsg('Reading PDF…');
+    const base64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file)});
+    setProgress(40);
+    setProcessingMsg('AI is reading the schedule…');
+    await callAI([
+      {type:'document',source:{type:'base64',media_type:'application/pdf',data:base64}},
+      {type:'text',text:buildPrompt()}
+    ],file.name);
+  };
+
+  // ── Parse Image ──────────────────────────────────────────────────────────
+  const parseImage=async(file)=>{
+    setProgress(25);
+    const base64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file)});
+    setProgress(45);
+    setProcessingMsg('AI is reading the schedule…');
+    await callAI([
+      {type:'image',source:{type:'base64',media_type:'image/'+file.name.split('.').pop().replace('jpg','jpeg'),data:base64}},
+      {type:'text',text:buildPrompt()}
+    ],file.name);
+  };
+
+  // ── Call AI ───────────────────────────────────────────────────────────────
+  const callAI=async(msgContent,name)=>{
+    setProgress(60);
+    try{
+      const resp=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          model:'claude-sonnet-4-20250514',
+          max_tokens:4000,
+          messages:[{role:'user',content:msgContent}]
+        })
+      });
+      setProgress(82);
+      const result=await resp.json();
+      if(result.error)throw new Error(result.error.message||'API error');
+      const rawText=result.content?.find(c=>c.type==='text')?.text||'';
+      // Extract JSON — handle both bare objects and arrays
+      const jsonMatch=rawText.match(/\{[\s\S]*\}/);
+      if(!jsonMatch)throw new Error('AI returned no JSON. Try a different file.');
+      const schedule=JSON.parse(jsonMatch[0]);
+      buildProject(schedule,name);
+    }catch(e){
+      // Graceful fallback with placeholder
+      console.warn('AI parse failed:',e.message);
+      const proj={
+        id:uid(),code:'MS'+Math.floor(Math.random()*9000+1000),
+        name:name.replace(/\.[^.]+$/,'').slice(0,40),
+        client:'Imported',type:contentType,
+        episodes:[{id:uid(),name:contentType==='series'?'Ep 01':contentType==='doco'?'Documentary':contentType==='short'?'Asset 01':'Film',
+          tasks:TASK_DEFS.map((td,i)=>tk(uid(),td.name,addDays(today(),i*5),addDays(today(),i*5+4),'Not Started',0,'Paul R'))}]
+      };
+      setError('AI could not fully parse the file — placeholder created. Edit tasks after import.');
+      setParsed(proj);setStep('preview');setProgress(100);
+    }
+  };
+
+  // ── Build project from AI response ────────────────────────────────────────
+  const buildProject=(schedule,name)=>{
+    const projCode='MS'+Math.floor(Math.random()*9000+1000);
+    const rawEps=schedule.episodes||[];
+    const episodes=rawEps.map(ep=>({
+      id:uid(),
+      name:ep.name||'Episode',
+      durationSecs:ep.durationSecs||null,
+      tasks:(ep.tasks||[]).map(t=>tk(
+        uid(),
+        t.task||'Ingest',
+        t.startDate||today(),
+        t.endDate||addDays(t.startDate||today(),3),
+        'Not Started',0,'Paul R'
+      ))
+    }));
+    if(episodes.length===0){
+      setError('No episodes found in file — placeholder created.');
+      episodes.push({id:uid(),name:'Film',tasks:TASK_DEFS.map((td,i)=>tk(uid(),td.name,addDays(today(),i*5),addDays(today(),i*5+4),'Not Started',0,'Paul R'))});
+    }
+    const proj={
+      id:uid(),code:projCode,
+      name:(schedule.projectName||name.replace(/\.[^.]+$/,'')).slice(0,40),
+      client:'Imported',type:schedule.type||contentType,
+      assetType:schedule.assetType||null,
+      episodes
+    };
+    setParsed(proj);setStep('preview');setProgress(100);
+  };
+
+  const onDrop=e=>{e.preventDefault();setDragOver(false);if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0])};
+
+  // ── RENDER ────────────────────────────────────────────────────────────────
+  return(
+    <div className="modal-ov" onClick={onClose}>
+      <div className="modal" style={{width:520,maxHeight:'85vh',overflowY:'auto'}} onClick={e=>e.stopPropagation()}>
+
+        {/* Header */}
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
+          <h3 style={{margin:0,display:'flex',alignItems:'center',gap:8}}>
+            Import Production Schedule
+            <span className="ai-badge">✦ AI</span>
+          </h3>
+          {step!=='type'&&<button onClick={()=>setStep('type')} style={{background:'none',border:'none',fontSize:11,fontWeight:700,color:'#aaa',cursor:'pointer',textTransform:'uppercase',letterSpacing:'.05em'}}>← Back</button>}
+        </div>
+
+        {/* Step 1: Content type */}
+        {step==='type'&&(
+          <div>
+            <div style={{fontSize:12,color:'#888',fontWeight:600,marginBottom:10,textTransform:'uppercase',letterSpacing:'.06em'}}>What type of content is this?</div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:14}}>
+              {CONTENT_TYPES.map(ct=>(
+                <div key={ct.id} onClick={()=>setContentType(ct.id)}
+                  style={{padding:'12px 13px',border:`2px solid ${contentType===ct.id?'#111':'#e5e5e5'}`,borderRadius:8,cursor:'pointer',background:contentType===ct.id?'#f5f5f5':'#fff',transition:'all .13s'}}>
+                  <div style={{fontSize:20,marginBottom:5}}>{ct.icon}</div>
+                  <div style={{fontSize:13,fontWeight:700,color:'#111',marginBottom:2}}>{ct.label}</div>
+                  <div style={{fontSize:11,color:'#aaa',fontWeight:500,lineHeight:1.4}}>{ct.desc}</div>
+                </div>
+              ))}
+            </div>
+            <div className="m-actions">
+              <button className="btn-g" onClick={onClose}>Cancel</button>
+              <button className="btn-p" disabled={!contentType} onClick={()=>setStep('upload')} style={{opacity:contentType?1:.4}}>Next — Upload File</button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 2: Upload */}
+        {step==='upload'&&(
+          <div>
+            <div style={{fontSize:12,color:'#888',fontWeight:600,marginBottom:10,textTransform:'uppercase',letterSpacing:'.06em'}}>
+              {CONTENT_TYPES.find(c=>c.id===contentType)?.icon} {CONTENT_TYPES.find(c=>c.id===contentType)?.label} — Upload schedule file
+            </div>
+            <div className={`import-drop${dragOver?' drag':''}`}
+              onDragOver={e=>{e.preventDefault();setDragOver(true)}}
+              onDragLeave={()=>setDragOver(false)}
+              onDrop={onDrop}
+              onClick={()=>fileRef.current.click()}>
+              <div className="import-drop-icon">⬆</div>
+              <div className="import-drop-title">Drop your production schedule here</div>
+              <div className="import-drop-sub">or click to browse</div>
+              <div className="import-type-pills">
+                <span className="import-type xlsx">XLSX</span>
+                <span className="import-type pdf">PDF</span>
+                <span className="import-type img">PNG / JPG</span>
+              </div>
+            </div>
+            <input ref={fileRef} type="file" accept=".xlsx,.xls,.pdf,.png,.jpg,.jpeg" style={{display:'none'}} onChange={e=>e.target.files[0]&&handleFile(e.target.files[0])}/>
+            {error&&<div style={{color:'#c62828',fontSize:12,marginTop:6,fontWeight:600}}>{error}</div>}
+            <div style={{fontSize:11,color:'#aaa',marginTop:8,lineHeight:1.5,fontWeight:500}}>
+              {contentType==='series'&&'AI will detect all episode numbers and create a separate 8-task pipeline per episode.'}
+              {contentType==='film'&&'AI will create a single film pipeline with all 8 audio post tasks.'}
+              {contentType==='doco'&&'AI will create a documentary pipeline. If multiple episodes are found they will each get their own pipeline.'}
+              {contentType==='short'&&'AI will identify individual assets (by version/number) and their durations. Each asset gets its own task pipeline.'}
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Processing */}
+        {step==='processing'&&(
+          <div style={{textAlign:'center',padding:'32px 0'}}>
+            <div style={{fontSize:36,marginBottom:14}}>⚙️</div>
+            <div style={{fontSize:14,fontWeight:700,color:'#333',marginBottom:6}}>{fileName}</div>
+            <div style={{fontSize:12,color:'#aaa',marginBottom:18,fontWeight:500}}>{processingMsg}</div>
+            <div className="progress-bar"><div className="progress-fill" style={{width:`${progress}%`}}/></div>
+            <div style={{fontSize:11,color:'#bbb',marginTop:7,fontWeight:600}}>{progress}%</div>
+          </div>
+        )}
+
+        {/* Step 4: Preview */}
+        {step==='preview'&&parsed&&(
+          <div>
+            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+              <div style={{flex:1}}>
+                <div style={{fontSize:13,fontWeight:800,color:'#111'}}>{parsed.name}</div>
+                <div style={{fontSize:11,color:'#aaa',fontWeight:500,marginTop:2}}>
+                  {parsed.code} · {CONTENT_TYPES.find(c=>c.id===parsed.type)?.label||parsed.type} · {parsed.episodes.length} {parsed.type==='short'?'asset':parsed.type==='film'||parsed.type==='doco'?'pipeline':'episode'}{parsed.episodes.length!==1?'s':''}
+                  {parsed.assetType&&` · ${parsed.assetType}`}
+                </div>
+              </div>
+              <span style={{fontSize:20}}>{CONTENT_TYPES.find(c=>c.id===parsed.type)?.icon||'📁'}</span>
+            </div>
+            {error&&<div style={{color:'#e65100',fontSize:11,fontWeight:600,marginBottom:8,background:'#fff3e0',padding:'6px 10px',borderRadius:5}}>{error}</div>}
+            <div className="import-preview" style={{maxHeight:300}}>
+              {parsed.episodes.map(ep=>(
+                <div key={ep.id} style={{marginBottom:8}}>
+                  <div style={{fontSize:11,fontWeight:800,color:'#333',padding:'5px 0 3px',textTransform:'uppercase',letterSpacing:'.06em',borderBottom:'1px solid #f0f0f0',marginBottom:4,display:'flex',alignItems:'center',gap:6}}>
+                    {ep.name}
+                    {ep.durationSecs&&<span style={{fontSize:9,background:'#e3f2fd',color:'#1565c0',padding:'1px 6px',borderRadius:3,fontWeight:700}}>{ep.durationSecs}s</span>}
+                    <span style={{marginLeft:'auto',fontSize:9,color:'#bbb',fontWeight:600}}>{ep.tasks.length} tasks</span>
+                  </div>
+                  {ep.tasks.map(t=>{const td=taskDef(t.name);return(
+                    <div key={t.id} className="import-row">
+                      <span style={{width:8,height:8,borderRadius:2,background:td.color,display:'inline-block',flex:'0 0 8px'}}/>
+                      <span style={{flex:1,fontSize:12,fontWeight:600}}>{t.name}</span>
+                      <span style={{color:'#aaa',fontSize:11}}>{fmtD(t.startDate)} → {fmtD(t.endDate)}</span>
+                    </div>
+                  );})}
+                </div>
+              ))}
+            </div>
+            <div style={{fontSize:11,color:'#aaa',margin:'10px 0',fontWeight:500}}>All tasks are editable after import.</div>
+            <div className="m-actions">
+              <button className="btn-g" onClick={()=>setStep('upload')}>Re-import</button>
+              <button className="btn-p" onClick={()=>onImport(parsed)}>Add to Master Gantt ↗</button>
+            </div>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
 
   const handleFile=async(file)=>{
     if(!file)return;
@@ -1162,73 +1529,6 @@ Milestone mapping rules:
       setParsed(proj);setStage('preview');setProgress(100);
     }
   };
-
-  const onDrop=e=>{e.preventDefault();setDragOver(false);const f=e.dataTransfer.files[0];if(f)handleFile(f)};
-
-  return(
-    <div className="modal-ov" onClick={onClose}>
-      <div className="modal" style={{width:500}} onClick={e=>e.stopPropagation()}>
-        <h3 style={{display:'flex',alignItems:'center',gap:8}}>
-          Import Production Schedule
-          <span className="ai-badge">✦ AI Powered</span>
-        </h3>
-        {stage==='upload'&&(<>
-          <div className={`import-drop${dragOver?' drag':''}`} onDragOver={e=>{e.preventDefault();setDragOver(true)}} onDragLeave={()=>setDragOver(false)} onDrop={onDrop} onClick={()=>fileRef.current.click()}>
-            <div className="import-drop-icon">⬆</div>
-            <div className="import-drop-title">Drop your production schedule here</div>
-            <div className="import-drop-sub">or click to browse files</div>
-            <div className="import-type-pills">
-              <span className="import-type xlsx">XLSX</span>
-              <span className="import-type pdf">PDF</span>
-              <span className="import-type img">PNG / JPG</span>
-            </div>
-          </div>
-          <input ref={fileRef} type="file" accept=".xlsx,.xls,.pdf,.png,.jpg,.jpeg" style={{display:'none'}} onChange={e=>e.target.files[0]&&handleFile(e.target.files[0])}/>
-          {error&&<div style={{color:'#c62828',fontSize:12,marginTop:6,fontWeight:600}}>{error}</div>}
-          <div style={{fontSize:11,color:'#aaa',marginTop:8,lineHeight:1.6,fontWeight:500}}>
-            Supports Shark Net-style Excel schedules, PDF master schedules, and image milestone tables. Automatically detects episodes for TV series and maps milestones to all 8 audio tasks per episode.
-          </div>
-        </>)}
-        {stage==='processing'&&(<>
-          <div style={{textAlign:'center',padding:'24px 0'}}>
-            <div style={{fontSize:32,marginBottom:12}}>⚙️</div>
-            <div style={{fontSize:14,fontWeight:700,color:'#333',marginBottom:8}}>Processing {fileName}</div>
-            <div style={{fontSize:12,color:'#aaa',marginBottom:16,fontWeight:500}}>
-              {fileType==='image'?'Sending to AI for schedule extraction…':fileType==='pdf'?'Extracting text and parsing milestones…':'Reading spreadsheet and mapping audio tasks…'}
-            </div>
-            <div className="progress-bar"><div className="progress-fill" style={{width:`${progress}%`}}/></div>
-            <div style={{fontSize:11,color:'#bbb',marginTop:6,fontWeight:600}}>{progress}%</div>
-          </div>
-        </>)}
-        {stage==='preview'&&parsed&&(<>
-          <div style={{marginBottom:12}}>
-            <div style={{fontSize:12,color:'#888',marginBottom:6,fontWeight:600,textTransform:'uppercase',letterSpacing:'.06em'}}>Extracted: {parsed.code} — {parsed.name}</div>
-            <div className="import-preview">
-              {parsed.episodes.map(ep=>(<div key={ep.id}>
-                <div style={{fontSize:11,fontWeight:700,color:'#555',padding:'4px 0',textTransform:'uppercase',letterSpacing:'.05em'}}>{ep.name}</div>
-                {ep.tasks.map(t=>{const td=taskDef(t.name);return(
-                  <div key={t.id} className="import-row">
-                    <span style={{width:8,height:8,borderRadius:2,background:td.color,display:'inline-block',flex:'0 0 8px'}}/>
-                    <span style={{flex:1}}>{t.name}</span>
-                    <span style={{color:'#aaa',fontSize:11}}>{fmtD(t.startDate)} → {fmtD(t.endDate)}</span>
-                    <span className={`import-status${t.status==='Done'?' done':' proc'}`}>{t.status==='Done'?'Done':'Pending'}</span>
-                  </div>
-                );})}
-              </div>))}
-            </div>
-          </div>
-          <div style={{fontSize:11,color:'#aaa',marginBottom:12,fontWeight:500}}>
-            This schedule will be added to the Master Gantt Scheduler. You can edit any task after import.
-          </div>
-        </>)}
-        <div className="m-actions">
-          <button className="btn-g" onClick={onClose}>Cancel</button>
-          {stage==='preview'&&parsed&&<button className="btn-p" onClick={()=>onImport(parsed)}>Add to Master Gantt</button>}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ── LongformView ───────────────────────────────────────────────────────────
 function LongformGantt({longform,activeProd}){
