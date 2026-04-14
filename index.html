@@ -138,11 +138,11 @@ input,select,textarea,button{font-family:'Barlow',sans-serif}
 .gantt-grp-label{flex:0 0 210px;padding:5px 12px;font-size:11px;font-weight:700;color:#888;border-right:1px solid #ededed}
 
 /* ── MASTER GANTT SCHEDULER ── */
-.mg-wrap{height:100%;display:flex;flex-direction:column;background:#f0f0f0}
+.mg-wrap{display:flex;flex-direction:column;background:#f0f0f0;min-height:0;flex:1}
 .mg-toolbar{display:flex;align-items:center;gap:8px;padding:0 0 14px;flex-wrap:wrap;flex-shrink:0}
 .mg-conflict-banner{background:#fff3cd;border:1px solid #ffc107;border-radius:7px;padding:9px 14px;margin-bottom:14px;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#856404;flex-shrink:0}
 .mg-conflict-banner .resolve-btn{margin-left:auto;background:#856404;border:none;border-radius:5px;padding:4px 12px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.03em;text-transform:uppercase}
-.mg-gantt-container{flex:1;overflow:auto;background:#fff;border-radius:9px;border:1px solid #e0e0e0}
+.mg-gantt-container{flex:1;overflow:auto;background:#fff;border-radius:9px;border:1px solid #e0e0e0;min-height:0}
 .mg-head-sticky{position:sticky;top:0;z-index:20;background:#f5f5f5;border-bottom:1px solid #ddd}
 .mg-head-row{display:flex}
 .mg-left-header{flex:0 0 220px;padding:8px 12px;background:#f5f5f5;border-right:1px solid #ddd;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#999;flex-shrink:0}
@@ -645,11 +645,27 @@ function MasterGantt({ganttData,onImport,onUpdateGantt}){
   const startDate=useMemo(()=>addDays(todayD,-7+offsetDays),[offsetDays,todayD]);
   const daysArr=useMemo(()=>Array.from({length:DAYS_VIS},(_,i)=>{const d=addDays(startDate,i);const dt=new Date(d+'T00:00:00');const dow=dt.getDay();return{date:d,dayNum:dt.getDate(),dayName:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dow],isWeekend:dow===0||dow===6,isToday:d===todayD}}),[startDate,todayD]);
   const totalPx=DAYS_VIS*PX_DAY;
-  const dToX=d=>{const days=daysBetween(startDate,d);return Math.max(0,Math.min(totalPx,days*PX_DAY))};
-  const todayX=daysBetween(startDate,todayD)*PX_DAY;
+  const dToX=useCallback(d=>{const days=daysBetween(startDate,d);return Math.max(0,Math.min(totalPx,days*PX_DAY))},[startDate,totalPx]);
+  const todayX=useMemo(()=>daysBetween(startDate,todayD)*PX_DAY,[startDate,todayD]);
+  const weekendCols=useMemo(()=>daysArr.filter(d=>d.isWeekend).map((d,i)=>({key:i,left:daysBetween(startDate,d.date)*PX_DAY})),[daysArr,startDate]);
 
-  // Conflict detection
-  const conflicts=useMemo(()=>{const dayMap={};ganttData.forEach(proj=>proj.episodes.forEach(ep=>ep.tasks.forEach(task=>{if(!task.assignee||task.status==='Done')return;let d=task.startDate;while(d<=task.endDate){const key=`${d}:${task.assignee}`;if(!dayMap[key])dayMap[key]=[];dayMap[key].push({proj:proj.name,ep:ep.name,task:task.name});d=addDays(d,1)}}))); const conf=[];Object.entries(dayMap).forEach(([k,v])=>{if(v.length>1)conf.push(k)});return conf},[ganttData]);
+  // Conflict detection — simple O(n²) overlap check, no while loop
+  const conflicts=useMemo(()=>{
+    const tasks=[];
+    ganttData.forEach(proj=>proj.episodes.forEach(ep=>ep.tasks.forEach(t=>{
+      if(t.assignee&&t.status!=='Done'&&t.startDate&&t.endDate)tasks.push({...t,projName:proj.name});
+    })));
+    const conf=[];
+    for(let i=0;i<tasks.length;i++){
+      for(let j=i+1;j<tasks.length;j++){
+        const a=tasks[i],b=tasks[j];
+        if(a.assignee===b.assignee&&a.startDate<=b.endDate&&b.startDate<=a.endDate){
+          conf.push(`${a.projName}:${a.name} overlaps ${b.projName}:${b.name} (${a.assignee})`);
+        }
+      }
+    }
+    return conf;
+  },[ganttData]);
 
   const toggleProj=id=>setCollapsed(p=>({...p,[id]:!p[id]}));
   const toggleEp=id=>setEpCollapsed(p=>({...p,[id]:!p[id]}));
@@ -710,7 +726,7 @@ function MasterGantt({ganttData,onImport,onUpdateGantt}){
                 </div>
                 <div className="mg-project-timeline" style={{minWidth:totalPx,position:'relative'}}>
                   {todayX>=0&&todayX<=totalPx&&<div className="mg-today-line" style={{left:todayX}}/>}
-                  {daysArr.filter(d=>d.isWeekend).map((d,i)=><div key={i} className="mg-weekend-col" style={{left:daysBetween(startDate,d.date)*PX_DAY,width:PX_DAY}}/>)}
+                  {weekendCols.map(w=><div key={w.key} className="mg-weekend-col" style={{left:w.left,width:PX_DAY}}/>)}
                 </div>
               </div>
               {!collapsed[proj.id]&&proj.episodes.map(ep=>{
@@ -727,7 +743,7 @@ function MasterGantt({ganttData,onImport,onUpdateGantt}){
                     </div>
                     <div className="mg-ep-timeline" style={{minWidth:totalPx}}>
                       {todayX>=0&&todayX<=totalPx&&<div className="mg-today-line" style={{left:todayX}}/>}
-                      {daysArr.filter(d=>d.isWeekend).map((d,i)=><div key={i} className="mg-weekend-col" style={{left:daysBetween(startDate,d.date)*PX_DAY,width:PX_DAY}}/>)}
+                      {weekendCols.map(w=><div key={w.key} className="mg-weekend-col" style={{left:w.left,width:PX_DAY}}/>)}
                       {span&&span.width>0&&<div className="mg-ep-spine" style={{left:span.left,width:Math.max(span.width,4)}}/>}
                       <span style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',fontSize:10,color:'#bbb',fontWeight:600}}>{fmtD(ep.tasks[ep.tasks.length-1]?.endDate)}</span>
                     </div>
@@ -745,7 +761,7 @@ function MasterGantt({ganttData,onImport,onUpdateGantt}){
                       </div>
                       <div className="mg-task-timeline" style={{minWidth:totalPx,position:'relative'}}>
                         {todayX>=0&&todayX<=totalPx&&<div className="mg-today-line" style={{left:todayX}}/>}
-                        {daysArr.filter(d=>d.isWeekend).map((d,i)=><div key={i} className="mg-weekend-col" style={{left:daysBetween(startDate,d.date)*PX_DAY,width:PX_DAY}}/>)}
+                        {weekendCols.map(w=><div key={w.key} className="mg-weekend-col" style={{left:w.left,width:PX_DAY}}/>)}
                         {bs&&bs.width>0&&(
                           <div className="mg-task-bar" style={{left:bs.left,width:bs.width}}>
                             <div className="mg-bar-bg" style={{background:td.color,opacity:isDone?0.9:isIP?0.7:0.35}}/>
@@ -1188,12 +1204,12 @@ function App(){
     </div>
     <div className="main">
       {isMaster?(
-        <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',padding:'18px 22px 0'}}>
-          <div className="board-title" style={{marginBottom:14}}>
+        <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',padding:'18px 22px 12px',minHeight:0}}>
+          <div className="board-title" style={{marginBottom:14,flexShrink:0}}>
             <span>📊</span><span>Master Gantt Scheduler</span>
             <span className="bcount">{data.masterGantt.reduce((n,p)=>n+p.episodes.reduce((m,e)=>m+e.tasks.length,0),0)} tasks across {data.masterGantt.length} projects</span>
           </div>
-          <div style={{flex:1,overflow:'hidden'}}>
+          <div style={{flex:1,overflow:'hidden',minHeight:0,display:'flex',flexDirection:'column'}}>
             <MasterGantt ganttData={data.masterGantt} onUpdateGantt={updMasterGantt} onImport={()=>{}}/>
           </div>
         </div>
