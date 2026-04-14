@@ -2817,7 +2817,72 @@ function TimeTracker({item,onUpdate}){
   </div>);
 }
 
-// ── Engineer Skills ────────────────────────────────────────────────────────
+// ── Gantt Project Row (needs its own component for useState) ──────────────
+function GanttProjectRow({proj,board,setBoard}){
+  const [open,setOpen]=useState(false);
+  const allTasks=proj.episodes.flatMap(ep=>ep.tasks);
+  const done=allTasks.filter(t=>t.status==='Done').length;
+  const ip=allTasks.filter(t=>t.status==='In Progress').length;
+  const pct=allTasks.length?Math.round(done/allTasks.length*100):0;
+  const status=done===allTasks.length?'Done':ip>0?'In Progress':'Not Started';
+  return(
+    <div style={{background:'#fff',border:'1px solid #eee',borderRadius:8,marginBottom:8,overflow:'hidden'}}>
+      <div style={{display:'flex',alignItems:'center',gap:10,padding:'10px 14px',cursor:'pointer',userSelect:'none'}} onClick={()=>setOpen(p=>!p)}>
+        <span style={{fontSize:9,color:'#bbb',transform:open?'rotate(90deg)':'rotate(0)',display:'inline-block',transition:'transform .15s',flexShrink:0}}>▶</span>
+        <span className="gantt-sync-badge" style={{flexShrink:0}}>{proj.code}</span>
+        <span style={{fontWeight:700,fontSize:13,color:'#111',flex:1}}>{proj.name}</span>
+        <span style={{fontSize:11,color:'#888',fontWeight:500}}>{proj.client}</span>
+        <span style={{fontSize:11,fontWeight:700,color:status==='Done'?'#2e7d32':status==='In Progress'?'#1565c0':'#888'}}>{status}</span>
+        <div style={{width:80,height:5,background:'#f0f0f0',borderRadius:3,overflow:'hidden',flexShrink:0}}>
+          <div style={{height:'100%',width:pct+'%',background:pct===100?'#43a047':'#5c6bc0',borderRadius:3,transition:'width .3s'}}/>
+        </div>
+        <span style={{fontSize:11,color:'#aaa',fontWeight:600,flexShrink:0,minWidth:28}}>{pct}%</span>
+      </div>
+      {open&&(
+        <div style={{borderTop:'1px solid #f5f5f5',padding:'8px 14px 12px'}}>
+          {proj.episodes.map(ep=>{
+            const epDone=ep.tasks.filter(t=>t.status==='Done').length;
+            const epIP=ep.tasks.filter(t=>t.status==='In Progress').length;
+            const epPct=ep.tasks.length?Math.round(epDone/ep.tasks.length*100):0;
+            return(
+              <div key={ep.id} style={{marginBottom:10}}>
+                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:5}}>
+                  <span style={{fontSize:11,fontWeight:700,color:'#555',minWidth:60}}>{ep.name}</span>
+                  <div style={{flex:1,height:4,background:'#f0f0f0',borderRadius:2,overflow:'hidden'}}>
+                    <div style={{height:'100%',width:epPct+'%',background:epPct===100?'#43a047':epIP>0?'#5c6bc0':'#e0e0e0',borderRadius:2,transition:'width .3s'}}/>
+                  </div>
+                  <span style={{fontSize:10,color:'#aaa',fontWeight:600,flexShrink:0}}>{epDone}/{ep.tasks.length}</span>
+                </div>
+                <div style={{display:'flex',gap:3,flexWrap:'wrap'}}>
+                  {ep.tasks.map(t=>{
+                    const td=taskDef(t.name);
+                    const isDone=t.status==='Done';
+                    const isIP=t.status==='In Progress';
+                    return(
+                      <span key={t.id} title={`${t.name}: ${t.status}${t.assignee?' — '+t.assignee:''}`}
+                        style={{fontSize:9,fontWeight:700,padding:'2px 6px',borderRadius:3,
+                          background:isDone?td.color:isIP?td.color+'44':'#f5f5f5',
+                          color:isDone?'#fff':isIP?td.color:'#bbb',
+                          border:`1px solid ${isDone||isIP?td.color:'#e5e5e5'}`,
+                          letterSpacing:'.03em'}}>
+                        {td.abbr||t.name.slice(0,3).toUpperCase()}{isDone&&' ✓'}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+          <div style={{marginTop:6}}>
+            <button onClick={()=>setBoard('__master__')} style={{background:'none',border:'1px solid #ddd',borderRadius:5,padding:'4px 10px',fontSize:11,fontWeight:600,color:'#8e24aa',cursor:'pointer'}}>
+              Open in Gantt →
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 const DEFAULT_ENGINEER_SKILLS=[
   {id:'dialogueEdit', label:'Dialogue Edit', color:'#d32f2f'},
   {id:'musicEdit',    label:'Music Edit',    color:'#1565c0'},
@@ -3590,67 +3655,9 @@ function App(){
                   <span className="g-cnt">{ganttDerivedItems.length} projects</span>
                   <span style={{marginLeft:8,fontSize:10,color:'#8e24aa',fontWeight:600,cursor:'pointer',textDecoration:'underline'}} onClick={()=>setBoard('__master__')}>Open Gantt →</span>
                 </div>
-                {data.masterGantt.map(proj=>{
-                  const allTasks=proj.episodes.flatMap(ep=>ep.tasks);
-                  const done=allTasks.filter(t=>t.status==='Done').length;
-                  const ip=allTasks.filter(t=>t.status==='In Progress').length;
-                  const pct=allTasks.length?Math.round(done/allTasks.length*100):0;
-                  const overallStatus=done===allTasks.length?'Done':ip>0?'In Progress':'Not Started';
-                  const [projOpen,setProjOpen]=useState(false);
-                  return(
-                    <div key={proj.id} style={{background:'#fff',border:'1px solid #eee',borderRadius:8,marginBottom:8,overflow:'hidden'}}>
-                      <div style={{display:'flex',alignItems:'center',gap:10,padding:'10px 14px',cursor:'pointer',userSelect:'none'}} onClick={()=>setProjOpen(p=>!p)}>
-                        <span style={{fontSize:9,color:'#bbb',transform:projOpen?'rotate(90deg)':'rotate(0)',display:'inline-block',transition:'transform .15s',flexShrink:0}}>▶</span>
-                        <span className="gantt-sync-badge" style={{flexShrink:0}}>{proj.code}</span>
-                        <span style={{fontWeight:700,fontSize:13,color:'#111',flex:1}}>{proj.name}</span>
-                        <span style={{fontSize:11,color:'#888',fontWeight:500}}>{proj.client}</span>
-                        <span style={{fontSize:11,fontWeight:700,color:overallStatus==='Done'?'#2e7d32':overallStatus==='In Progress'?'#1565c0':'#888'}}>{overallStatus}</span>
-                        <div style={{width:80,height:5,background:'#f0f0f0',borderRadius:3,overflow:'hidden',flexShrink:0}}>
-                          <div style={{height:'100%',width:pct+'%',background:pct===100?'#43a047':'#5c6bc0',borderRadius:3,transition:'width .3s'}}/>
-                        </div>
-                        <span style={{fontSize:11,color:'#aaa',fontWeight:600,flexShrink:0,minWidth:28}}>{pct}%</span>
-                      </div>
-                      {projOpen&&(
-                        <div style={{borderTop:'1px solid #f5f5f5',padding:'8px 14px 12px'}}>
-                          {proj.episodes.map(ep=>{
-                            const epDone=ep.tasks.filter(t=>t.status==='Done').length;
-                            const epIP=ep.tasks.filter(t=>t.status==='In Progress').length;
-                            const epPct=ep.tasks.length?Math.round(epDone/ep.tasks.length*100):0;
-                            return(
-                              <div key={ep.id} style={{marginBottom:10}}>
-                                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:5}}>
-                                  <span style={{fontSize:11,fontWeight:700,color:'#555',minWidth:60}}>{ep.name}</span>
-                                  <div style={{flex:1,height:4,background:'#f0f0f0',borderRadius:2,overflow:'hidden'}}>
-                                    <div style={{height:'100%',width:epPct+'%',background:epPct===100?'#43a047':epIP>0?'#5c6bc0':'#e0e0e0',borderRadius:2,transition:'width .3s'}}/>
-                                  </div>
-                                  <span style={{fontSize:10,color:'#aaa',fontWeight:600,flexShrink:0}}>{epDone}/{ep.tasks.length}</span>
-                                </div>
-                                <div style={{display:'flex',gap:3,flexWrap:'wrap'}}>
-                                  {ep.tasks.map(t=>{
-                                    const td=taskDef(t.name);
-                                    const isDone=t.status==='Done';
-                                    const isIP=t.status==='In Progress';
-                                    return(
-                                      <span key={t.id} title={`${t.name}: ${t.status}${t.assignee?' — '+t.assignee:''}`}
-                                        style={{fontSize:9,fontWeight:700,padding:'2px 6px',borderRadius:3,
-                                          background:isDone?td.color:isIP?td.color+'44':'#f5f5f5',
-                                          color:isDone?'#fff':isIP?td.color:'#bbb',
-                                          border:`1px solid ${isDone||isIP?td.color:'#e5e5e5'}`,
-                                          letterSpacing:'.03em',transition:'all .13s'}}>
-                                        {td.abbr||t.name.slice(0,3).toUpperCase()}
-                                        {isDone&&' ✓'}
-                                      </span>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                {data.masterGantt.map(proj=>(
+                  <GanttProjectRow key={proj.id} proj={proj} board={board} setBoard={setBoard}/>
+                ))}
               </div>
             )}
 
