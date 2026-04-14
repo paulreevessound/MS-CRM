@@ -634,20 +634,122 @@ function GanttView({board,onSelect}){
   </div>);
 }
 
+// ── DATE PICKER POPUP ─────────────────────────────────────────────────────
+function DatePickerPopup({anchorRef,onSelect,onClose}){
+  const ref=useRef();
+  const now=new Date();
+  const [yr,setYr]=useState(now.getFullYear());
+  const [mo,setMo]=useState(now.getMonth());
+  useEffect(()=>{
+    const h=e=>{if(ref.current&&!ref.current.contains(e.target)&&anchorRef.current&&!anchorRef.current.contains(e.target))onClose()};
+    setTimeout(()=>document.addEventListener('mousedown',h),0);
+    return()=>document.removeEventListener('mousedown',h);
+  },[]);
+  const firstDay=new Date(yr,mo,1).getDay();
+  const daysInMonth=new Date(yr,mo+1,0).getDate();
+  const daysInPrev=new Date(yr,mo,0).getDate();
+  const cells=[];
+  for(let i=firstDay-1;i>=0;i--)cells.push({day:daysInPrev-i,other:true});
+  for(let d=1;d<=daysInMonth;d++)cells.push({day:d,other:false});
+  while(cells.length<42)cells.push({day:cells.length-firstDay-daysInMonth+1,other:true});
+  const DAYS=['Su','Mo','Tu','We','Th','Fr','Sa'];
+  const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const todayStr=today();
+  const prevMo=()=>{if(mo===0){setYr(y=>y-1);setMo(11)}else setMo(m=>m-1)};
+  const nextMo=()=>{if(mo===11){setYr(y=>y+1);setMo(0)}else setMo(m=>m+1)};
+  const selectDay=(d,other)=>{
+    if(other)return;
+    const dateStr=`${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    onSelect(dateStr);onClose();
+  };
+  return(
+    <div ref={ref} style={{position:'absolute',top:'calc(100% + 6px)',left:0,zIndex:400,background:'#fff',border:'1px solid #ddd',borderRadius:10,boxShadow:'0 8px 28px rgba(0,0,0,.14)',padding:12,width:240,userSelect:'none'}}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
+        <button onClick={prevMo} style={{background:'none',border:'none',cursor:'pointer',fontSize:14,fontWeight:700,color:'#555',padding:'2px 6px'}}>‹</button>
+        <span style={{fontSize:13,fontWeight:800,color:'#111'}}>{MONTHS[mo]} {yr}</span>
+        <button onClick={nextMo} style={{background:'none',border:'none',cursor:'pointer',fontSize:14,fontWeight:700,color:'#555',padding:'2px 6px'}}>›</button>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:1}}>
+        {DAYS.map(d=><div key={d} style={{textAlign:'center',fontSize:9,fontWeight:700,color:'#bbb',padding:'2px 0',letterSpacing:'.04em',textTransform:'uppercase'}}>{d}</div>)}
+        {cells.map((cell,i)=>{
+          const dateStr=`${yr}-${String(mo+1).padStart(2,'0')}-${String(cell.day).padStart(2,'0')}`;
+          const isToday=!cell.other&&dateStr===todayStr;
+          const dow=new Date(dateStr+'T00:00:00').getDay();
+          const isWeekend=dow===0||dow===6;
+          return(
+            <div key={i} onClick={()=>selectDay(cell.day,cell.other)}
+              style={{textAlign:'center',padding:'4px 0',fontSize:12,fontWeight:isToday?800:500,
+                borderRadius:4,cursor:cell.other?'default':'pointer',
+                color:cell.other?'#ddd':isToday?'#fff':isWeekend?'#e53935':'#333',
+                background:isToday?'#111':'transparent',
+                transition:'background .1s'}}
+              onMouseEnter={e=>{if(!cell.other&&!isToday)e.currentTarget.style.background='#f5f5f5'}}
+              onMouseLeave={e=>{if(!cell.other&&!isToday)e.currentTarget.style.background='transparent'}}
+            >{cell.day}</div>
+          );
+        })}
+      </div>
+      <div style={{borderTop:'1px solid #f0f0f0',marginTop:8,paddingTop:8,display:'flex',gap:5}}>
+        <button onClick={()=>{onSelect(todayStr);onClose()}} style={{flex:1,background:'#111',border:'none',borderRadius:5,padding:'5px 0',color:'#fff',fontSize:11,fontWeight:700,cursor:'pointer',letterSpacing:'.04em',textTransform:'uppercase'}}>Today</button>
+        <button onClick={onClose} style={{flex:1,background:'transparent',border:'1px solid #ddd',borderRadius:5,padding:'5px 0',color:'#666',fontSize:11,fontWeight:600,cursor:'pointer'}}>Cancel</button>
+      </div>
+    </div>
+  );
+}
+
 // ── MASTER GANTT SCHEDULER ─────────────────────────────────────────────────
 function MasterGantt({ganttData,onImport,onUpdateGantt}){
   const [collapsed,setCollapsed]=useState({});
   const [epCollapsed,setEpCollapsed]=useState({});
-  const [offsetDays,setOffsetDays]=useState(0);
+  const [anchorDate,setAnchorDate]=useState(today());// the date pinned to left of view
+  const [viewMode,setViewMode]=useState('days');// days | weeks | months
   const [showImport,setShowImport]=useState(false);
-  const DAYS_VIS=28;const PX_DAY=42;const LBL_W=220;
+  const [showDatePicker,setShowDatePicker]=useState(false);
+  const datePickerBtnRef=useRef();
   const todayD=today();
-  const startDate=useMemo(()=>addDays(todayD,-7+offsetDays),[offsetDays,todayD]);
-  const daysArr=useMemo(()=>Array.from({length:DAYS_VIS},(_,i)=>{const d=addDays(startDate,i);const dt=new Date(d+'T00:00:00');const dow=dt.getDay();return{date:d,dayNum:dt.getDate(),dayName:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dow],isWeekend:dow===0||dow===6,isToday:d===todayD}}),[startDate,todayD]);
-  const totalPx=DAYS_VIS*PX_DAY;
-  const dToX=useCallback(d=>{const days=daysBetween(startDate,d);return Math.max(0,Math.min(totalPx,days*PX_DAY))},[startDate,totalPx]);
-  const todayX=useMemo(()=>daysBetween(startDate,todayD)*PX_DAY,[startDate,todayD]);
-  const weekendCols=useMemo(()=>daysArr.filter(d=>d.isWeekend).map((d,i)=>({key:i,left:daysBetween(startDate,d.date)*PX_DAY})),[daysArr,startDate]);
+
+  // View mode config
+  const VIEW_CFG={
+    days:  {units:28, pxPer:42,  labelFn:(d)=>{const dt=new Date(d+'T00:00:00');return{top:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dt.getDay()],bot:dt.getDate(),isWeekend:dt.getDay()===0||dt.getDay()===6}}, step:1,  navStep:7},
+    weeks: {units:16, pxPer:70,  labelFn:(d)=>{const dt=new Date(d+'T00:00:00');return{top:'Wk '+Math.ceil(dt.getDate()/7),bot:dt.toLocaleDateString('en-AU',{day:'numeric',month:'short'}),isWeekend:false}}, step:7,  navStep:28},
+    months:{units:12, pxPer:100, labelFn:(d)=>{const dt=new Date(d+'T00:00:00');return{top:dt.toLocaleDateString('en-AU',{month:'short'}),bot:dt.getFullYear(),isWeekend:false}}, step:28, navStep:84},
+  };
+  const cfg=VIEW_CFG[viewMode];
+
+  const startDate=useMemo(()=>{
+    // Snap anchorDate to week start for days mode
+    if(viewMode==='days'){const dt=new Date(anchorDate+'T00:00:00');dt.setDate(dt.getDate()-dt.getDay());return dt.toISOString().split('T')[0]}
+    if(viewMode==='weeks'){const dt=new Date(anchorDate+'T00:00:00');dt.setDate(1);return dt.toISOString().split('T')[0]}
+    if(viewMode==='months'){const dt=new Date(anchorDate+'T00:00:00');dt.setMonth(dt.getMonth()-dt.getMonth()%3,1);return dt.toISOString().split('T')[0]}
+    return anchorDate;
+  },[anchorDate,viewMode]);
+
+  const colsArr=useMemo(()=>Array.from({length:cfg.units},(_,i)=>{
+    const d=addDays(startDate,i*cfg.step);
+    return{date:d,...cfg.labelFn(d)};
+  }),[startDate,cfg]);
+
+  const totalPx=cfg.units*cfg.pxPer;
+  const LBL_W=220;
+
+  const dToX=useCallback(d=>{
+    const days=daysBetween(startDate,d);
+    return Math.max(0,Math.min(totalPx,days*(cfg.pxPer/cfg.step)));
+  },[startDate,cfg,totalPx]);
+
+  const todayX=useMemo(()=>{
+    const days=daysBetween(startDate,todayD);
+    return days*(cfg.pxPer/cfg.step);
+  },[startDate,todayD,cfg]);
+
+  const weekendCols=useMemo(()=>{
+    if(viewMode!=='days')return[];
+    return colsArr.filter(d=>d.isWeekend).map((d,i)=>({key:i,left:daysBetween(startDate,d.date)*cfg.pxPer}));
+  },[colsArr,startDate,cfg,viewMode]);
+
+  const navigate=n=>setAnchorDate(d=>addDays(d,cfg.navStep*n));
+  const goToDate=d=>setAnchorDate(d);
+  const goToday=()=>setAnchorDate(todayD);
 
   // Conflict detection — simple O(n²) overlap check, no while loop
   const conflicts=useMemo(()=>{
@@ -671,13 +773,21 @@ function MasterGantt({ganttData,onImport,onUpdateGantt}){
   const toggleEp=id=>setEpCollapsed(p=>({...p,[id]:!p[id]}));
 
   const getBarStyle=(task)=>{
-    const x1=dToX(task.startDate);const x2=dToX(task.endDate);const w=Math.max(x2-x1,PX_DAY*.5);
-    if(w<=0)return null;
+    const x1=dToX(task.startDate);const x2=dToX(task.endDate);
+    const w=Math.max(x2-x1,cfg.pxPer*0.3);
+    if(w<=0&&x1===0&&x2===0)return null;
     const td=taskDef(task.name);
     return{left:x1,width:w,color:td.text,bgColor:td.color};
   };
 
-  const getEpSpan=(ep)=>{const ts=ep.tasks;if(!ts.length)return null;const s=ts.reduce((m,t)=>t.startDate<m?t.startDate:m,ts[0].startDate);const e=ts.reduce((m,t)=>t.endDate>m?t.endDate:m,ts[0].endDate);const x1=dToX(s);const x2=dToX(e);return{left:x1,width:x2-x1}};
+  const getEpSpan=(ep)=>{
+    const ts=ep.tasks;if(!ts.length)return null;
+    const s=ts.reduce((m,t)=>t.startDate<m?t.startDate:m,ts[0].startDate);
+    const e=ts.reduce((m,t)=>t.endDate>m?t.endDate:m,ts[0].endDate);
+    return{left:dToX(s),width:dToX(e)-dToX(s)};
+  };
+
+  const endDate=addDays(startDate,(cfg.units-1)*cfg.step);
 
   return(
     <div className="mg-wrap">
@@ -685,29 +795,47 @@ function MasterGantt({ganttData,onImport,onUpdateGantt}){
         <div className="mg-conflict-banner">
           <span>⚠</span>
           <span>{conflicts.length} schedule conflict{conflicts.length!==1?'s':''} detected</span>
-          <button className="resolve-btn">Auto-Resolve</button>
+          <button className="resolve-btn">View Conflicts</button>
         </div>
       )}
       <div className="mg-toolbar">
-        <button className="mg-nav-btn" onClick={()=>setOffsetDays(o=>o-7)}>‹ Prev Week</button>
-        <span className="mg-date-range">{fmtD(startDate)} — {fmtD(addDays(startDate,DAYS_VIS-1))}</span>
-        <button className="mg-nav-btn" onClick={()=>setOffsetDays(o=>o+7)}>Next Week ›</button>
-        <button className="mg-nav-btn" onClick={()=>setOffsetDays(0)}>Today</button>
+        {/* View mode toggle */}
+        <div style={{display:'flex',gap:0,border:'1px solid #ddd',borderRadius:7,overflow:'hidden',flexShrink:0}}>
+          {['days','weeks','months'].map(m=>(
+            <button key={m} onClick={()=>setViewMode(m)}
+              style={{padding:'5px 12px',border:'none',borderRight:m!=='months'?'1px solid #ddd':'none',cursor:'pointer',fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:'.04em',background:viewMode===m?'#111':'#fff',color:viewMode===m?'#fff':'#666',transition:'all .13s'}}>
+              {m}
+            </button>
+          ))}
+        </div>
+        {/* Nav */}
+        <button className="mg-nav-btn" onClick={()=>navigate(-1)}>‹</button>
+        {/* Date range — click to open picker */}
+        <div style={{position:'relative'}}>
+          <button ref={datePickerBtnRef} className="mg-nav-btn"
+            onClick={()=>setShowDatePicker(p=>!p)}
+            style={{display:'flex',alignItems:'center',gap:6,fontWeight:600,minWidth:160,justifyContent:'center',background:showDatePicker?'#111':'#fff',color:showDatePicker?'#fff':'#555'}}>
+            <span>📅</span>
+            <span>{fmtD(startDate)} — {fmtD(endDate)}</span>
+          </button>
+          {showDatePicker&&<DatePickerPopup anchorRef={datePickerBtnRef} onSelect={goToDate} onClose={()=>setShowDatePicker(false)}/>}
+        </div>
+        <button className="mg-nav-btn" onClick={()=>navigate(1)}>›</button>
+        <button className="mg-nav-btn" onClick={goToday} style={{fontSize:11,letterSpacing:'.03em',textTransform:'uppercase',fontWeight:700}}>Today</button>
         <div style={{marginLeft:'auto',display:'flex',gap:6}}>
-          <button className="t-btn" onClick={()=>setShowImport(true)} style={{fontWeight:700,fontSize:12}}>⬆ Import Schedule</button>
-          <button className="t-btn" onClick={()=>exportICS(ganttData)} style={{fontWeight:700,fontSize:12}}>📅 Export to .ics</button>
+          <button className="t-btn" onClick={()=>setShowImport(true)} style={{fontWeight:700,fontSize:12}}>⬆ Import</button>
+          <button className="t-btn" onClick={()=>exportICS(ganttData)} style={{fontWeight:700,fontSize:12}}>📅 .ics</button>
         </div>
       </div>
       <div className="mg-gantt-container">
         <div style={{minWidth:LBL_W+totalPx}}>
-          {/* Header */}
           <div className="mg-head-sticky">
             <div className="mg-head-row">
               <div className="mg-left-header">Project / Task</div>
-              {daysArr.map((d,i)=>(
-                <div key={i} className={`mg-day-cell${d.isWeekend?' weekend':''}`} style={{width:PX_DAY,flex:`0 0 ${PX_DAY}px`,borderRight:'1px solid #e8e8e8'}}>
-                  <div className="mg-day-top">{d.dayName}</div>
-                  <div className={`mg-day-num${d.isToday?' today-num':''}`}>{d.dayNum}</div>
+              {colsArr.map((d,i)=>(
+                <div key={i} className={`mg-day-cell${d.isWeekend?' weekend':''}`} style={{width:cfg.pxPer,flex:`0 0 ${cfg.pxPer}px`,borderRight:'1px solid #e8e8e8'}}>
+                  <div className="mg-day-top">{d.top}</div>
+                  <div className={`mg-day-num${d.date===todayD?' today-num':''}`}>{d.bot}</div>
                 </div>
               ))}
             </div>
@@ -786,6 +914,7 @@ function MasterGantt({ganttData,onImport,onUpdateGantt}){
     </div>
   );
 }
+
 
 // ── iCal Export ────────────────────────────────────────────────────────────
 function exportICS(ganttData){
