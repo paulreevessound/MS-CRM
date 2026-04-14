@@ -634,6 +634,16 @@ function GanttView({board,onSelect}){
   </div>);
 }
 
+// ── MASTER GANTT VIEW CONFIG (outside component so it's stable) ───────────
+const VIEW_CFG={
+  days:  {units:28,pxPer:42, step:1, navStep:7,
+          labelFn:d=>{const dt=new Date(d+'T00:00:00');const dow=dt.getDay();return{top:['Su','Mo','Tu','We','Th','Fr','Sa'][dow],bot:dt.getDate(),isWeekend:dow===0||dow===6}}},
+  weeks: {units:16,pxPer:72, step:7, navStep:28,
+          labelFn:d=>{const dt=new Date(d+'T00:00:00');return{top:dt.toLocaleDateString('en-AU',{month:'short'}),bot:dt.toLocaleDateString('en-AU',{day:'numeric',month:'short'}),isWeekend:false}}},
+  months:{units:12,pxPer:110,step:28,navStep:84,
+          labelFn:d=>{const dt=new Date(d+'T00:00:00');return{top:dt.toLocaleDateString('en-AU',{month:'short'}),bot:dt.getFullYear(),isWeekend:false}}},
+};
+
 // ── DATE PICKER POPUP ─────────────────────────────────────────────────────
 function DatePickerPopup({anchorRef,onSelect,onClose}){
   const ref=useRef();
@@ -708,13 +718,7 @@ function MasterGantt({ganttData,onImport,onUpdateGantt}){
   const datePickerBtnRef=useRef();
   const todayD=today();
 
-  // View mode config
-  const VIEW_CFG={
-    days:  {units:28, pxPer:42,  labelFn:(d)=>{const dt=new Date(d+'T00:00:00');return{top:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dt.getDay()],bot:dt.getDate(),isWeekend:dt.getDay()===0||dt.getDay()===6}}, step:1,  navStep:7},
-    weeks: {units:16, pxPer:70,  labelFn:(d)=>{const dt=new Date(d+'T00:00:00');return{top:'Wk '+Math.ceil(dt.getDate()/7),bot:dt.toLocaleDateString('en-AU',{day:'numeric',month:'short'}),isWeekend:false}}, step:7,  navStep:28},
-    months:{units:12, pxPer:100, labelFn:(d)=>{const dt=new Date(d+'T00:00:00');return{top:dt.toLocaleDateString('en-AU',{month:'short'}),bot:dt.getFullYear(),isWeekend:false}}, step:28, navStep:84},
-  };
-  const cfg=VIEW_CFG[viewMode];
+  const cfg=useMemo(()=>VIEW_CFG[viewMode],[viewMode]);
 
   const startDate=useMemo(()=>{
     // Snap anchorDate to week start for days mode
@@ -854,7 +858,7 @@ function MasterGantt({ganttData,onImport,onUpdateGantt}){
                 </div>
                 <div className="mg-project-timeline" style={{minWidth:totalPx,position:'relative'}}>
                   {todayX>=0&&todayX<=totalPx&&<div className="mg-today-line" style={{left:todayX}}/>}
-                  {weekendCols.map(w=><div key={w.key} className="mg-weekend-col" style={{left:w.left,width:PX_DAY}}/>)}
+                  {weekendCols.map(w=><div key={w.key} className="mg-weekend-col" style={{left:w.left,width:cfg.pxPer}}/>)}
                 </div>
               </div>
               {!collapsed[proj.id]&&proj.episodes.map(ep=>{
@@ -871,7 +875,7 @@ function MasterGantt({ganttData,onImport,onUpdateGantt}){
                     </div>
                     <div className="mg-ep-timeline" style={{minWidth:totalPx}}>
                       {todayX>=0&&todayX<=totalPx&&<div className="mg-today-line" style={{left:todayX}}/>}
-                      {weekendCols.map(w=><div key={w.key} className="mg-weekend-col" style={{left:w.left,width:PX_DAY}}/>)}
+                      {weekendCols.map(w=><div key={w.key} className="mg-weekend-col" style={{left:w.left,width:cfg.pxPer}}/>)}
                       {span&&span.width>0&&<div className="mg-ep-spine" style={{left:span.left,width:Math.max(span.width,4)}}/>}
                       <span style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',fontSize:10,color:'#bbb',fontWeight:600}}>{fmtD(ep.tasks[ep.tasks.length-1]?.endDate)}</span>
                     </div>
@@ -889,7 +893,7 @@ function MasterGantt({ganttData,onImport,onUpdateGantt}){
                       </div>
                       <div className="mg-task-timeline" style={{minWidth:totalPx,position:'relative'}}>
                         {todayX>=0&&todayX<=totalPx&&<div className="mg-today-line" style={{left:todayX}}/>}
-                        {weekendCols.map(w=><div key={w.key} className="mg-weekend-col" style={{left:w.left,width:PX_DAY}}/>)}
+                        {weekendCols.map(w=><div key={w.key} className="mg-weekend-col" style={{left:w.left,width:cfg.pxPer}}/>)}
                         {bs&&bs.width>0&&(
                           <div className="mg-task-bar" style={{left:bs.left,width:bs.width}}>
                             <div className="mg-bar-bg" style={{background:td.color,opacity:isDone?0.9:isIP?0.7:0.35}}/>
