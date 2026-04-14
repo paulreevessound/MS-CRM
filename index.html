@@ -105,13 +105,77 @@ input,select,textarea,button{font-family:'Barlow',sans-serif}
 .kb-empty{font-size:12px;color:#ccc;padding:8px 4px;text-align:center;border:1px dashed #ddd;border-radius:7px}
 
 /* CALENDAR */
+/* ── GOOGLE CALENDAR STYLE ─────────────────────────────────────────────── */
+.gc-wrap{display:flex;flex-direction:column;height:100%;background:#fff;border-radius:10px;border:1px solid #e0e0e0;overflow:hidden}
+.gc-toolbar{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid #e0e0e0;flex-shrink:0;background:#fff}
+.gc-today-btn{padding:6px 14px;border:1px solid #ddd;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;background:#fff;color:#444;transition:all .13s;letter-spacing:.02em}
+.gc-today-btn:hover{border-color:#111;color:#111}
+.gc-nav-arrow{background:none;border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:#555;transition:background .13s}
+.gc-nav-arrow:hover{background:#f5f5f5}
+.gc-title{font-size:18px;font-weight:400;color:#111;letter-spacing:-.2px;min-width:200px}
+.gc-view-toggle{display:flex;gap:0;border:1px solid #ddd;border-radius:6px;overflow:hidden;margin-left:auto}
+.gc-view-btn{padding:6px 14px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:#555;transition:all .13s;border-right:1px solid #ddd;letter-spacing:.02em}
+.gc-view-btn:last-child{border-right:none}
+.gc-view-btn:hover{background:#f5f5f5}
+.gc-view-btn.active{background:#1a73e8;color:#fff}
+.gc-sync-btn{display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid #ddd;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;background:#fff;color:#444;transition:all .13s;letter-spacing:.02em}
+.gc-sync-btn:hover{border-color:#1a73e8;color:#1a73e8}
+.gc-sync-btn.connected{border-color:#34a853;color:#34a853;background:#f6fef9}
+/* Month view */
+.gc-month{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.gc-month-head{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid #e0e0e0;flex-shrink:0}
+.gc-month-dh{padding:8px 0;text-align:center;font-size:11px;font-weight:600;color:#70757a;text-transform:uppercase;letter-spacing:.05em}
+.gc-month-grid{flex:1;display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(6,1fr);border-left:1px solid #e0e0e0;overflow:hidden}
+.gc-month-cell{border-right:1px solid #e0e0e0;border-bottom:1px solid #e0e0e0;padding:4px 6px;overflow:hidden;cursor:pointer;transition:background .1s;display:flex;flex-direction:column}
+.gc-month-cell:hover{background:#f8f8f8}
+.gc-month-cell.today{background:#fff8e1}
+.gc-month-cell.other{background:#f9f9f9}
+.gc-day-num{font-size:12px;font-weight:500;color:#70757a;margin-bottom:2px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;flex-shrink:0;align-self:flex-start}
+.gc-day-num.today-circle{background:#1a73e8;color:#fff;font-weight:700}
+.gc-event-chip{font-size:11px;padding:1px 6px;border-radius:3px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;font-weight:500;line-height:1.6}
+.gc-event-chip:hover{opacity:.85}
+.gc-more-link{font-size:11px;color:#70757a;cursor:pointer;font-weight:600;padding:1px 4px}
+.gc-more-link:hover{background:#f0f0f0;border-radius:3px}
+/* Week view */
+.gc-week{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.gc-week-head{display:flex;border-bottom:1px solid #e0e0e0;flex-shrink:0}
+.gc-week-time-gutter{width:52px;flex-shrink:0}
+.gc-week-day-col{flex:1;text-align:center;padding:8px 0;border-left:1px solid #e0e0e0;cursor:pointer;transition:background .1s}
+.gc-week-day-col:hover{background:#f8f8f8}
+.gc-week-dn{font-size:11px;color:#70757a;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.gc-week-dd{font-size:22px;font-weight:400;color:#3c4043;width:44px;height:44px;display:flex;align-items:center;justify-content:center;margin:2px auto 0;border-radius:50%;transition:background .1s}
+.gc-week-dd.today{background:#1a73e8;color:#fff;font-weight:700}
+.gc-week-body{flex:1;overflow-y:auto;display:flex;position:relative;min-height:0}
+.gc-week-times{width:52px;flex-shrink:0;position:sticky;left:0;z-index:2;background:#fff}
+.gc-hour-label{height:48px;display:flex;align-items:flex-start;justify-content:flex-end;padding-right:6px;font-size:10px;color:#70757a;font-weight:500;padding-top:2px;box-sizing:border-box;letter-spacing:.02em}
+.gc-week-grid{flex:1;display:flex;position:relative}
+.gc-day-col{flex:1;border-left:1px solid #e0e0e0;position:relative;cursor:pointer}
+.gc-hour-row{height:48px;border-bottom:1px solid #f0f0f0;position:relative}
+.gc-hour-row.half{border-bottom:1px dashed #f5f5f5}
+.gc-now-line{position:absolute;left:0;right:0;height:2px;background:#ea4335;z-index:5;pointer-events:none}
+.gc-now-dot{position:absolute;left:-4px;top:-4px;width:10px;height:10px;border-radius:50%;background:#ea4335}
+.gc-week-event{position:absolute;left:2px;right:2px;border-radius:4px;padding:2px 5px;font-size:11px;font-weight:500;cursor:pointer;overflow:hidden;border:none;box-shadow:0 1px 3px rgba(0,0,0,.15);z-index:3;transition:opacity .13s}
+.gc-week-event:hover{opacity:.88;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+/* Day view */
+.gc-day{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.gc-day-head{padding:12px 16px;border-bottom:1px solid #e0e0e0;flex-shrink:0;text-align:center}
+.gc-day-head-date{font-size:11px;color:#70757a;text-transform:uppercase;font-weight:600;letter-spacing:.06em}
+.gc-day-head-num{font-size:36px;font-weight:300;color:#3c4043;line-height:1;margin-top:2px}
+.gc-day-head-num.today{color:#1a73e8}
+/* Event create modal */
+.gc-create-modal{position:absolute;background:#fff;border-radius:10px;box-shadow:0 4px 24px rgba(0,0,0,.22);padding:18px;width:300px;z-index:500;border:1px solid #e0e0e0}
+.gc-event-detail{position:absolute;background:#fff;border-radius:10px;box-shadow:0 4px 24px rgba(0,0,0,.22);padding:16px;width:320px;z-index:500;border:1px solid #e0e0e0}
+/* Sync panel */
+.gc-sync-panel{background:#e8f5e9;border-bottom:1px solid #c8e6c9;padding:10px 16px;display:flex;align-items:center;gap:10px;font-size:12px;flex-shrink:0}
+.gc-sync-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+/* Fallback basic calendar (for board calendar view) */
 .cal-nav{display:flex;align-items:center;gap:14px;margin-bottom:16px}
 .cal-nav-btn{background:#fff;border:1px solid #ddd;border-radius:6px;padding:5px 12px;color:#555;cursor:pointer;font-size:13px;font-weight:600;transition:all .13s}
 .cal-nav-btn:hover{background:#111;border-color:#111;color:#fff}
 .cal-month{font-size:18px;font-weight:800;color:#111;min-width:180px;text-align:center;letter-spacing:-.3px}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:#ddd;border:1px solid #ddd;border-radius:9px;overflow:hidden}
 .cal-day-hdr{background:#f8f8f8;padding:7px 4px;text-align:center;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#888}
-.cal-cell{background:#fff;min-height:100px;padding:6px;transition:background .1s}
+.cal-cell{background:#fff;min-height:90px;padding:6px;transition:background .1s}
 .cal-cell:hover{background:#fafafa}
 .cal-cell.today{background:#fffbf0}
 .cal-cell.other-month{background:#f8f8f8}
@@ -370,7 +434,32 @@ input,select,textarea,button{font-family:'Barlow',sans-serif}
 .lfg-week{font-size:10px;color:#999;border-right:1px solid #ededed;text-align:center;white-space:nowrap;padding:8px 0;background:#f8f8f8;font-weight:600}
 .empty{text-align:center;padding:48px 20px;color:#bbb}
 .empty h3{font-size:16px;color:#aaa;margin-bottom:6px;font-weight:700}
-</style>
+
+/* SIGN IN */
+.signin-screen{height:100vh;display:flex;align-items:center;justify-content:center;background:#0f0f0f;flex-direction:column;gap:0}
+.signin-card{background:#fff;border-radius:14px;padding:36px 36px 28px;width:360px;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.signin-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px}
+.signin-logo-icon{width:36px;height:36px;background:#111;border-radius:7px;display:flex;align-items:center;justify-content:center}
+.signin-logo-icon svg{width:22px;height:22px}
+.signin-logo-brand{font-size:15px;font-weight:800;color:#111;text-transform:uppercase;letter-spacing:.04em}
+.signin-logo-sub{font-size:10px;color:#aaa;font-weight:600;letter-spacing:.12em;text-transform:uppercase}
+.signin-title{font-size:20px;font-weight:800;color:#111;margin-bottom:4px;letter-spacing:-.3px}
+.signin-sub{font-size:12px;color:#888;margin-bottom:22px;font-weight:500}
+.signin-in{background:#f8f8f8;border:1.5px solid #e5e5e5;border-radius:7px;padding:10px 12px;color:#111;font-size:13px;width:100%;outline:none;font-weight:500;margin-bottom:10px;transition:border-color .13s}
+.signin-in:focus{border-color:#111;background:#fff}
+.signin-btn{background:#111;border:none;border-radius:7px;padding:11px 0;color:#fff;font-size:13px;font-weight:700;width:100%;cursor:pointer;text-transform:uppercase;letter-spacing:.05em;transition:background .13s;margin-top:4px}
+.signin-btn:hover{background:#333}
+.signin-err{color:#c62828;font-size:11px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.signin-users{margin-top:20px;border-top:1px solid #f0f0f0;padding-top:16px}
+.signin-user-btn{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px;cursor:pointer;border:1px solid #e5e5e5;background:#fff;width:100%;margin-bottom:6px;text-align:left;transition:all .13s}
+.signin-user-btn:hover{border-color:#333;background:#f8f8f8}
+.signin-user-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0}
+.role-badge{font-size:9px;font-weight:800;padding:2px 6px;border-radius:3px;text-transform:uppercase;letter-spacing:.05em;margin-left:auto}
+.role-badge.admin{background:#111;color:#fff}
+.role-badge.staff{background:#1565c0;color:#fff}
+.role-badge.freelancer{background:#8e24aa;color:#fff}
+/* PERMISSION GATE */
+.perm-denied{display:flex;align-items:center;gap:8px;padding:12px 16px;background:#fff5f5;border:1px solid #fcc;border-radius:8px;font-size:12px;color:#c62828;font-weight:600}
 </head>
 <body>
 <div id="root"></div>
@@ -691,50 +780,27 @@ const INIT={
          {id:'i5',name:'Feature Mix — Still Water',notes:'Delivered 4 Apr. Archive to NAS.',startDate:'2026-03-10',timeLogs:[{id:'t5',date:'2026-03-20',mins:480,person:'Matthew P',note:'Full mix'}],values:{c1:'Done',c2:'Matthew P',c3:'Still Water Prods',c4:'2026-04-05',c5:14000,c6:45}},
        ]},
      ]},
-    {id:'b2',name:'Studio Schedule',icon:'📅',color:'#43a047',
-     columns:[{id:'c1',name:'Status',type:'status'},{id:'c2',name:'Engineer',type:'person'},{id:'c3',name:'Room',type:'text'},{id:'c4',name:'Date',type:'date'},{id:'c5',name:'Hours',type:'number'},{id:'c6',name:'Project',type:'text'}],
-     rooms:[
-       {id:'r1',name:'Studio A',type:'Mix Suite',status:'free',project:''},
-       {id:'r2',name:'Studio B',type:'Edit Suite',status:'booked',project:'Wanderers Ep3'},
-       {id:'r3',name:'Studio C',type:'Edit Suite',status:'free',project:''},
-       {id:'r4',name:'VO Booth 1',type:'Recording',status:'occupied',project:'The Brief Ep1'},
-       {id:'r5',name:'VO Booth 2',type:'Recording',status:'free',project:''},
-     ],
-     groups:[
-       {id:'g1',name:'Today',color:'#43a047',collapsed:false,items:[
-         {id:'i1',name:'ADR Session — Wanderers Ep3',notes:'3 actors. Book green room.',startDate:'2026-04-14',timeLogs:[],values:{c1:'In Progress',c2:'Matthew P',c3:'Studio B',c4:'2026-04-14',c5:4,c6:'Wanderers'}},
-         {id:'i2',name:'Podcast Record — The Brief Ep1',notes:'Host only. Remote guest via Source Connect.',startDate:'2026-04-16',timeLogs:[],values:{c1:'In Progress',c2:'Tom B',c3:'VO Booth 1',c4:'2026-04-14',c5:3,c6:'The Brief'}},
-       ]},
-       {id:'g2',name:'This Week',color:'#fb8c00',collapsed:false,items:[
-         {id:'i3',name:'TVC Final Mix — Nike',notes:'Stems + stereo + mono delivery COB.',startDate:'2026-04-21',timeLogs:[],values:{c1:'Not Started',c2:'Paul R',c3:'Studio A',c4:'2026-04-21',c5:6,c6:'Nike'}},
-         {id:'i4',name:'VO Record — CommBank Radio',notes:'3 talent. Full day. Catering 8am.',startDate:'2026-04-23',timeLogs:[],values:{c1:'Not Started',c2:'Tom B',c3:'VO Booth 2',c4:'2026-04-23',c5:4,c6:'CommBank'}},
-         {id:'i5',name:'Deadliest Dinners Ep1 — DX Edit',notes:'3 days allocated. Check Avid session.',startDate:'2026-06-04',timeLogs:[],values:{c1:'Not Started',c2:'Paul R',c3:'Studio C',c4:'2026-06-06',c5:8,c6:'Deadliest Dinners'}},
-       ]},
-       {id:'g3',name:'Next Week',color:'#5c6bc0',collapsed:false,items:[
-         {id:'i6',name:'ISFM Ep1 — Mix Block',notes:'Full mix week. Studio A booked Mon–Fri.',startDate:'2026-05-26',timeLogs:[],values:{c1:'Not Started',c2:'Paul R',c3:'Studio A',c4:'2026-06-02',c5:40,c6:'Sydney Fish Markets'}},
-       ]},
-     ]},
     {id:'b3',name:'Engineers',icon:'🎧',color:'#8e24aa',
-     columns:[{id:'c1',name:'Status',type:'status'},{id:'c2',name:'Role',type:'text'},{id:'c3',name:'Rate ($/day)',type:'currency'},{id:'c4',name:'Next Available',type:'date'},{id:'c5',name:'Days This Month',type:'number'}],
+     columns:[{id:'c1',name:'Status',type:'status'},{id:'c2',name:'Role',type:'text'},{id:'c3',name:'Rate ($/day)',type:'currency'},{id:'c4',name:'Booked From',type:'date'},{id:'c5',name:'Booked To',type:'date'}],
      groups:[
        {id:'g1',name:'Staff',color:'#5c6bc0',collapsed:false,items:[
-         {id:'i1',name:'Paul Reeves',notes:'Senior Sound Engineer. paul@mightysound.studio',startDate:'',timeLogs:[],
-          skills:{dialogueEdit:true,musicEdit:true,sfxEdit:true,backgrounds:true,preReMix:true,finalMix:true,revisions:true,qcChanges:true,deliverables:true,remoteVO:true,onsiteVO:true,attendedSession:true},
-          values:{c1:'In Progress',c2:'Senior Engineer',c3:850,c4:'2026-04-14',c5:18}},
-         {id:'i2',name:'Matthew Perrott',notes:'Founder / Lead Mix Engineer. matt@mightysound.studio',startDate:'',timeLogs:[],
-          skills:{dialogueEdit:true,musicEdit:true,sfxEdit:true,backgrounds:true,preReMix:true,finalMix:true,revisions:true,qcChanges:true,deliverables:true,remoteVO:true,onsiteVO:true,attendedSession:true},
-          values:{c1:'In Progress',c2:'Lead Mix Engineer',c3:950,c4:'2026-04-14',c5:20}},
-         {id:'i3',name:'Kristen Settinelli',notes:'QC & Delivery specialist. kristen@mightysound.studio',startDate:'',timeLogs:[],
-          skills:{dialogueEdit:false,musicEdit:false,sfxEdit:false,backgrounds:false,preReMix:false,finalMix:false,revisions:true,qcChanges:true,deliverables:true,remoteVO:false,onsiteVO:false,attendedSession:false},
-          values:{c1:'In Progress',c2:'QC & Delivery',c3:650,c4:'2026-04-14',c5:15}},
+         {id:'i1',name:'Paul Reeves',notes:'Senior Sound Engineer. paul@mightysound.studio',startDate:'',timeLogs:[],_type:'staff',
+          skills:{dialogueEdit:true,musicEdit:true,sfxEdit:true,backgrounds:true,preMix:true,finalMix:true,revisions:true,qcChanges:true,deliverables:true},
+          values:{c1:'Available',c2:'Senior Engineer',c3:null,c4:'',c5:''}},
+         {id:'i2',name:'Matthew Perrott',notes:'Founder / Lead Mix Engineer. matt@mightysound.studio',startDate:'',timeLogs:[],_type:'staff',
+          skills:{dialogueEdit:true,musicEdit:true,sfxEdit:true,backgrounds:true,preMix:true,finalMix:true,revisions:true,qcChanges:true,deliverables:true},
+          values:{c1:'Available',c2:'Lead Mix Engineer',c3:null,c4:'',c5:''}},
+         {id:'i3',name:'Kristen Settinelli',notes:'QC & Delivery specialist. kristen@mightysound.studio',startDate:'',timeLogs:[],_type:'staff',
+          skills:{dialogueEdit:false,musicEdit:false,sfxEdit:false,backgrounds:false,preMix:false,finalMix:false,revisions:true,qcChanges:true,deliverables:true},
+          values:{c1:'Available',c2:'QC & Delivery',c3:null,c4:'',c5:''}},
        ]},
        {id:'g2',name:'Freelancers',color:'#8e24aa',collapsed:false,items:[
-         {id:'i4',name:'David Chen',notes:'Preferred for Foley. david@chenfoley.com.au',startDate:'',timeLogs:[],
-          skills:{dialogueEdit:false,musicEdit:false,sfxEdit:true,backgrounds:true,preReMix:false,finalMix:false,revisions:false,qcChanges:false,deliverables:false},
-          values:{c1:'Available',c2:'Foley Artist',c3:760,c4:'2026-04-30',c5:14}},
-         {id:'i5',name:'Emma Walsh',notes:'Mon–Thu only. ADR supervisor. NIDA trained.',startDate:'',timeLogs:[],
-          skills:{dialogueEdit:true,musicEdit:false,sfxEdit:false,backgrounds:false,preReMix:true,finalMix:true,revisions:true,qcChanges:false,deliverables:false},
-          values:{c1:'Available',c2:'ADR Supervisor',c3:880,c4:'2026-04-25',c5:8}},
+         {id:'i4',name:'David Chen',notes:'Preferred for Foley. david@chenfoley.com.au',startDate:'',timeLogs:[],_type:'freelancer',
+          skills:{dialogueEdit:false,musicEdit:false,sfxEdit:true,backgrounds:true,preMix:false,finalMix:false,revisions:false,qcChanges:false,deliverables:false},
+          values:{c1:'Available',c2:'Foley Artist',c3:760,c4:'',c5:''}},
+         {id:'i5',name:'Emma Walsh',notes:'Mon–Thu only. ADR supervisor.',startDate:'',timeLogs:[],_type:'freelancer',
+          skills:{dialogueEdit:true,musicEdit:false,sfxEdit:false,backgrounds:false,preMix:true,finalMix:true,revisions:true,qcChanges:false,deliverables:false},
+          values:{c1:'Available',c2:'ADR Supervisor',c3:880,c4:'',c5:''}},
        ]},
      ]},
     {id:'b4',name:'Budget Tracker',icon:'💰',color:'#fb8c00',
@@ -847,7 +913,448 @@ function KanbanView({board,onSelect}){
   </div>))}</div>);
 }
 
-// ── CalendarView ───────────────────────────────────────────────────────────
+// ── Google Calendar API Hook ───────────────────────────────────────────────
+const GCAL_CLIENT_ID='375953047409-g264eo7tghcg1g82s6f8khfg8p5f0jh4.apps.googleusercontent.com';
+const GCAL_SCOPES='https://www.googleapis.com/auth/calendar';
+
+function useGoogleCalendar(){
+  const [token,setToken]=useState(null);
+  const [gcalEvents,setGcalEvents]=useState([]);
+  const [syncStatus,setSyncStatus]=useState('idle');// idle|syncing|ok|error
+  const [lastSync,setLastSync]=useState(null);
+  const pollRef=useRef(null);
+
+  // Handle OAuth token from URL hash after redirect
+  useEffect(()=>{
+    const hash=new URLSearchParams(window.location.hash.replace('#',''));
+    const t=hash.get('access_token');
+    if(t){setToken(t);window.history.replaceState(null,'',window.location.pathname);}
+  },[]);
+
+  const connect=()=>{
+    const params=new URLSearchParams({
+      client_id:GCAL_CLIENT_ID,
+      redirect_uri:window.location.origin+window.location.pathname,
+      response_type:'token',
+      scope:GCAL_SCOPES+' https://www.googleapis.com/auth/spreadsheets',
+      include_granted_scopes:'true',
+    });
+    window.location.href='https://accounts.google.com/o/oauth2/v2/auth?'+params;
+  };
+
+  const disconnect=()=>{setToken(null);setGcalEvents([]);setSyncStatus('idle');clearInterval(pollRef.current)};
+
+  const fetchEvents=useCallback(async(t=token)=>{
+    if(!t)return;
+    setSyncStatus('syncing');
+    try{
+      const now=new Date();
+      const min=new Date(now.getFullYear(),now.getMonth()-1,1).toISOString();
+      const max=new Date(now.getFullYear(),now.getMonth()+3,1).toISOString();
+      const resp=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(min)}&timeMax=${encodeURIComponent(max)}&singleEvents=true&orderBy=startTime&maxResults=250`,{
+        headers:{Authorization:`Bearer ${t}`}
+      });
+      if(resp.status===401){setToken(null);setSyncStatus('error');return}
+      if(!resp.ok)throw new Error('Calendar fetch failed');
+      const data=await resp.json();
+      setGcalEvents(data.items||[]);
+      setSyncStatus('ok');setLastSync(new Date());
+    }catch(e){setSyncStatus('error');console.warn('GCal fetch failed:',e.message)}
+  },[token]);
+
+  useEffect(()=>{
+    if(token){
+      fetchEvents(token);
+      pollRef.current=setInterval(()=>fetchEvents(token),60000);// poll every 60s
+    }
+    return()=>clearInterval(pollRef.current);
+  },[token]);
+
+  const createEvent=useCallback(async(event)=>{
+    if(!token)return null;
+    try{
+      const resp=await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events',{
+        method:'POST',
+        headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
+        body:JSON.stringify(event)
+      });
+      if(!resp.ok)throw new Error('Create failed');
+      const created=await resp.json();
+      setGcalEvents(p=>[...p,created]);
+      return created;
+    }catch(e){console.warn('GCal create failed:',e.message);return null}
+  },[token]);
+
+  const deleteEvent=useCallback(async(eventId)=>{
+    if(!token)return;
+    try{
+      await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`,{
+        method:'DELETE',headers:{Authorization:`Bearer ${token}`}
+      });
+      setGcalEvents(p=>p.filter(e=>e.id!==eventId));
+    }catch(e){console.warn('GCal delete failed:',e.message)}
+  },[token]);
+
+  return{token,connected:!!token,gcalEvents,syncStatus,lastSync,connect,disconnect,fetchEvents,createEvent,deleteEvent};
+}
+
+// ── WorkBoard Calendar (Google Calendar style) ─────────────────────────────
+function WorkboardCalendar({ganttData,boards,account}){
+  const [calView,setCalView]=useState('week');// month|week|day
+  const [anchor,setAnchor]=useState(new Date());// the "current" date
+  const [createModal,setCreateModal]=useState(null);// {x,y,date,hour}
+  const [detailEvent,setDetailEvent]=useState(null);// {x,y,event}
+  const gcal=useGoogleCalendar();
+  const scrollRef=useRef();
+  const todayD=today();
+
+  // Scroll to 8am on mount / view change
+  useEffect(()=>{
+    if((calView==='week'||calView==='day')&&scrollRef.current){
+      scrollRef.current.scrollTop=8*48-24;
+    }
+  },[calView]);
+
+  // Current time line position
+  const [nowMinutes,setNowMinutes]=useState(()=>{const n=new Date();return n.getHours()*60+n.getMinutes()});
+  useEffect(()=>{const t=setInterval(()=>{const n=new Date();setNowMinutes(n.getHours()*60+n.getMinutes())},60000);return()=>clearInterval(t)},[]);
+
+  // Collect all WorkBoard events from Gantt
+  const wbEvents=useMemo(()=>{
+    const events=[];
+    ganttData.forEach(proj=>{
+      proj.episodes.forEach(ep=>{
+        ep.tasks.forEach(task=>{
+          if(task.startDate&&task.endDate){
+            const td=TASK_DEFS.find(t=>t.name===task.name)||{color:'#5c6bc0',text:'#fff'};
+            events.push({
+              id:`wb_${task.id}`,
+              title:`${proj.code} ${ep.name} — ${task.name}`,
+              start:task.startDate,end:task.endDate,
+              color:td.color,textColor:td.text,
+              assignee:task.assignee,status:task.status,
+              _type:'workboard',_proj:proj.name,_ep:ep.name,_task:task.name,
+            });
+          }
+        });
+      });
+    });
+    return events;
+  },[ganttData]);
+
+  // Google Calendar events formatted for display
+  const gcEvents=useMemo(()=>gcal.gcalEvents.map(e=>({
+    id:e.id,
+    title:e.summary||'(No title)',
+    start:e.start?.date||e.start?.dateTime?.split('T')[0],
+    end:e.end?.date||e.end?.dateTime?.split('T')[0],
+    startTime:e.start?.dateTime?new Date(e.start.dateTime):null,
+    endTime:e.end?.dateTime?new Date(e.end.dateTime):null,
+    color:'#1a73e8',textColor:'#fff',
+    _type:'gcal',_gcalId:e.id,_allDay:!e.start?.dateTime,
+  })),[gcal.gcalEvents]);
+
+  const allEvents=[...wbEvents,...gcEvents];
+
+  // Sync WB Gantt tasks to Google Calendar
+  const syncGanttToGcal=async()=>{
+    if(!gcal.connected){gcal.connect();return}
+    let count=0;
+    for(const ev of wbEvents.slice(0,20)){// limit to 20 to avoid rate limits
+      await gcal.createEvent({
+        summary:ev.title,
+        start:{date:ev.start},end:{date:ev.end},
+        description:`Assignee: ${ev.assignee||'TBC'} | Status: ${ev.status}`,
+        colorId:'1',
+      });
+      count++;
+    }
+    alert(`Pushed ${count} tasks to Google Calendar`);
+  };
+
+  // Navigation
+  const DAYS_SHORT=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const MONTHS_LONG=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  const getWeekStart=d=>{const dt=new Date(d);dt.setDate(dt.getDate()-dt.getDay());return dt};
+  const weekStart=getWeekStart(anchor);
+  const weekDays=Array.from({length:7},(_,i)=>{const d=new Date(weekStart);d.setDate(d.getDate()+i);return d});
+  const hours=Array.from({length:24},(_,i)=>i);
+
+  const navPrev=()=>{const d=new Date(anchor);if(calView==='month')d.setMonth(d.getMonth()-1);else if(calView==='week')d.setDate(d.getDate()-7);else d.setDate(d.getDate()-1);setAnchor(d)};
+  const navNext=()=>{const d=new Date(anchor);if(calView==='month')d.setMonth(d.getMonth()+1);else if(calView==='week')d.setDate(d.getDate()+7);else d.setDate(d.getDate()+1);setAnchor(d)};
+  const goToday=()=>setAnchor(new Date());
+
+  const titleStr=calView==='month'?`${MONTHS_LONG[anchor.getMonth()]} ${anchor.getFullYear()}`
+    :calView==='week'?`${weekDays[0].toLocaleDateString('en-AU',{day:'numeric',month:'short'})} – ${weekDays[6].toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'})}`
+    :anchor.toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  const dateStr=d=>d.toISOString().split('T')[0];
+  const isToday_=d=>dateStr(d)===todayD;
+
+  // Get events for a given date string
+  const eventsForDate=dStr=>allEvents.filter(e=>e.start<=dStr&&(e.end>=dStr||e.start===dStr));
+
+  // Position timed events in week/day view
+  const positionEvent=(ev,dStr)=>{
+    const top=(ev.startTime?(ev.startTime.getHours()*60+ev.startTime.getMinutes()):8*60)/60*48;
+    const bottom=(ev.endTime?(ev.endTime.getHours()*60+ev.endTime.getMinutes()):top/48*60+60)/60*48;
+    return{top,height:Math.max(bottom-top,24)};
+  };
+
+  const handleDayClick=(e,dStr,hour=null)=>{
+    if(createModal){setCreateModal(null);return}
+    const rect=e.currentTarget.getBoundingClientRect();
+    setCreateModal({x:Math.min(rect.left,window.innerWidth-320),y:Math.min(e.clientY,window.innerHeight-280),date:dStr,hour});
+  };
+
+  const handleEventClick=(e,event)=>{
+    e.stopPropagation();
+    const rect=e.currentTarget.getBoundingClientRect();
+    setDetailEvent({x:Math.min(rect.right+8,window.innerWidth-340),y:Math.min(rect.top,window.innerHeight-280),event});
+  };
+
+  return(
+    <div style={{display:'flex',flexDirection:'column',height:'100%',position:'relative'}} onClick={()=>{setCreateModal(null);setDetailEvent(null)}}>
+      {/* Sync banner */}
+      {gcal.connected&&(
+        <div className="gc-sync-panel">
+          <div className="gc-sync-dot" style={{background:gcal.syncStatus==='ok'?'#34a853':gcal.syncStatus==='syncing'?'#fbbc04':'#ea4335'}}/>
+          <span style={{fontWeight:600,color:'#1e8e3e'}}>
+            {gcal.syncStatus==='ok'?`Synced with Google Calendar · ${gcal.gcalEvents.length} events · ${gcal.lastSync?.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'})}`:gcal.syncStatus==='syncing'?'Syncing…':'Sync error'}
+          </span>
+          <button onClick={e=>{e.stopPropagation();gcal.fetchEvents()}} style={{background:'none',border:'1px solid #34a853',borderRadius:5,padding:'2px 8px',fontSize:11,fontWeight:700,color:'#34a853',cursor:'pointer',marginLeft:6}}>↻ Refresh</button>
+          <button onClick={e=>{e.stopPropagation();syncGanttToGcal()}} style={{background:'none',border:'1px solid #1a73e8',borderRadius:5,padding:'2px 8px',fontSize:11,fontWeight:700,color:'#1a73e8',cursor:'pointer'}}>⬆ Push Gantt to GCal</button>
+          <button onClick={e=>{e.stopPropagation();gcal.disconnect()}} style={{marginLeft:'auto',background:'none',border:'none',color:'#888',cursor:'pointer',fontSize:11,fontWeight:600}}>Disconnect</button>
+        </div>
+      )}
+
+      <div className="gc-wrap" style={{flex:1,minHeight:0}}>
+        {/* Toolbar */}
+        <div className="gc-toolbar" onClick={e=>e.stopPropagation()}>
+          <button className="gc-today-btn" onClick={goToday}>Today</button>
+          <button className="gc-nav-arrow" onClick={navPrev}>‹</button>
+          <button className="gc-nav-arrow" onClick={navNext}>›</button>
+          <span className="gc-title">{titleStr}</span>
+          <button className={`gc-sync-btn${gcal.connected?' connected':''}`}
+            onClick={e=>{e.stopPropagation();gcal.connected?gcal.fetchEvents():gcal.connect()}}>
+            <span>{gcal.connected?'🟢':'📅'}</span>
+            <span>{gcal.connected?'Google Calendar':'Connect Google'}</span>
+          </button>
+          <div className="gc-view-toggle">
+            {['day','week','month'].map(v=><button key={v} className={`gc-view-btn${calView===v?' active':''}`} onClick={()=>setCalView(v)} style={{textTransform:'capitalize'}}>{v}</button>)}
+          </div>
+        </div>
+
+        {/* ── MONTH VIEW ── */}
+        {calView==='month'&&(()=>{
+          const year=anchor.getFullYear(),month=anchor.getMonth();
+          const firstDay=new Date(year,month,1).getDay();
+          const daysInMonth=new Date(year,month+1,0).getDate();
+          const cells=[];
+          for(let i=0;i<firstDay;i++){const d=new Date(year,month,-(firstDay-1-i));cells.push({date:d,other:true})}
+          for(let d=1;d<=daysInMonth;d++)cells.push({date:new Date(year,month,d),other:false});
+          while(cells.length<42)cells.push({date:new Date(year,month+1,cells.length-firstDay-daysInMonth+1),other:true});
+          return(
+            <div className="gc-month">
+              <div className="gc-month-head">
+                {DAYS_SHORT.map(d=><div key={d} className="gc-month-dh">{d}</div>)}
+              </div>
+              <div className="gc-month-grid" style={{gridTemplateRows:`repeat(${cells.length/7},1fr)`}}>
+                {cells.map((cell,i)=>{
+                  const dStr=dateStr(cell.date);
+                  const events=eventsForDate(dStr);
+                  const isToday=isToday_(cell.date);
+                  return(
+                    <div key={i} className={`gc-month-cell${isToday?' today':''}${cell.other?' other':''}`}
+                      onClick={e=>handleDayClick(e,dStr)}>
+                      <div className={`gc-day-num${isToday?' today-circle':''}`}>{cell.date.getDate()}</div>
+                      {events.slice(0,3).map(ev=>(
+                        <div key={ev.id} className="gc-event-chip"
+                          style={{background:ev.color,color:ev.textColor||'#fff',opacity:cell.other?.65:1}}
+                          onClick={e=>handleEventClick(e,ev)} title={ev.title}>
+                          {ev.title}
+                        </div>
+                      ))}
+                      {events.length>3&&<div className="gc-more-link" onClick={e=>{e.stopPropagation();setCalView('day');setAnchor(cell.date)}}>{events.length-3} more</div>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* ── WEEK VIEW ── */}
+        {calView==='week'&&(
+          <div className="gc-week">
+            <div className="gc-week-head">
+              <div className="gc-week-time-gutter"/>
+              {weekDays.map((d,i)=>(
+                <div key={i} className="gc-week-day-col" onClick={()=>{setCalView('day');setAnchor(d)}}>
+                  <div className="gc-week-dn">{DAYS_SHORT[d.getDay()]}</div>
+                  <div className={`gc-week-dd${isToday_(d)?' today':''}`}>{d.getDate()}</div>
+                </div>
+              ))}
+            </div>
+            <div className="gc-week-body" ref={scrollRef}>
+              <div className="gc-week-times">
+                {hours.map(h=><div key={h} className="gc-hour-label">{h===0?'':h<12?`${h} AM`:h===12?'12 PM':`${h-12} PM`}</div>)}
+              </div>
+              <div className="gc-week-grid">
+                {weekDays.map((d,di)=>{
+                  const dStr=dateStr(d);
+                  const isToday=isToday_(d);
+                  const dayEvents=allEvents.filter(e=>e.start===dStr&&!e._allDay);
+                  return(
+                    <div key={di} className="gc-day-col" onClick={e=>{const rect=e.currentTarget.getBoundingClientRect();const clickY=e.clientY-rect.top;const hour=Math.floor(clickY/48);handleDayClick(e,dStr,hour)}}>
+                      {hours.map(h=><div key={h} className="gc-hour-row"/>)}
+                      {isToday&&<div className="gc-now-line" style={{top:nowMinutes/60*48}}><div className="gc-now-dot"/></div>}
+                      {dayEvents.map(ev=>{
+                        const {top,height}=positionEvent(ev,dStr);
+                        return(
+                          <div key={ev.id} className="gc-week-event" style={{top,height,background:ev.color,color:ev.textColor||'#fff'}}
+                            onClick={e=>handleEventClick(e,ev)}>
+                            <div style={{fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:11}}>{ev.title}</div>
+                            {height>32&&ev.assignee&&<div style={{fontSize:10,opacity:.8}}>{ev.assignee}</div>}
+                          </div>
+                        );
+                      })}
+                      {/* All-day events */}
+                      {allEvents.filter(e=>e.start<=dStr&&e.end>=dStr&&(e._allDay||!e.startTime)).map(ev=>(
+                        <div key={'ad_'+ev.id} className="gc-week-event" style={{top:4,height:20,background:ev.color+'dd',color:ev.textColor||'#fff',fontSize:10,padding:'2px 4px'}}
+                          onClick={e=>handleEventClick(e,ev)}>
+                          {ev.title}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── DAY VIEW ── */}
+        {calView==='day'&&(
+          <div className="gc-day">
+            <div className="gc-day-head">
+              <div className="gc-day-head-date">{DAYS_SHORT[anchor.getDay()]}</div>
+              <div className={`gc-day-head-num${isToday_(anchor)?' today':''}`}>{anchor.getDate()}</div>
+            </div>
+            <div style={{flex:1,overflow:'hidden',display:'flex',minHeight:0}} ref={scrollRef}>
+              <div className="gc-week-times">
+                {hours.map(h=><div key={h} className="gc-hour-label">{h===0?'':h<12?`${h} AM`:h===12?'12 PM':`${h-12} PM`}</div>)}
+              </div>
+              <div style={{flex:1,position:'relative',cursor:'pointer'}} onClick={e=>{const rect=e.currentTarget.getBoundingClientRect();const clickY=e.clientY-rect.top+scrollRef.current.scrollTop;const hour=Math.floor(clickY/48);handleDayClick(e,dateStr(anchor),hour)}}>
+                {hours.map(h=><div key={h} className="gc-hour-row" style={{borderLeft:'1px solid #e0e0e0'}}/>)}
+                {isToday_(anchor)&&<div className="gc-now-line" style={{top:nowMinutes/60*48}}><div className="gc-now-dot"/></div>}
+                {allEvents.filter(e=>e.start===dateStr(anchor)&&!e._allDay&&e.startTime).map(ev=>{
+                  const {top,height}=positionEvent(ev,dateStr(anchor));
+                  return(
+                    <div key={ev.id} className="gc-week-event" style={{top,height,background:ev.color,color:ev.textColor||'#fff',left:8,right:8}}
+                      onClick={e=>handleEventClick(e,ev)}>
+                      <div style={{fontWeight:600,fontSize:12}}>{ev.title}</div>
+                      {height>28&&ev.startTime&&<div style={{fontSize:10,opacity:.8}}>{ev.startTime.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'})}–{ev.endTime?.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'})}</div>}
+                      {height>44&&ev.assignee&&<div style={{fontSize:10,opacity:.8}}>{ev.assignee}</div>}
+                    </div>
+                  );
+                })}
+                {allEvents.filter(e=>e.start<=dateStr(anchor)&&e.end>=dateStr(anchor)&&(e._allDay||!e.startTime)).map(ev=>(
+                  <div key={'ad_'+ev.id} className="gc-week-event" style={{top:4,height:22,background:ev.color+'dd',color:ev.textColor||'#fff',fontSize:11,left:8,right:8}}
+                    onClick={e=>handleEventClick(e,ev)}>{ev.title}</div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── CREATE EVENT MODAL ── */}
+      {createModal&&(
+        <div className="gc-create-modal" style={{left:createModal.x,top:createModal.y}} onClick={e=>e.stopPropagation()}>
+          <CreateEventModal
+            date={createModal.date} hour={createModal.hour}
+            gcalConnected={gcal.connected}
+            onSave={async(ev)=>{
+              if(gcal.connected){
+                const startDT=createModal.hour!=null?new Date(createModal.date+'T'+String(createModal.hour).padStart(2,'0')+':00:00'):null;
+                const endDT=startDT?new Date(startDT.getTime()+3600000):null;
+                await gcal.createEvent({
+                  summary:ev.title,
+                  description:ev.notes||'',
+                  start:startDT?{dateTime:startDT.toISOString()}:{date:createModal.date},
+                  end:endDT?{dateTime:endDT.toISOString()}:{date:addDays(createModal.date,1)},
+                  colorId:'1',
+                });
+              }
+              setCreateModal(null);
+            }}
+            onClose={()=>setCreateModal(null)}
+          />
+        </div>
+      )}
+
+      {/* ── EVENT DETAIL POPUP ── */}
+      {detailEvent&&(
+        <div className="gc-event-detail" style={{left:detailEvent.x,top:detailEvent.y}} onClick={e=>e.stopPropagation()}>
+          <button onClick={()=>setDetailEvent(null)} style={{float:'right',background:'none',border:'none',fontSize:18,color:'#aaa',cursor:'pointer',lineHeight:1}}>×</button>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+            <div style={{width:12,height:12,borderRadius:3,background:detailEvent.event.color,flexShrink:0}}/>
+            <div style={{fontSize:14,fontWeight:700,color:'#111',flex:1,paddingRight:20}}>{detailEvent.event.title}</div>
+          </div>
+          <div style={{fontSize:12,color:'#555',marginBottom:4}}>
+            📅 {detailEvent.event.start}{detailEvent.event.start!==detailEvent.event.end?` → ${detailEvent.event.end}`:''}
+          </div>
+          {detailEvent.event.assignee&&<div style={{fontSize:12,color:'#555',marginBottom:4}}>👤 {detailEvent.event.assignee}</div>}
+          {detailEvent.event.status&&<div style={{fontSize:12,color:'#555',marginBottom:4}}>⚡ {detailEvent.event.status}</div>}
+          {detailEvent.event._type==='gcal'&&(
+            <button onClick={()=>{gcal.deleteEvent(detailEvent.event._gcalId);setDetailEvent(null)}}
+              style={{marginTop:8,background:'#fff5f5',border:'1px solid #fcc',borderRadius:5,padding:'4px 10px',color:'#c62828',fontSize:11,fontWeight:700,cursor:'pointer'}}>
+              🗑 Delete from Google Calendar
+            </button>
+          )}
+          {detailEvent.event._type==='workboard'&&gcal.connected&&(
+            <button onClick={async()=>{
+              await gcal.createEvent({summary:detailEvent.event.title,start:{date:detailEvent.event.start},end:{date:detailEvent.event.end},colorId:'1'});
+              setDetailEvent(null);
+            }}
+              style={{marginTop:8,background:'#e8f5e9',border:'1px solid #a5d6a7',borderRadius:5,padding:'4px 10px',color:'#2e7d32',fontSize:11,fontWeight:700,cursor:'pointer'}}>
+              📅 Add to Google Calendar
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Create Event Modal ─────────────────────────────────────────────────────
+function CreateEventModal({date,hour,gcalConnected,onSave,onClose}){
+  const [title,setTitle]=useState('');
+  const [notes,setNotes]=useState('');
+  const fmt=d=>new Date(d+'T00:00:00').toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'});
+  const hrFmt=h=>h==null?'All day':h<12?`${h}:00 AM`:h===12?'12:00 PM':`${h-12}:00 PM`;
+  return(
+    <div>
+      <input autoFocus style={{width:'100%',border:'none',borderBottom:'2px solid #1a73e8',outline:'none',fontSize:16,fontWeight:400,color:'#111',padding:'4px 0 6px',marginBottom:12,fontFamily:'Barlow,sans-serif'}}
+        placeholder="Event title" value={title} onChange={e=>setTitle(e.target.value)}
+        onKeyDown={e=>{if(e.key==='Enter'&&title.trim())onSave({title,notes});if(e.key==='Escape')onClose()}}/>
+      <div style={{fontSize:12,color:'#70757a',marginBottom:8}}>📅 {fmt(date)} · {hrFmt(hour)}</div>
+      <textarea style={{width:'100%',border:'1px solid #e0e0e0',borderRadius:6,padding:'7px 9px',fontSize:12,resize:'none',height:54,outline:'none',fontFamily:'Barlow,sans-serif',color:'#333'}}
+        placeholder="Add notes..." value={notes} onChange={e=>setNotes(e.target.value)}/>
+      <div style={{display:'flex',gap:6,marginTop:10,justifyContent:'flex-end'}}>
+        <button onClick={onClose} style={{background:'none',border:'1px solid #ddd',borderRadius:6,padding:'6px 12px',fontSize:12,fontWeight:600,cursor:'pointer',color:'#555'}}>Cancel</button>
+        <button onClick={()=>title.trim()&&onSave({title,notes})}
+          style={{background:'#1a73e8',border:'none',borderRadius:6,padding:'6px 14px',fontSize:12,fontWeight:700,cursor:'pointer',color:'#fff',opacity:title.trim()?1:.4}}>
+          {gcalConnected?'Save to Google Calendar':'Create'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Old CalendarView (for board calendar tab — kept simple) ─────────────────
 function CalendarView({board,onSelect}){
   const now=new Date();const [yr,setYr]=useState(now.getFullYear());const [mo,setMo]=useState(now.getMonth());
   const dcol=board.columns.find(c=>c.type==='date');const todayStr=today();
@@ -858,13 +1365,12 @@ function CalendarView({board,onSelect}){
   const prevMo=()=>{if(mo===0){setYr(y=>y-1);setMo(11)}else setMo(m=>m-1)};const nextMo=()=>{if(mo===11){setYr(y=>y+1);setMo(0)}else setMo(m=>m+1)};
   const isToday=(d,other)=>{if(other)return false;return new Date(yr,mo,d).toISOString().split('T')[0]===todayStr};
   const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  if(!dcol)return<div className="empty"><h3>No date column</h3><p>Add a Date column to use Calendar view.</p></div>;
+  if(!dcol)return<div className="empty"><h3>No date column</h3></div>;
   return(<div>
     <div className="cal-nav">
       <button className="cal-nav-btn" onClick={prevMo}>‹</button>
       <span className="cal-month">{fmtM(`${yr}-${String(mo+1).padStart(2,'0')}-01`)}</span>
       <button className="cal-nav-btn" onClick={nextMo}>›</button>
-      <span style={{fontSize:12,color:'#aaa',marginLeft:8,fontWeight:600}}>{allItems.length} items · Google Cal sync coming soon</span>
     </div>
     <div className="cal-grid">
       {DAYS.map(d=><div key={d} className="cal-day-hdr">{d}</div>)}
@@ -2311,50 +2817,37 @@ function TimeTracker({item,onUpdate}){
   </div>);
 }
 
-// ── Engineer Skills — default list (stored in data.engineerSkills) ─────────
+// ── Engineer Skills ────────────────────────────────────────────────────────
 const DEFAULT_ENGINEER_SKILLS=[
-  {id:'dialogueEdit',   label:'Dialogue Edit',      color:'#d32f2f'},
-  {id:'musicEdit',      label:'Music Edit',          color:'#1565c0'},
-  {id:'sfxEdit',        label:'SFX Edit',            color:'#2e7d32'},
-  {id:'backgrounds',    label:'Backgrounds',         color:'#546e7a'},
-  {id:'preReMix',       label:'Pre Mix',             color:'#bf360c'},
-  {id:'finalMix',       label:'Final Mix',           color:'#283593'},
-  {id:'revisions',      label:'Revisions',           color:'#6a1b9a'},
-  {id:'qcChanges',      label:'QC Changes',          color:'#e65100'},
-  {id:'deliverables',   label:'Deliverables',        color:'#f9a825'},
-  {id:'remoteVO',       label:'Remote VO Record',    color:'#00838f'},
-  {id:'onsiteVO',       label:'On Site VO Record',   color:'#558b2f'},
-  {id:'attendedSession',label:'Attended Session',    color:'#6d4c41'},
+  {id:'dialogueEdit', label:'Dialogue Edit', color:'#d32f2f'},
+  {id:'musicEdit',    label:'Music Edit',    color:'#1565c0'},
+  {id:'sfxEdit',      label:'SFX Edit',      color:'#2e7d32'},
+  {id:'backgrounds',  label:'Backgrounds',   color:'#546e7a'},
+  {id:'preMix',       label:'Pre Mix',       color:'#bf360c'},
+  {id:'finalMix',     label:'Final Mix',     color:'#283593'},
+  {id:'revisions',    label:'Revisions',     color:'#6a1b9a'},
+  {id:'qcChanges',    label:'QC Changes',    color:'#e65100'},
+  {id:'deliverables', label:'Deliverables',  color:'#f9a825'},
 ];
-// Runtime reference — overridden by data.engineerSkills when loaded
 let ENGINEER_SKILLS=DEFAULT_ENGINEER_SKILLS;
 
 // ── Modals ─────────────────────────────────────────────────────────────────
 function AddColModal({onAdd,onClose}){const [name,setName]=useState('');const [type,setType]=useState('text');const TYPES=[{t:'text',l:'Text'},{t:'status',l:'Status'},{t:'priority',l:'Priority'},{t:'person',l:'Person'},{t:'date',l:'Date'},{t:'number',l:'Number'},{t:'currency',l:'Currency ($)'}];return(<div className="modal-ov" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()}><h3>Add column</h3><label>Name</label><input className="m-in" placeholder="Column name" value={name} onChange={e=>setName(e.target.value)} autoFocus onKeyDown={e=>e.key==='Enter'&&name&&onAdd(name,type)}/><label>Type</label><select className="m-sel" value={type} onChange={e=>setType(e.target.value)}>{TYPES.map(c=><option key={c.t} value={c.t}>{c.l}</option>)}</select><div className="m-actions"><button className="btn-g" onClick={onClose}>Cancel</button><button className="btn-p" onClick={()=>name&&onAdd(name,type)}>Add</button></div></div></div>);}
 function AddBoardModal({onAdd,onClose}){const ICONS=['📁','🎙️','🎬','📊','👥','💰','📅','🔧','📝','⚡','🎚️','🎛️','🎧','🗂️'];const [name,setName]=useState('');const [icon,setIcon]=useState('📁');return(<div className="modal-ov" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()}><h3>New board</h3><label>Name</label><input className="m-in" placeholder="Board name" value={name} onChange={e=>setName(e.target.value)} autoFocus/><label>Icon</label><div className="icon-grid">{ICONS.map(ic=><span key={ic} className={`icon-opt${icon===ic?' sel':''}`} onClick={()=>setIcon(ic)}>{ic}</span>)}</div><div className="m-actions"><button className="btn-g" onClick={onClose}>Cancel</button><button className="btn-p" onClick={()=>name&&onAdd(name,icon)}>Create</button></div></div></div>);}
 
-function AddEngineerModal({onAdd,onClose,editItem,skillsList,onAddSkill}){
+function AddEngineerModal({onAdd,onClose,editItem,skillsList}){
+  const skills_=skillsList||DEFAULT_ENGINEER_SKILLS;
   const [name,setName]=useState(editItem?.name||'');
   const [role,setRole]=useState(editItem?.values?.c2||'');
   const [rate,setRate]=useState(editItem?.values?.c3||'');
-  const [avail,setAvail]=useState(editItem?.values?.c4||'');
-  const [group,setGroup]=useState(editItem?._group||'Staff');
+  const [bookedFrom,setBookedFrom]=useState(editItem?.values?.c4||'');
+  const [bookedTo,setBookedTo]=useState(editItem?.values?.c5||'');
+  const [engType,setEngType]=useState(editItem?._type||'staff');
   const [notes,setNotes]=useState(editItem?.notes||'');
   const [skills,setSkills]=useState(editItem?.skills||{});
-  const [newSkillName,setNewSkillName]=useState('');
-  const [showAddSkill,setShowAddSkill]=useState(false);
-  const SKILL_COLORS=['#d32f2f','#1565c0','#2e7d32','#546e7a','#bf360c','#283593','#6a1b9a','#e65100','#f9a825','#00838f','#558b2f','#6d4c41','#ad1457','#0277bd'];
-
   const toggleSkill=id=>setSkills(p=>({...p,[id]:!p[id]}));
-
-  const addCustomSkill=()=>{
-    const label=newSkillName.trim();if(!label)return;
-    const id='custom_'+label.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
-    const color=SKILL_COLORS[skillsList.length%SKILL_COLORS.length];
-    onAddSkill({id,label,color});
-    setSkills(p=>({...p,[id]:true}));
-    setNewSkillName('');setShowAddSkill(false);
-  };
+  const isStaff=engType==='staff';
+  const activeCount=skills_.filter(s=>skills[s.id]).length;
 
   const save=()=>{
     if(!name.trim())return;
@@ -2362,19 +2855,17 @@ function AddEngineerModal({onAdd,onClose,editItem,skillsList,onAddSkill}){
       id:editItem?.id||uid(),
       name:name.trim(),notes,startDate:'',
       timeLogs:editItem?.timeLogs||[],
-      skills,
-      _group:group,
+      skills,_type:engType,
+      _group:isStaff?'Staff':'Freelancers',
       values:{
         c1:editItem?.values?.c1||'Available',
         c2:role,
-        c3:parseFloat(rate)||0,
-        c4:avail,
-        c5:editItem?.values?.c5||0,
+        c3:isStaff?null:(parseFloat(rate)||null),
+        c4:bookedFrom||'',
+        c5:bookedTo||'',
       }
     });
   };
-
-  const activeSkillCount=skillsList.filter(s=>skills[s.id]).length;
 
   return(
     <div className="modal-ov" onClick={onClose}>
@@ -2384,7 +2875,16 @@ function AddEngineerModal({onAdd,onClose,editItem,skillsList,onAddSkill}){
           <button onClick={onClose} style={{background:'none',border:'none',fontSize:20,color:'#bbb',cursor:'pointer'}}>×</button>
         </div>
 
-        {/* Profile fields */}
+        {/* Staff / Freelancer toggle */}
+        <div style={{display:'flex',gap:6,marginBottom:14}}>
+          {[['staff','👤 Staff'],['freelancer','🔗 Freelancer']].map(([t,l])=>(
+            <div key={t} onClick={()=>setEngType(t)}
+              style={{flex:1,padding:'8px 12px',borderRadius:7,border:`2px solid ${engType===t?'#111':'#e5e5e5'}`,background:engType===t?'#111':'#fff',color:engType===t?'#fff':'#555',fontSize:12,fontWeight:700,cursor:'pointer',textAlign:'center',transition:'all .13s'}}>
+              {l}
+            </div>
+          ))}
+        </div>
+
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:4}}>
           <div>
             <label>Full Name</label>
@@ -2394,73 +2894,59 @@ function AddEngineerModal({onAdd,onClose,editItem,skillsList,onAddSkill}){
             <label>Role / Title</label>
             <input className="m-in" placeholder="e.g. Sound Editor" value={role} onChange={e=>setRole(e.target.value)}/>
           </div>
-          <div>
-            <label>Day Rate ($)</label>
-            <input className="m-in" type="number" placeholder="750" value={rate} onChange={e=>setRate(e.target.value)}/>
-          </div>
-          <div>
-            <label>Next Available</label>
-            <input className="m-in" type="date" value={avail} onChange={e=>setAvail(e.target.value)}/>
-          </div>
+          {!isStaff&&(
+            <div>
+              <label>Day Rate ($)</label>
+              <input className="m-in" type="number" placeholder="750" value={rate} onChange={e=>setRate(e.target.value)}/>
+            </div>
+          )}
         </div>
-        <div style={{marginBottom:4}}>
-          <label>Type</label>
-          <div style={{display:'flex',gap:6}}>
-            {['Staff','Freelancers'].map(g=>(
-              <div key={g} onClick={()=>setGroup(g)}
-                style={{flex:1,padding:'7px 12px',borderRadius:7,border:`2px solid ${group===g?'#111':'#e5e5e5'}`,background:group===g?'#111':'#fff',color:group===g?'#fff':'#555',fontSize:12,fontWeight:700,cursor:'pointer',textAlign:'center',transition:'all .13s'}}>
-                {g==='Staff'?'👤 Staff':'🔗 Freelancer'}
-              </div>
-            ))}
+
+        {/* Booking date range */}
+        <div style={{background:'#f8f8f8',borderRadius:8,padding:'10px 12px',marginBottom:12,border:'1px solid #eee'}}>
+          <div style={{fontSize:11,fontWeight:700,color:'#aaa',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:8}}>Current Booking (optional)</div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+            <div>
+              <label style={{fontSize:10,fontWeight:700,color:'#999',marginBottom:4,display:'block',textTransform:'uppercase',letterSpacing:'.06em'}}>From</label>
+              <input className="m-in" type="date" style={{marginBottom:0}} value={bookedFrom} onChange={e=>setBookedFrom(e.target.value)}/>
+            </div>
+            <div>
+              <label style={{fontSize:10,fontWeight:700,color:'#999',marginBottom:4,display:'block',textTransform:'uppercase',letterSpacing:'.06em'}}>To</label>
+              <input className="m-in" type="date" style={{marginBottom:0}} value={bookedTo} onChange={e=>setBookedTo(e.target.value)}/>
+            </div>
           </div>
+          {bookedFrom&&bookedTo&&<div style={{fontSize:11,color:'#888',marginTop:5,fontWeight:500}}>Booked for {daysBetween(bookedFrom,bookedTo)} days</div>}
         </div>
 
         {/* Skills */}
-        <div style={{marginTop:14}}>
-          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:6}}>
-            <label style={{margin:0}}>Skills <span style={{fontSize:11,color:'#aaa',fontWeight:500}}>({activeSkillCount}/{skillsList.length} selected)</span></label>
-            <button onClick={()=>setShowAddSkill(p=>!p)}
-              style={{background:'none',border:'1px solid #ddd',borderRadius:5,padding:'3px 10px',fontSize:11,fontWeight:700,color:'#555',cursor:'pointer',display:'flex',alignItems:'center',gap:4}}>
-              + Add Skill
-            </button>
+        <div style={{marginBottom:12}}>
+          <div style={{fontSize:11,fontWeight:700,color:'#aaa',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:6}}>
+            Skills <span style={{color:'#bbb',fontWeight:500}}>({activeCount}/{skills_.length})</span>
           </div>
-
-          {showAddSkill&&(
-            <div style={{display:'flex',gap:6,marginBottom:10,padding:'8px 10px',background:'#f8f8f8',borderRadius:7,border:'1px solid #e5e5e5'}}>
-              <input className="m-in" style={{flex:1,margin:0,padding:'5px 8px',fontSize:12}} placeholder="New skill name..."
-                value={newSkillName} onChange={e=>setNewSkillName(e.target.value)}
-                onKeyDown={e=>e.key==='Enter'&&newSkillName.trim()&&addCustomSkill()}
-                autoFocus/>
-              <button className="btn-p" style={{padding:'5px 12px',fontSize:11,flexShrink:0}} onClick={addCustomSkill} disabled={!newSkillName.trim()}>Add</button>
-              <button className="btn-g" style={{padding:'5px 10px',fontSize:11,flexShrink:0}} onClick={()=>{setShowAddSkill(false);setNewSkillName('')}}>Cancel</button>
-            </div>
-          )}
-
+          <div style={{fontSize:11,color:'#888',fontWeight:500,marginBottom:8}}>Tick tasks this engineer can handle — used by AI for conflict resolution</div>
           <div className="skills-grid">
-            {skillsList.map(s=>(
+            {skills_.map(s=>(
               <div key={s.id} className={`skill-check${skills[s.id]?' active':''}`} onClick={()=>toggleSkill(s.id)}>
                 <input type="checkbox" checked={!!skills[s.id]} onChange={()=>toggleSkill(s.id)} onClick={e=>e.stopPropagation()}/>
                 <span className="skill-check-label">{s.label}</span>
-                {s.id.startsWith('custom_')&&<span style={{marginLeft:'auto',fontSize:9,color:'#bbb',fontWeight:600,flexShrink:0}}>custom</span>}
               </div>
             ))}
           </div>
-
-          {activeSkillCount>0&&(
+          {activeCount>0&&(
             <div style={{display:'flex',flexWrap:'wrap',gap:4,marginTop:8}}>
-              {skillsList.filter(s=>skills[s.id]).map(s=>(
+              {skills_.filter(s=>skills[s.id]).map(s=>(
                 <span key={s.id} style={{fontSize:9,fontWeight:700,background:s.color+'22',color:s.color,padding:'2px 7px',borderRadius:10}}>{s.label}</span>
               ))}
             </div>
           )}
         </div>
 
-        <div style={{marginTop:12}}>
+        <div style={{marginBottom:4}}>
           <label>Notes</label>
-          <textarea className="m-in" style={{minHeight:54,resize:'vertical'}} placeholder="Contact details, availability notes..." value={notes} onChange={e=>setNotes(e.target.value)}/>
+          <textarea className="m-in" style={{minHeight:54,resize:'vertical'}} placeholder="Contact details, notes..." value={notes} onChange={e=>setNotes(e.target.value)}/>
         </div>
 
-        <div className="m-actions" style={{marginTop:14}}>
+        <div className="m-actions">
           <button className="btn-g" onClick={onClose}>Cancel</button>
           <button className="btn-p" onClick={save} disabled={!name.trim()} style={{opacity:name.trim()?1:.5}}>
             {editItem?'Save Changes':'Add Engineer'}
@@ -2645,7 +3131,6 @@ function ConflictResolutionModal({conflicts,ganttData,freelancers,onApply,onClos
 
   const getSuggestions=async()=>{
     setStage('loading');
-    // Build context for AI
     const engWorkload={};
     ganttData.forEach(proj=>proj.episodes.forEach(ep=>ep.tasks.forEach(t=>{
       if(t.assignee&&t.status!=='Done'){
@@ -2653,37 +3138,48 @@ function ConflictResolutionModal({conflicts,ganttData,freelancers,onApply,onClos
         engWorkload[t.assignee].push(`${proj.name} ${ep.name} ${t.name} (${t.startDate}–${t.endDate})`);
       }
     })));
-    const freelancerList=(freelancers||[]).map(f=>`${f.name} — ${f.specialty||'General'} — $${f.rate||'TBC'}/day — Available: ${f.available||'TBC'} — Skills: ${(f.skills||[]).join(', ')||'Not specified'}`).join('\n');
+    const engList=(freelancers||[]).map(f=>{
+      const isBooked=f.bookedFrom&&f.bookedTo?` — BOOKED ${f.bookedFrom} to ${f.bookedTo}`:'';
+      const skillStr=(f.skills||[]).join(', ')||'general';
+      const rateStr=f.rate?` — $${f.rate}/day`:'';
+      return`${f.name} (${f.type||'staff'}${rateStr}) — Skills: ${skillStr}${isBooked}`;
+    }).join('\n');
     const conflictList=conflicts.slice(0,10).join('\n');
-    const workloadSummary=Object.entries(engWorkload).map(([eng,tasks])=>`${eng}: ${tasks.length} tasks`).join(', ');
-    const prompt=`You are a production scheduling expert for an audio post facility.
+    const workloadSummary=Object.entries(engWorkload).map(([eng,tasks])=>`${eng}: ${tasks.length} active tasks`).join('\n');
+    const prompt=`You are a scheduling expert for Mighty Sound, an audio post production facility.
 
-ENGINEER CONFLICTS (double-bookings):
+CONFLICTS (engineers double-booked on same dates):
 ${conflictList}
 
-CURRENT ENGINEER WORKLOAD:
+ENGINEER WORKLOAD:
 ${workloadSummary}
 
-AVAILABLE FREELANCERS:
-${freelancerList||'None on file'}
+ALL ENGINEERS (staff + freelancers with skills):
+${engList||'No engineers on file'}
 
-For each conflict, suggest a specific fix. Return ONLY valid JSON array:
+RULES:
+1. Match engineers to tasks based on their skills. e.g. Dialogue Edit needs dialogueEdit skill, Final Mix needs finalMix skill.
+2. Prefer internal staff reassignment over freelancers.
+3. Only suggest a freelancer if they have the required skill AND are not already booked.
+4. For each conflict suggest ONE specific fix.
+
+Return ONLY a valid JSON array, no markdown:
 [
   {
-    "conflictSummary": "brief description of the conflict",
-    "icon": "🔄" or "👤" or "📅",
-    "title": "short action title",
-    "reason": "why this fix works",
-    "changeType": "reassign" or "reschedule" or "freelancer",
-    "before": "current assignment/date",
-    "after": "new assignment/date",
-    "freelancerName": "name if recommending freelancer or null",
-    "freelancerNote": "why this freelancer or null",
-    "ganttChange": {"projName":"","epName":"","taskName":"","field":"assignee or startDate or endDate","value":"new value"}
+    "conflictSummary": "one sentence describing the conflict",
+    "icon": "🔄",
+    "title": "e.g. Reassign DX Edit to Paul Reeves",
+    "reason": "why this engineer is suitable based on their skills",
+    "changeType": "reassign",
+    "before": "current engineer name",
+    "after": "suggested engineer name",
+    "freelancerName": null,
+    "freelancerNote": null,
+    "ganttChange": {"projName":"exact project name","epName":"exact episode name","taskName":"exact task name","field":"assignee","value":"new engineer name"}
   }
 ]
 
-Be specific — use real names from the workload and real dates. Prefer internal reassignment before suggesting freelancers. Limit to ${Math.min(conflicts.length,8)} suggestions.`;
+Limit to ${Math.min(conflicts.length,8)} suggestions. Use exact names from the data above.`;
     try{
       const resp=await fetch('https://api.anthropic.com/v1/messages',{
         method:'POST',headers:{'Content-Type':'application/json'},
@@ -2814,16 +3310,101 @@ Be specific — use real names from the workload and real dates. Prefer internal
   );
 }
 
+// ── Accounts & Permissions ─────────────────────────────────────────────────
+const ACCOUNTS=[
+  {id:'a1',name:'Matthew Perrott',email:'matt@mightysound.studio',  password:'mighty2026',role:'admin',  avatar:'MP',color:'#5c6bc0'},
+  {id:'a2',name:'Paul Reeves',    email:'paul@mightysound.studio',   password:'mighty2026',role:'staff',  avatar:'PR',color:'#d32f2f'},
+  {id:'a3',name:'Kristen Settinelli',email:'kristen@mightysound.studio',password:'mighty2026',role:'staff',avatar:'KS',color:'#2e7d32'},
+  {id:'a4',name:'David Chen',     email:'david@chenfoley.com.au',    password:'freelance1', role:'freelancer',avatar:'DC',color:'#8e24aa'},
+  {id:'a5',name:'Emma Walsh',     email:'emma@walsh.com.au',         password:'freelance1', role:'freelancer',avatar:'EW',color:'#fb8c00'},
+];
+
+// Permissions per role
+const PERMS={
+  admin:   {viewBudget:true,  editBudget:true,  viewEngineers:true,  editEngineers:true,  viewAllProjects:true,editProjects:true,  viewGantt:true,editGantt:true,  manageAccounts:true},
+  staff:   {viewBudget:true,  editBudget:false, viewEngineers:true,  editEngineers:false, viewAllProjects:true,editProjects:true,  viewGantt:true,editGantt:true,  manageAccounts:false},
+  freelancer:{viewBudget:false,editBudget:false, viewEngineers:false, editEngineers:false, viewAllProjects:false,editProjects:false,viewGantt:false,editGantt:false, manageAccounts:false},
+};
+
+function can(account,perm){
+  if(!account)return false;
+  return !!(PERMS[account.role]||{})[perm];
+}
+
+// ── Sign In Screen ─────────────────────────────────────────────────────────
+function SignInScreen({onSignIn}){
+  const [email,setEmail]=useState('');
+  const [password,setPassword]=useState('');
+  const [error,setError]=useState('');
+  const [showPw,setShowPw]=useState(false);
+
+  const attempt=()=>{
+    const acc=ACCOUNTS.find(a=>a.email.toLowerCase()===email.trim().toLowerCase()&&a.password===password);
+    if(acc){setError('');onSignIn(acc)}
+    else setError('Incorrect email or password.');
+  };
+
+  const quickSignIn=acc=>{onSignIn(acc)};
+
+  return(
+    <div className="signin-screen">
+      <div className="signin-card">
+        <div className="signin-logo">
+          <div className="signin-logo-icon">
+            <svg viewBox="0 0 20 20" fill="none"><rect x="2" y="4" width="16" height="12" rx="2" stroke="#fff" strokeWidth="1.5"/><path d="M7 8l3 3 3-3" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/></svg>
+          </div>
+          <div>
+            <div className="signin-logo-brand">Mighty Sound</div>
+            <div className="signin-logo-sub">WorkBoard</div>
+          </div>
+        </div>
+        <div className="signin-title">Sign in</div>
+        <div className="signin-sub">Use your Mighty Sound account</div>
+        <input className="signin-in" type="email" placeholder="Email address" value={email} onChange={e=>{setEmail(e.target.value);setError('')}} onKeyDown={e=>e.key==='Enter'&&attempt()}/>
+        <div style={{position:'relative'}}>
+          <input className="signin-in" type={showPw?'text':'password'} placeholder="Password" value={password} onChange={e=>{setPassword(e.target.value);setError('')}} onKeyDown={e=>e.key==='Enter'&&attempt()}/>
+          <button onClick={()=>setShowPw(p=>!p)} style={{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',color:'#aaa',cursor:'pointer',fontSize:11,fontWeight:700}}>
+            {showPw?'Hide':'Show'}
+          </button>
+        </div>
+        {error&&<div className="signin-err">⚠ {error}</div>}
+        <button className="signin-btn" onClick={attempt}>Sign In</button>
+
+        <div className="signin-users">
+          <div style={{fontSize:10,fontWeight:700,color:'#ccc',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>Quick access</div>
+          {ACCOUNTS.map(acc=>(
+            <button key={acc.id} className="signin-user-btn" onClick={()=>quickSignIn(acc)}>
+              <div className="signin-user-av" style={{background:acc.color}}>{acc.avatar}</div>
+              <div>
+                <div style={{fontSize:12,fontWeight:700,color:'#111'}}>{acc.name}</div>
+                <div style={{fontSize:10,color:'#888',fontWeight:500}}>{acc.email}</div>
+              </div>
+              <span className={`role-badge ${acc.role}`}>{acc.role}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── App ────────────────────────────────────────────────────────────────────
 function App(){
   const [data,setData]=useState(null);const [view,setView]=useState('table');const [sel,setSel]=useState(null);const [showAddBoard,setShowAddBoard]=useState(false);const [loaded,setLoaded]=useState(false);
   const [showConflicts,setShowConflicts]=useState(false);
+  const [account,setAccount]=useState(null); // current signed-in user
   const saveRef=useRef(null);
   const isMaster=data&&data.activeBoard==='__master__';
   const isLongform=data&&data.activeBoard==='__longform__';
+  const isCalendar=data&&data.activeBoard==='__calendar__';
 
   useEffect(()=>{(async()=>{try{const r=await window.storage.get('wb5_data');setData(r&&r.value?JSON.parse(r.value):INIT)}catch{setData(INIT)}setLoaded(true)})()},[]);
   useEffect(()=>{if(!loaded||!data)return;clearTimeout(saveRef.current);saveRef.current=setTimeout(async()=>{try{await window.storage.set('wb5_data',JSON.stringify(data))}catch{}},700)},[data,loaded]);
+
+  // Show sign-in if not authenticated
+  if(!account){
+    return <SignInScreen onSignIn={acc=>{setAccount(acc)}}/>;
+  }
 
   // Compute gantt-derived items for Active Projects (read-only view)
   const ganttDerivedItems=useMemo(()=>{
@@ -2868,8 +3449,12 @@ function App(){
     if(!data)return[];
     const eb=data.boards.find(b=>b.id==='b3');if(!eb)return[];
     return eb.groups.flatMap(g=>g.items).map(i=>({
-      name:i.name,specialty:i.values?.c2||'',rate:i.values?.c3||'',
-      available:i.values?.c4||'TBC',
+      name:i.name,
+      specialty:i.values?.c2||'',
+      rate:i._type==='staff'?null:i.values?.c3||'',
+      type:i._type||'staff',
+      bookedFrom:i.values?.c4||'',
+      bookedTo:i.values?.c5||'',
       skills:(skillsList||[]).filter(s=>(i.skills||{})[s.id]).map(s=>s.label),
     }));
   },[data,skillsList]);
@@ -2888,7 +3473,7 @@ function App(){
     setShowAddEngineer(false);setEditEngineer(null);
   },[data,editEngineer,updBoard]);
 
-  const board=data&&!isMaster&&!isLongform?data.boards.find(b=>b.id===data.activeBoard):null;
+  const board=data&&!isMaster&&!isLongform&&!isCalendar?data.boards.find(b=>b.id===data.activeBoard):null;
   const setBoard=id=>{setData(p=>({...p,activeBoard:id}));setView('table');setSel(null)};
   const updBoard=useCallback((bid,fn)=>setData(p=>({...p,boards:p.boards.map(b=>b.id===bid?(typeof fn==='function'?fn(b):{...b,...fn}):b)})),[]);
   const updLongform=fn=>setData(p=>({...p,longform:typeof fn==='function'?fn(p.longform):{...p.longform,...fn}}));
@@ -2928,15 +3513,29 @@ function App(){
       </div>
       <div className="sb-scroll">
         <div className="sb-section">Boards</div>
-        {data.boards.map(b=><div key={b.id} className={`sb-item${b.id===data.activeBoard&&!isMaster&&!isLongform?' active':''}`} onClick={()=>setBoard(b.id)}><span className="sb-icon">{b.icon}</span><span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.name}</span></div>)}
-        <div className="sb-add" onClick={()=>setShowAddBoard(true)}><span className="sb-icon">+</span>Add board</div>
+        {data.boards
+          .filter(b=>{
+            if(b.id==='b4'&&!can(account,'viewBudget'))return false; // hide Budget from freelancers
+            if(b.id==='b3'&&!can(account,'viewEngineers'))return false; // hide Engineers from freelancers
+            return true;
+          })
+          .map(b=><div key={b.id} className={`sb-item${b.id===data.activeBoard&&!isMaster&&!isLongform?' active':''}`} onClick={()=>setBoard(b.id)}><span className="sb-icon">{b.icon}</span><span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.name}</span></div>)}
+        {can(account,'editProjects')&&<div className="sb-add" onClick={()=>setShowAddBoard(true)}><span className="sb-icon">+</span>Add board</div>}
         <div className="sb-section" style={{marginTop:12}}>Scheduler</div>
-        <div className={`sb-item${isMaster?' active':''}`} onClick={()=>setBoard('__master__')}><span className="sb-icon">📊</span>Master Gantt<span className="sb-badge new">Live</span></div>
+        {can(account,'viewGantt')&&<div className={`sb-item${isMaster?' active':''}`} onClick={()=>setBoard('__master__')}><span className="sb-icon">📊</span>Master Gantt<span className="sb-badge new">Live</span></div>}
+        <div className={`sb-item${data.activeBoard==='__calendar__'?' active':''}`} onClick={()=>setBoard('__calendar__')}><span className="sb-icon">📅</span>Calendar<span className="sb-badge" style={{background:'rgba(26,115,232,.2)',color:'rgba(26,115,232,.9)'}}>GCal</span></div>
         <div className={`sb-item${isLongform?' active':''}`} onClick={()=>setBoard('__longform__')}><span className="sb-icon">🎬</span>Production Overview</div>
         <div className="sb-section" style={{marginTop:12}}>Workspace</div>
         {['🔔 Notifications','⚙️ Settings'].map(x=><div key={x} className="sb-item"><span className="sb-icon">{x.slice(0,2)}</span>{x.slice(3)}</div>)}
       </div>
-      <div className="sb-footer"><div className="user-av">MP</div><div><div style={{fontSize:12,color:'rgba(255,255,255,.85)',fontWeight:700}}>Matthew Perrott</div><div style={{fontSize:11,color:'rgba(255,255,255,.35)',fontWeight:500}}>Founder</div></div></div>
+      <div className="sb-footer">
+        <div className="user-av" style={{background:ACCOUNTS.find(a=>a.id===account.id)?.color||'#fff',color:'#fff',fontSize:10}}>{account.avatar}</div>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:12,color:'rgba(255,255,255,.85)',fontWeight:700,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{account.name}</div>
+          <div style={{fontSize:10,color:'rgba(255,255,255,.35)',fontWeight:500,textTransform:'capitalize'}}>{account.role}</div>
+        </div>
+        <button onClick={()=>setAccount(null)} style={{background:'none',border:'1px solid rgba(255,255,255,.15)',borderRadius:5,color:'rgba(255,255,255,.4)',fontSize:10,fontWeight:700,padding:'3px 7px',cursor:'pointer',flexShrink:0,letterSpacing:'.03em'}} title="Sign out">↩</button>
+      </div>
     </div>
     <div className="main">
       {isMaster?(
@@ -2947,6 +3546,16 @@ function App(){
           </div>
           <div style={{flex:1,overflow:'hidden',minHeight:0,display:'flex',flexDirection:'column'}}>
             <MasterGantt ganttData={data.masterGantt} onUpdateGantt={updMasterGantt} onShowConflicts={()=>setShowConflicts(true)}/>
+          </div>
+        </div>
+      ):isCalendar?(
+        <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',padding:'18px 22px 12px',minHeight:0}}>
+          <div className="board-title" style={{marginBottom:10,flexShrink:0}}>
+            <span>📅</span><span>Calendar</span>
+            <span className="bcount">All projects · Google Calendar sync</span>
+          </div>
+          <div style={{flex:1,minHeight:0,display:'flex',flexDirection:'column'}}>
+            <WorkboardCalendar ganttData={data.masterGantt} boards={data.boards} account={account}/>
           </div>
         </div>
       ):isLongform?(
@@ -2967,37 +3576,81 @@ function App(){
             <hr className="hdr-div"/>
           </div>
           <div className="board-content">
-            {/* Studio rooms panel — only on Studio Schedule */}
-            {board.id==='b2'&&board.rooms&&<StudioRooms rooms={board.rooms} onUpdateRoom={rm=>updBoard(board.id,b=>({...b,rooms:b.rooms.map(r=>r.id===rm.id?rm:r)}))}/>}
+            {/* Permission gate for budget board */}
+            {board.id==='b4'&&!can(account,'viewBudget')&&(
+              <div className="perm-denied">🔒 You don't have permission to view budget information.</div>
+            )}
 
             {/* Gantt-derived projects — only on Active Projects */}
             {board.id==='b1'&&ganttDerivedItems.length>0&&view==='table'&&(
               <div className="group-block">
                 <div className="group-header">
                   <span className="g-dot" style={{background:'#8e24aa'}}/>
-                  <span className="g-name" style={{color:'#8e24aa'}}>From Master Gantt</span>
-                  <span className="g-cnt">{ganttDerivedItems.length} live projects</span>
+                  <span className="g-name" style={{color:'#8e24aa'}}>Live Projects — From Master Gantt</span>
+                  <span className="g-cnt">{ganttDerivedItems.length} projects</span>
                   <span style={{marginLeft:8,fontSize:10,color:'#8e24aa',fontWeight:600,cursor:'pointer',textDecoration:'underline'}} onClick={()=>setBoard('__master__')}>Open Gantt →</span>
                 </div>
-                <div className="tbl-wrap">
-                  <div className="tbl-head">
-                    <div className="th th-name">Project</div>
-                    {board.columns.map(c=><div key={c.id} className="th th-col">{c.name}</div>)}
-                  </div>
-                  {ganttDerivedItems.map(item=>(
-                    <div key={item.id} className="tbl-row" onClick={()=>setBoard('__master__')} style={{cursor:'pointer'}}>
-                      <div className="td-name">
-                        <span className="gantt-sync-badge">GANTT</span>
-                        <span className="td-nm-txt" style={{color:'#8e24aa'}}>{item.name}</span>
-                      </div>
-                      {board.columns.map(c=>(
-                        <div key={c.id} className="td-col">
-                          <Cell col={c} value={item.values[c.id]} onChange={()=>{}}/>
+                {data.masterGantt.map(proj=>{
+                  const allTasks=proj.episodes.flatMap(ep=>ep.tasks);
+                  const done=allTasks.filter(t=>t.status==='Done').length;
+                  const ip=allTasks.filter(t=>t.status==='In Progress').length;
+                  const pct=allTasks.length?Math.round(done/allTasks.length*100):0;
+                  const overallStatus=done===allTasks.length?'Done':ip>0?'In Progress':'Not Started';
+                  const [projOpen,setProjOpen]=useState(false);
+                  return(
+                    <div key={proj.id} style={{background:'#fff',border:'1px solid #eee',borderRadius:8,marginBottom:8,overflow:'hidden'}}>
+                      <div style={{display:'flex',alignItems:'center',gap:10,padding:'10px 14px',cursor:'pointer',userSelect:'none'}} onClick={()=>setProjOpen(p=>!p)}>
+                        <span style={{fontSize:9,color:'#bbb',transform:projOpen?'rotate(90deg)':'rotate(0)',display:'inline-block',transition:'transform .15s',flexShrink:0}}>▶</span>
+                        <span className="gantt-sync-badge" style={{flexShrink:0}}>{proj.code}</span>
+                        <span style={{fontWeight:700,fontSize:13,color:'#111',flex:1}}>{proj.name}</span>
+                        <span style={{fontSize:11,color:'#888',fontWeight:500}}>{proj.client}</span>
+                        <span style={{fontSize:11,fontWeight:700,color:overallStatus==='Done'?'#2e7d32':overallStatus==='In Progress'?'#1565c0':'#888'}}>{overallStatus}</span>
+                        <div style={{width:80,height:5,background:'#f0f0f0',borderRadius:3,overflow:'hidden',flexShrink:0}}>
+                          <div style={{height:'100%',width:pct+'%',background:pct===100?'#43a047':'#5c6bc0',borderRadius:3,transition:'width .3s'}}/>
                         </div>
-                      ))}
+                        <span style={{fontSize:11,color:'#aaa',fontWeight:600,flexShrink:0,minWidth:28}}>{pct}%</span>
+                      </div>
+                      {projOpen&&(
+                        <div style={{borderTop:'1px solid #f5f5f5',padding:'8px 14px 12px'}}>
+                          {proj.episodes.map(ep=>{
+                            const epDone=ep.tasks.filter(t=>t.status==='Done').length;
+                            const epIP=ep.tasks.filter(t=>t.status==='In Progress').length;
+                            const epPct=ep.tasks.length?Math.round(epDone/ep.tasks.length*100):0;
+                            return(
+                              <div key={ep.id} style={{marginBottom:10}}>
+                                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:5}}>
+                                  <span style={{fontSize:11,fontWeight:700,color:'#555',minWidth:60}}>{ep.name}</span>
+                                  <div style={{flex:1,height:4,background:'#f0f0f0',borderRadius:2,overflow:'hidden'}}>
+                                    <div style={{height:'100%',width:epPct+'%',background:epPct===100?'#43a047':epIP>0?'#5c6bc0':'#e0e0e0',borderRadius:2,transition:'width .3s'}}/>
+                                  </div>
+                                  <span style={{fontSize:10,color:'#aaa',fontWeight:600,flexShrink:0}}>{epDone}/{ep.tasks.length}</span>
+                                </div>
+                                <div style={{display:'flex',gap:3,flexWrap:'wrap'}}>
+                                  {ep.tasks.map(t=>{
+                                    const td=taskDef(t.name);
+                                    const isDone=t.status==='Done';
+                                    const isIP=t.status==='In Progress';
+                                    return(
+                                      <span key={t.id} title={`${t.name}: ${t.status}${t.assignee?' — '+t.assignee:''}`}
+                                        style={{fontSize:9,fontWeight:700,padding:'2px 6px',borderRadius:3,
+                                          background:isDone?td.color:isIP?td.color+'44':'#f5f5f5',
+                                          color:isDone?'#fff':isIP?td.color:'#bbb',
+                                          border:`1px solid ${isDone||isIP?td.color:'#e5e5e5'}`,
+                                          letterSpacing:'.03em',transition:'all .13s'}}>
+                                        {td.abbr||t.name.slice(0,3).toUpperCase()}
+                                        {isDone&&' ✓'}
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
             )}
 
@@ -3016,7 +3669,6 @@ function App(){
         editItem={editEngineer?{...editEngineer.item,_group:editEngineer.groupName}:null}
         skillsList={skillsList}
         onAdd={saveEngineer}
-        onAddSkill={addSkillToList}
         onClose={()=>{setShowAddEngineer(false);setEditEngineer(null)}}
       />}
       {showConflicts&&data&&(
