@@ -233,7 +233,42 @@ input,select,textarea,button{font-family:'Barlow',sans-serif}
 .icon-opt{cursor:pointer;font-size:18px;padding:4px 6px;border-radius:5px;background:#f5f5f5;border:1px solid transparent;transition:all .12s}
 .icon-opt.sel{background:#e8e8e8;border-color:#333}
 
-/* IMPORT MODAL */
+/* CONFLICT RESOLUTION MODAL */
+.cr-modal{background:#fff;border:1px solid #ddd;border-radius:14px;padding:0;width:640px;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.18)}
+.cr-hdr{padding:18px 22px 14px;border-bottom:1px solid #f0f0f0;flex-shrink:0}
+.cr-title{font-size:17px;font-weight:800;color:#111;letter-spacing:-.3px;display:flex;align-items:center;gap:8px}
+.cr-body{flex:1;overflow-y:auto;padding:16px 22px}
+.cr-footer{padding:12px 22px;border-top:1px solid #f0f0f0;display:flex;gap:8px;align-items:center;flex-shrink:0;background:#fafafa}
+.conflict-item{background:#fff5f5;border:1px solid #fcc;border-radius:7px;padding:10px 13px;margin-bottom:7px;font-size:12px;color:#c62828;font-weight:500;line-height:1.5}
+.suggestion-card{background:#fff;border:1px solid #e5e5e5;border-radius:9px;padding:14px 16px;margin-bottom:10px;transition:border-color .13s}
+.suggestion-card.approved{border-color:#a5d6a7;background:#f1f8f1}
+.suggestion-card.rejected{opacity:.4;border-color:#ddd}
+.sug-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+.sug-icon{font-size:20px;flex-shrink:0;margin-top:1px}
+.sug-title{font-size:13px;font-weight:700;color:#111;margin-bottom:2px;line-height:1.35}
+.sug-reason{font-size:11px;color:#777;font-weight:500;line-height:1.5}
+.sug-change{background:#f5f5f5;border-radius:6px;padding:8px 10px;font-size:11px;color:#333;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sug-before{color:#c62828;text-decoration:line-through;font-weight:500}
+.sug-after{color:#2e7d32;font-weight:700}
+.sug-actions{display:flex;gap:6px}
+.sug-btn-approve{background:#111;border:none;border-radius:5px;padding:5px 14px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.04em}
+.sug-btn-approve:hover{background:#333}
+.sug-btn-reject{background:transparent;border:1px solid #ddd;border-radius:5px;padding:5px 12px;color:#888;font-size:11px;font-weight:600;cursor:pointer}
+.sug-btn-reject:hover{border-color:#aaa;color:#333}
+.sug-freelancer{background:#e3f2fd;border-radius:5px;padding:5px 10px;font-size:11px;color:#1565c0;font-weight:600;display:flex;align-items:center;gap:5px;margin-top:6px;width:fit-content}
+/* GANTT SYNC in Active Projects */
+.gantt-sync-row{background:#f8f0ff;border-left:3px solid #8e24aa;padding:8px 10px;font-size:12px;color:#555;display:flex;align-items:center;gap:8px;cursor:pointer}
+.gantt-sync-row:hover{background:#f3e5f5}
+.gantt-sync-badge{background:#8e24aa;color:#fff;font-size:9px;font-weight:800;padding:1px 6px;border-radius:3px;letter-spacing:.05em;text-transform:uppercase;flex-shrink:0}
+/* STUDIO ROOMS */
+.studio-rooms{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px;padding:14px;background:#fff;border:1px solid #e5e5e5;border-radius:9px}
+.studio-room{border:1.5px solid #e5e5e5;border-radius:8px;padding:10px 8px;text-align:center;transition:all .13s}
+.studio-room.occupied{border-color:#e53935;background:#fff5f5}
+.studio-room.booked{border-color:#fb8c00;background:#fff8f0}
+.studio-room.free{border-color:#43a047;background:#f1f8f1}
+.studio-room-name{font-size:11px;font-weight:800;color:#111;margin-bottom:2px;text-transform:uppercase;letter-spacing:.04em}
+.studio-room-dot{width:8px;height:8px;border-radius:50%;margin:3px auto;flex-shrink:0}
+.studio-room-project{font-size:10px;color:#888;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .import-drop{border:2px dashed #d5d5d5;border-radius:10px;padding:32px 20px;text-align:center;cursor:pointer;transition:all .13s;background:#fafafa;margin-bottom:14px}
 .import-drop:hover,.import-drop.drag{border-color:#111;background:#f5f5f5}
 .import-drop-icon{font-size:32px;margin-bottom:8px}
@@ -257,6 +292,26 @@ input,select,textarea,button{font-family:'Barlow',sans-serif}
 /* GCAL */
 .gcal-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:12px}
 .gcal-row:last-child{border-bottom:none}
+
+/* ENGINEER SKILLS */
+.skills-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:8px}
+.skill-check{display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:5px;background:#f8f8f8;border:1px solid #eee;cursor:pointer;user-select:none;transition:all .12s}
+.skill-check:hover{background:#f0f0f0}
+.skill-check.active{background:#e8f5e9;border-color:#a5d6a7}
+.skill-check input[type=checkbox]{width:14px;height:14px;accent-color:#111;flex-shrink:0;cursor:pointer}
+.skill-check-label{font-size:11px;font-weight:600;color:#333;line-height:1.2}
+.skill-check.active .skill-check-label{color:#1b5e20}
+.eng-skill-pill{font-size:9px;font-weight:700;background:#e8f5e9;color:#2e7d32;padding:2px 7px;border-radius:10px;letter-spacing:.03em}
+
+/* PROJECT SETTINGS */
+.ps-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f5f5f5}
+.ps-row:last-child{border-bottom:none}
+.ps-stage{flex:1;font-size:12px;font-weight:600;color:#333;display:flex;align-items:center;gap:7px}
+.ps-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+.ps-in{background:#f8f8f8;border:1px solid #e5e5e5;border-radius:5px;padding:4px 8px;font-size:12px;font-weight:600;color:#111;width:60px;outline:none;text-align:center}
+.ps-in:focus{border-color:#111;background:#fff}
+.ps-sel{background:#f8f8f8;border:1px solid #e5e5e5;border-radius:5px;padding:4px 7px;font-size:11px;font-weight:600;color:#333;outline:none;width:110px}
+.ps-total{background:#f5f5f5;border-radius:7px;padding:10px 13px;font-size:12px;color:#555;margin-top:12px;display:flex;justify-content:space-between;align-items:center}
 
 /* LONGFORM */
 .lf-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
@@ -637,22 +692,49 @@ const INIT={
        ]},
      ]},
     {id:'b2',name:'Studio Schedule',icon:'📅',color:'#43a047',
-     columns:[{id:'c1',name:'Status',type:'status'},{id:'c2',name:'Engineer',type:'person'},{id:'c3',name:'Studio',type:'text'},{id:'c4',name:'Date',type:'date'},{id:'c5',name:'Hours',type:'number'},{id:'c6',name:'Project',type:'text'}],
+     columns:[{id:'c1',name:'Status',type:'status'},{id:'c2',name:'Engineer',type:'person'},{id:'c3',name:'Room',type:'text'},{id:'c4',name:'Date',type:'date'},{id:'c5',name:'Hours',type:'number'},{id:'c6',name:'Project',type:'text'}],
+     rooms:[
+       {id:'r1',name:'Studio A',type:'Mix Suite',status:'free',project:''},
+       {id:'r2',name:'Studio B',type:'Edit Suite',status:'booked',project:'Wanderers Ep3'},
+       {id:'r3',name:'Studio C',type:'Edit Suite',status:'free',project:''},
+       {id:'r4',name:'VO Booth 1',type:'Recording',status:'occupied',project:'The Brief Ep1'},
+       {id:'r5',name:'VO Booth 2',type:'Recording',status:'free',project:''},
+     ],
      groups:[
-       {id:'g1',name:'This Week',color:'#43a047',collapsed:false,items:[
-         {id:'i1',name:'ADR Session — Wanderers Ep3',notes:'3 actors. Book green room.',startDate:'2026-04-14',timeLogs:[],values:{c1:'In Progress',c2:'Matthew P',c3:'Studio A',c4:'2026-04-14',c5:4,c6:'Wanderers'}},
-         {id:'i2',name:'Podcast Record — The Brief Ep1',notes:'Host only. Remote guest via Source Connect.',startDate:'2026-04-16',timeLogs:[],values:{c1:'Not Started',c2:'Tom B',c3:'Studio B',c4:'2026-04-16',c5:3,c6:'The Brief'}},
+       {id:'g1',name:'Today',color:'#43a047',collapsed:false,items:[
+         {id:'i1',name:'ADR Session — Wanderers Ep3',notes:'3 actors. Book green room.',startDate:'2026-04-14',timeLogs:[],values:{c1:'In Progress',c2:'Matthew P',c3:'Studio B',c4:'2026-04-14',c5:4,c6:'Wanderers'}},
+         {id:'i2',name:'Podcast Record — The Brief Ep1',notes:'Host only. Remote guest via Source Connect.',startDate:'2026-04-16',timeLogs:[],values:{c1:'In Progress',c2:'Tom B',c3:'VO Booth 1',c4:'2026-04-14',c5:3,c6:'The Brief'}},
        ]},
-       {id:'g2',name:'Next Week',color:'#fb8c00',collapsed:false,items:[
+       {id:'g2',name:'This Week',color:'#fb8c00',collapsed:false,items:[
          {id:'i3',name:'TVC Final Mix — Nike',notes:'Stems + stereo + mono delivery COB.',startDate:'2026-04-21',timeLogs:[],values:{c1:'Not Started',c2:'Paul R',c3:'Studio A',c4:'2026-04-21',c5:6,c6:'Nike'}},
+         {id:'i4',name:'VO Record — CommBank Radio',notes:'3 talent. Full day. Catering 8am.',startDate:'2026-04-23',timeLogs:[],values:{c1:'Not Started',c2:'Tom B',c3:'VO Booth 2',c4:'2026-04-23',c5:4,c6:'CommBank'}},
+         {id:'i5',name:'Deadliest Dinners Ep1 — DX Edit',notes:'3 days allocated. Check Avid session.',startDate:'2026-06-04',timeLogs:[],values:{c1:'Not Started',c2:'Paul R',c3:'Studio C',c4:'2026-06-06',c5:8,c6:'Deadliest Dinners'}},
+       ]},
+       {id:'g3',name:'Next Week',color:'#5c6bc0',collapsed:false,items:[
+         {id:'i6',name:'ISFM Ep1 — Mix Block',notes:'Full mix week. Studio A booked Mon–Fri.',startDate:'2026-05-26',timeLogs:[],values:{c1:'Not Started',c2:'Paul R',c3:'Studio A',c4:'2026-06-02',c5:40,c6:'Sydney Fish Markets'}},
        ]},
      ]},
-    {id:'b3',name:'Freelancers',icon:'👥',color:'#8e24aa',
-     columns:[{id:'c1',name:'Status',type:'status'},{id:'c2',name:'Specialty',type:'text'},{id:'c3',name:'Rate ($/hr)',type:'currency'},{id:'c4',name:'Next Available',type:'date'},{id:'c5',name:'Hrs This Month',type:'number'}],
+    {id:'b3',name:'Engineers',icon:'🎧',color:'#8e24aa',
+     columns:[{id:'c1',name:'Status',type:'status'},{id:'c2',name:'Role',type:'text'},{id:'c3',name:'Rate ($/day)',type:'currency'},{id:'c4',name:'Next Available',type:'date'},{id:'c5',name:'Days This Month',type:'number'}],
      groups:[
-       {id:'g1',name:'Active',color:'#8e24aa',collapsed:false,items:[
-         {id:'i1',name:'David Chen',notes:'Preferred for Foley. david@chenfoley.com.au',startDate:'',timeLogs:[],values:{c1:'In Progress',c2:'Foley Artist',c3:95,c4:'2026-04-30',c5:14}},
-         {id:'i2',name:'Emma Walsh',notes:'Mon–Thu only. ADR supervisor. NIDA trained.',startDate:'',timeLogs:[],values:{c1:'In Progress',c2:'ADR Supervisor',c3:110,c4:'2026-04-25',c5:8}},
+       {id:'g1',name:'Staff',color:'#5c6bc0',collapsed:false,items:[
+         {id:'i1',name:'Paul Reeves',notes:'Senior Sound Engineer. paul@mightysound.studio',startDate:'',timeLogs:[],
+          skills:{dialogueEdit:true,musicEdit:true,sfxEdit:true,backgrounds:true,preReMix:true,finalMix:true,revisions:true,qcChanges:true,deliverables:true},
+          values:{c1:'In Progress',c2:'Senior Engineer',c3:850,c4:'2026-04-14',c5:18}},
+         {id:'i2',name:'Matthew Perrott',notes:'Founder / Lead Mix Engineer. matt@mightysound.studio',startDate:'',timeLogs:[],
+          skills:{dialogueEdit:true,musicEdit:true,sfxEdit:true,backgrounds:true,preReMix:true,finalMix:true,revisions:true,qcChanges:true,deliverables:true},
+          values:{c1:'In Progress',c2:'Lead Mix Engineer',c3:950,c4:'2026-04-14',c5:20}},
+         {id:'i3',name:'Kristen Settinelli',notes:'QC & Delivery specialist. kristen@mightysound.studio',startDate:'',timeLogs:[],
+          skills:{dialogueEdit:false,musicEdit:false,sfxEdit:false,backgrounds:false,preReMix:false,finalMix:false,revisions:true,qcChanges:true,deliverables:true},
+          values:{c1:'In Progress',c2:'QC & Delivery',c3:650,c4:'2026-04-14',c5:15}},
+       ]},
+       {id:'g2',name:'Freelancers',color:'#8e24aa',collapsed:false,items:[
+         {id:'i4',name:'David Chen',notes:'Preferred for Foley. david@chenfoley.com.au',startDate:'',timeLogs:[],
+          skills:{dialogueEdit:false,musicEdit:false,sfxEdit:true,backgrounds:true,preReMix:false,finalMix:false,revisions:false,qcChanges:false,deliverables:false},
+          values:{c1:'Available',c2:'Foley Artist',c3:760,c4:'2026-04-30',c5:14}},
+         {id:'i5',name:'Emma Walsh',notes:'Mon–Thu only. ADR supervisor. NIDA trained.',startDate:'',timeLogs:[],
+          skills:{dialogueEdit:true,musicEdit:false,sfxEdit:false,backgrounds:false,preReMix:true,finalMix:true,revisions:true,qcChanges:false,deliverables:false},
+          values:{c1:'Available',c2:'ADR Supervisor',c3:880,c4:'2026-04-25',c5:8}},
        ]},
      ]},
     {id:'b4',name:'Budget Tracker',icon:'💰',color:'#fb8c00',
@@ -1121,7 +1203,7 @@ function useGoogleSheets(ganttData,onUpdateGantt){
 }
 
 // ── MASTER GANTT SCHEDULER ────────────────────────────────────────────────
-function MasterGantt({ganttData,onUpdateGantt}){
+function MasterGantt({ganttData,onUpdateGantt,onShowConflicts}){
   const [collapsed,setCollapsed]=useState({});
   const [epCollapsed,setEpCollapsed]=useState({});
   const [viewMode,setViewMode]=useState('days');
@@ -1244,7 +1326,7 @@ function MasterGantt({ganttData,onUpdateGantt}){
         <div className="mg-conflict-banner">
           <span>⚠</span>
           <span style={{flex:1}}>{conflicts.length} engineer conflict{conflicts.length!==1?'s':''} detected</span>
-          <button className="resolve-btn" onClick={()=>alert(conflicts.slice(0,5).join('\n'))}>View</button>
+          <button className="resolve-btn" onClick={onShowConflicts}>⚡ View & Fix</button>
         </div>
       )}
 
@@ -2226,12 +2308,153 @@ function TimeTracker({item,onUpdate}){
   </div>);
 }
 
+// ── Engineer Skills ────────────────────────────────────────────────────────
+const ENGINEER_SKILLS=[
+  {id:'dialogueEdit', label:'Dialogue Edit',  color:'#d32f2f'},
+  {id:'musicEdit',    label:'Music Edit',     color:'#1565c0'},
+  {id:'sfxEdit',      label:'SFX Edit',       color:'#2e7d32'},
+  {id:'backgrounds',  label:'Backgrounds',    color:'#546e7a'},
+  {id:'preReMix',     label:'Pre Mix',        color:'#bf360c'},
+  {id:'finalMix',     label:'Final Mix',      color:'#283593'},
+  {id:'revisions',    label:'Revisions',      color:'#6a1b9a'},
+  {id:'qcChanges',    label:'QC Changes',     color:'#e65100'},
+  {id:'deliverables', label:'Deliverables',   color:'#f9a825'},
+];
+
 // ── Modals ─────────────────────────────────────────────────────────────────
 function AddColModal({onAdd,onClose}){const [name,setName]=useState('');const [type,setType]=useState('text');const TYPES=[{t:'text',l:'Text'},{t:'status',l:'Status'},{t:'priority',l:'Priority'},{t:'person',l:'Person'},{t:'date',l:'Date'},{t:'number',l:'Number'},{t:'currency',l:'Currency ($)'}];return(<div className="modal-ov" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()}><h3>Add column</h3><label>Name</label><input className="m-in" placeholder="Column name" value={name} onChange={e=>setName(e.target.value)} autoFocus onKeyDown={e=>e.key==='Enter'&&name&&onAdd(name,type)}/><label>Type</label><select className="m-sel" value={type} onChange={e=>setType(e.target.value)}>{TYPES.map(c=><option key={c.t} value={c.t}>{c.l}</option>)}</select><div className="m-actions"><button className="btn-g" onClick={onClose}>Cancel</button><button className="btn-p" onClick={()=>name&&onAdd(name,type)}>Add</button></div></div></div>);}
 function AddBoardModal({onAdd,onClose}){const ICONS=['📁','🎙️','🎬','📊','👥','💰','📅','🔧','📝','⚡','🎚️','🎛️','🎧','🗂️'];const [name,setName]=useState('');const [icon,setIcon]=useState('📁');return(<div className="modal-ov" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()}><h3>New board</h3><label>Name</label><input className="m-in" placeholder="Board name" value={name} onChange={e=>setName(e.target.value)} autoFocus/><label>Icon</label><div className="icon-grid">{ICONS.map(ic=><span key={ic} className={`icon-opt${icon===ic?' sel':''}`} onClick={()=>setIcon(ic)}>{ic}</span>)}</div><div className="m-actions"><button className="btn-g" onClick={onClose}>Cancel</button><button className="btn-p" onClick={()=>name&&onAdd(name,icon)}>Create</button></div></div></div>);}
 
+function AddEngineerModal({onAdd,onClose,editItem}){
+  const [name,setName]=useState(editItem?.name||'');
+  const [role,setRole]=useState(editItem?.values?.c2||'');
+  const [rate,setRate]=useState(editItem?.values?.c3||'');
+  const [group,setGroup]=useState(editItem?._group||'Staff');
+  const [notes,setNotes]=useState(editItem?.notes||'');
+  const [skills,setSkills]=useState(editItem?.skills||{});
+  const toggleSkill=id=>setSkills(p=>({...p,[id]:!p[id]}));
+  const activeSkills=ENGINEER_SKILLS.filter(s=>skills[s.id]);
+  const save=()=>{
+    if(!name.trim())return;
+    onAdd({
+      id:editItem?.id||uid(),name:name.trim(),notes,startDate:'',timeLogs:[],skills,
+      _group:group,
+      values:{c1:'Available',c2:role,c3:parseFloat(rate)||0,c4:'',c5:0,...(editItem?.values||{})}
+    });
+  };
+  return(
+    <div className="modal-ov" onClick={onClose}>
+      <div className="modal" style={{width:480}} onClick={e=>e.stopPropagation()}>
+        <h3>{editItem?'Edit Engineer':'Add Engineer'}</h3>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+          <div>
+            <label>Full Name</label>
+            <input className="m-in" placeholder="e.g. Alex Rodriguez" value={name} onChange={e=>setName(e.target.value)} autoFocus/>
+          </div>
+          <div>
+            <label>Role</label>
+            <input className="m-in" placeholder="e.g. Sound Editor" value={role} onChange={e=>setRole(e.target.value)}/>
+          </div>
+          <div>
+            <label>Day Rate ($)</label>
+            <input className="m-in" type="number" placeholder="750" value={rate} onChange={e=>setRate(e.target.value)}/>
+          </div>
+          <div>
+            <label>Type</label>
+            <select className="m-sel" value={group} onChange={e=>setGroup(e.target.value)}>
+              <option value="Staff">Staff</option>
+              <option value="Freelancers">Freelancer</option>
+            </select>
+          </div>
+        </div>
+        <label style={{marginTop:12,display:'block'}}>Skills</label>
+        <div style={{fontSize:11,color:'#aaa',fontWeight:500,marginBottom:6}}>Tick the tasks this engineer can handle</div>
+        <div className="skills-grid">
+          {ENGINEER_SKILLS.map(s=>(
+            <div key={s.id} className={`skill-check${skills[s.id]?' active':''}`} onClick={()=>toggleSkill(s.id)}>
+              <input type="checkbox" checked={!!skills[s.id]} onChange={()=>toggleSkill(s.id)} onClick={e=>e.stopPropagation()}/>
+              <span className="skill-check-label">{s.label}</span>
+            </div>
+          ))}
+        </div>
+        {activeSkills.length>0&&(
+          <div style={{display:'flex',flexWrap:'wrap',gap:4,marginTop:8}}>
+            {activeSkills.map(s=><span key={s.id} className="eng-skill-pill" style={{background:s.color+'22',color:s.color}}>{s.label}</span>)}
+          </div>
+        )}
+        <label style={{marginTop:10,display:'block'}}>Notes</label>
+        <textarea className="m-in" style={{minHeight:54,resize:'vertical'}} placeholder="Contact details, availability notes..." value={notes} onChange={e=>setNotes(e.target.value)}/>
+        <div className="m-actions">
+          <button className="btn-g" onClick={onClose}>Cancel</button>
+          <button className="btn-p" onClick={save} disabled={!name.trim()} style={{opacity:name.trim()?1:.5}}>{editItem?'Save Changes':'Add Engineer'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── ItemDetail ─────────────────────────────────────────────────────────────
-function ItemDetail({boards,sel,onClose,onUpdate}){
+const POST_STAGES_DEF=[
+  {id:'dialogueEdit', label:'Dialogue Edit',  color:'#d32f2f'},
+  {id:'musicEdit',    label:'Music Edit',     color:'#1565c0'},
+  {id:'sfxEdit',      label:'SFX Edit',       color:'#2e7d32'},
+  {id:'backgrounds',  label:'Backgrounds',    color:'#546e7a'},
+  {id:'preReMix',     label:'Pre Mix',        color:'#bf360c'},
+  {id:'finalMix',     label:'Final Mix',      color:'#283593'},
+  {id:'revisions',    label:'Revisions',      color:'#6a1b9a'},
+  {id:'qcChanges',    label:'QC Changes',     color:'#e65100'},
+  {id:'deliverables', label:'Deliverables',   color:'#f9a825'},
+];
+
+function ProjectSettings({item,engineers,onUpdate}){
+  const alloc=item.stageAlloc||{};
+  const setAlloc=(stageId,field,val)=>onUpdate('stageAlloc',{...alloc,[stageId]:{...(alloc[stageId]||{}),[field]:val}});
+  const totalDays=POST_STAGES_DEF.reduce((s,st)=>s+(parseFloat(alloc[st.id]?.days)||0),0);
+  return(
+    <div className="proj-settings" style={{paddingBottom:4}}>
+      <div style={{fontSize:11,fontWeight:700,color:'#aaa',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:10}}>Time Allocation per Stage</div>
+      <div style={{display:'flex',gap:6,fontSize:10,fontWeight:700,color:'#bbb',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:5,paddingLeft:2}}>
+        <div style={{flex:1}}>Stage</div>
+        <div style={{width:60,textAlign:'center'}}>Days</div>
+        <div style={{width:110}}>Assigned Engineer</div>
+      </div>
+      {POST_STAGES_DEF.map(stage=>{
+        const row=alloc[stage.id]||{};
+        const engOpts=['',... (engineers||[])];
+        return(
+          <div key={stage.id} className="ps-row">
+            <div className="ps-stage">
+              <span className="ps-dot" style={{background:stage.color}}/>
+              {stage.label}
+            </div>
+            <input type="number" min="0" step="0.5" className="ps-in"
+              placeholder="0"
+              value={row.days||''}
+              onChange={e=>setAlloc(stage.id,'days',e.target.value)}/>
+            <select className="ps-sel" value={row.engineer||''} onChange={e=>setAlloc(stage.id,'engineer',e.target.value)}>
+              <option value="">— TBC</option>
+              {engOpts.filter(Boolean).map(e=><option key={e} value={e}>{e}</option>)}
+            </select>
+          </div>
+        );
+      })}
+      <div className="ps-total">
+        <span>Total allocated</span>
+        <span style={{fontWeight:800,fontSize:16,color:'#111'}}>{totalDays} days</span>
+      </div>
+      {item.values?.c4&&(
+        <div style={{fontSize:11,color:'#888',fontWeight:500,marginTop:8}}>
+          Due: {item.values.c4}
+          {totalDays>0&&item.startDate&&<span style={{marginLeft:8,color:'#5c6bc0',fontWeight:600}}>
+            {Math.round(totalDays/5)} weeks of work
+          </span>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ItemDetail({boards,sel,onClose,onUpdate,engineers}){
   const [tab,setTab]=useState('fields');if(!sel)return null;
   const {bid,gid,iid}=sel;const board=boards.find(b=>b.id===bid);if(!board)return null;
   const group=board.groups.find(g=>g.id===gid);if(!group)return null;
@@ -2240,15 +2463,68 @@ function ItemDetail({boards,sel,onClose,onUpdate}){
   const updVal=(cid,val)=>onUpdate(bid,p=>({...p,groups:p.groups.map(g=>g.id===gid?{...g,items:g.items.map(i=>i.id===iid?{...i,values:{...i.values,[cid]:val}}:i)}:g)}));
   const del=()=>{onUpdate(bid,p=>({...p,groups:p.groups.map(g=>g.id===gid?{...g,items:g.items.filter(i=>i.id!==iid)}:g)}));onClose()};
   const totalLogged=(item.timeLogs||[]).reduce((s,l)=>s+(l.mins||0),0);
+
+  const isEngineerBoard=board.id==='b3';
+  const isActiveProjects=board.id==='b1';
+
+  // Build tabs based on board type
+  const tabs=[
+    {id:'fields',l:'Fields'},
+    ...(isEngineerBoard?[{id:'skills',l:'Skills'}]:[]),
+    ...(isActiveProjects?[{id:'settings',l:'Project Settings'}]:[]),
+    {id:'time',l:'Time Tracking'},
+    {id:'timeline',l:'Timeline'},
+    {id:'notes',l:'Notes'},
+  ];
+
   return(<div className="overlay" onClick={onClose}><div className="detail" onClick={e=>e.stopPropagation()}>
     <div className="det-hdr">
       <button className="det-close" onClick={onClose}>×</button>
       <input className="det-title" value={item.name} onChange={e=>upd('name',e.target.value)} placeholder="Item name"/>
       <div className="det-sub">{board.name} / {group.name}{totalLogged>0&&<span style={{marginLeft:10,color:'#5c6bc0',fontWeight:600}}>⏱ {minsToHrs(totalLogged)}h</span>}</div>
     </div>
-    <div className="det-tabs">{[{id:'fields',l:'Fields'},{id:'time',l:'Time Tracking'},{id:'timeline',l:'Timeline'},{id:'notes',l:'Notes'}].map(t=><div key={t.id} className={`det-tab${tab===t.id?' active':''}`} onClick={()=>setTab(t.id)}>{t.l}</div>)}</div>
+    <div className="det-tabs">{tabs.map(t=><div key={t.id} className={`det-tab${tab===t.id?' active':''}`} onClick={()=>setTab(t.id)}>{t.l}</div>)}</div>
     <div className="det-body">
-      {tab==='fields'&&<><div className="det-grid">{board.columns.map(col=><div key={col.id} className="det-field"><div className="det-label">{col.name}</div><Cell col={col} value={item.values[col.id]} onChange={v=>updVal(col.id,v)}/></div>)}</div><hr className="det-div"/><button className="btn-del" onClick={del}>Delete item</button></>}
+      {tab==='fields'&&<>
+        <div className="det-grid">{board.columns.map(col=><div key={col.id} className="det-field"><div className="det-label">{col.name}</div><Cell col={col} value={item.values[col.id]} onChange={v=>updVal(col.id,v)}/></div>)}</div>
+        {isEngineerBoard&&item.skills&&(
+          <div style={{marginTop:10}}>
+            <div className="det-label" style={{marginBottom:6}}>Skills</div>
+            <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
+              {ENGINEER_SKILLS.filter(s=>item.skills[s.id]).map(s=>(
+                <span key={s.id} className="eng-skill-pill" style={{background:s.color+'22',color:s.color}}>{s.label}</span>
+              ))}
+              {!ENGINEER_SKILLS.some(s=>item.skills[s.id])&&<span style={{fontSize:11,color:'#bbb',fontWeight:500}}>No skills set — open Skills tab to configure</span>}
+            </div>
+          </div>
+        )}
+        <hr className="det-div"/><button className="btn-del" onClick={del}>Delete item</button>
+      </>}
+      {tab==='skills'&&isEngineerBoard&&(
+        <div>
+          <div style={{fontSize:12,color:'#888',fontWeight:500,marginBottom:12,lineHeight:1.5}}>
+            Select which post-production tasks this engineer can handle. This helps the AI suggest the right person when resolving scheduling conflicts.
+          </div>
+          <div className="skills-grid">
+            {ENGINEER_SKILLS.map(s=>{
+              const active=!!(item.skills||{})[s.id];
+              return(
+                <div key={s.id} className={`skill-check${active?' active':''}`}
+                  onClick={()=>upd('skills',{...(item.skills||{}),[s.id]:!active})}>
+                  <input type="checkbox" checked={active} onChange={()=>{}} onClick={e=>e.stopPropagation()}/>
+                  <span className="skill-check-label">{s.label}</span>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{marginTop:12,fontSize:11,color:'#aaa',fontWeight:500}}>
+            {ENGINEER_SKILLS.filter(s=>(item.skills||{})[s.id]).length} of {ENGINEER_SKILLS.length} skills selected
+          </div>
+        </div>
+      )}
+      {tab==='settings'&&isActiveProjects&&(
+        <ProjectSettings item={item} engineers={engineers||[]} onUpdate={upd}/>
+      )}
       {tab==='time'&&<TimeTracker item={item} onUpdate={upd}/>}
       {tab==='timeline'&&<div>
         <div style={{marginBottom:14}}><div className="det-label">Start Date</div><input type="date" className="det-in" value={item.startDate||''} onChange={e=>upd('startDate',e.target.value)}/></div>
@@ -2260,23 +2536,291 @@ function ItemDetail({boards,sel,onClose,onUpdate}){
   </div></div>);
 }
 
+// ── Studio Rooms Panel ─────────────────────────────────────────────────────
+function StudioRooms({rooms,onUpdateRoom}){
+  if(!rooms||!rooms.length)return null;
+  const STATUS_COLOR={free:'#43a047',booked:'#fb8c00',occupied:'#e53935'};
+  return(
+    <div className="studio-rooms">
+      {rooms.map(room=>(
+        <div key={room.id} className={`studio-room ${room.status}`}>
+          <div className="studio-room-name">{room.name}</div>
+          <div style={{fontSize:9,color:'#aaa',fontWeight:600,textTransform:'uppercase',letterSpacing:'.05em',marginBottom:4}}>{room.type}</div>
+          <div className="studio-room-dot" style={{background:STATUS_COLOR[room.status]||'#aaa'}}/>
+          <div style={{fontSize:10,fontWeight:700,color:STATUS_COLOR[room.status],textTransform:'uppercase',letterSpacing:'.04em',marginBottom:3}}>
+            {room.status==='occupied'?'In Use':room.status==='booked'?'Booked':'Free'}
+          </div>
+          <div className="studio-room-project">{room.project||'—'}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Conflict Resolution Modal ──────────────────────────────────────────────
+function ConflictResolutionModal({conflicts,ganttData,freelancers,onApply,onClose}){
+  const [stage,setStage]=useState('list');// list | loading | suggestions
+  const [suggestions,setSuggestions]=useState([]);
+  const [approved,setApproved]=useState({});
+  const [rejected,setRejected]=useState({});
+
+  const getSuggestions=async()=>{
+    setStage('loading');
+    // Build context for AI
+    const engWorkload={};
+    ganttData.forEach(proj=>proj.episodes.forEach(ep=>ep.tasks.forEach(t=>{
+      if(t.assignee&&t.status!=='Done'){
+        if(!engWorkload[t.assignee])engWorkload[t.assignee]=[];
+        engWorkload[t.assignee].push(`${proj.name} ${ep.name} ${t.name} (${t.startDate}–${t.endDate})`);
+      }
+    })));
+    const freelancerList=(freelancers||[]).map(f=>`${f.name} — ${f.specialty||'General'} — $${f.rate||'TBC'}/day — Available: ${f.available||'TBC'} — Skills: ${(f.skills||[]).join(', ')||'Not specified'}`).join('\n');
+    const conflictList=conflicts.slice(0,10).join('\n');
+    const workloadSummary=Object.entries(engWorkload).map(([eng,tasks])=>`${eng}: ${tasks.length} tasks`).join(', ');
+    const prompt=`You are a production scheduling expert for an audio post facility.
+
+ENGINEER CONFLICTS (double-bookings):
+${conflictList}
+
+CURRENT ENGINEER WORKLOAD:
+${workloadSummary}
+
+AVAILABLE FREELANCERS:
+${freelancerList||'None on file'}
+
+For each conflict, suggest a specific fix. Return ONLY valid JSON array:
+[
+  {
+    "conflictSummary": "brief description of the conflict",
+    "icon": "🔄" or "👤" or "📅",
+    "title": "short action title",
+    "reason": "why this fix works",
+    "changeType": "reassign" or "reschedule" or "freelancer",
+    "before": "current assignment/date",
+    "after": "new assignment/date",
+    "freelancerName": "name if recommending freelancer or null",
+    "freelancerNote": "why this freelancer or null",
+    "ganttChange": {"projName":"","epName":"","taskName":"","field":"assignee or startDate or endDate","value":"new value"}
+  }
+]
+
+Be specific — use real names from the workload and real dates. Prefer internal reassignment before suggesting freelancers. Limit to ${Math.min(conflicts.length,8)} suggestions.`;
+    try{
+      const resp=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,messages:[{role:'user',content:prompt}]})
+      });
+      const result=await resp.json();
+      const text=result.content?.find(c=>c.type==='text')?.text||'[]';
+      const jsonMatch=text.match(/\[[\s\S]*\]/);
+      if(jsonMatch){
+        const parsed=JSON.parse(jsonMatch[0]);
+        setSuggestions(parsed);setStage('suggestions');
+      } else throw new Error('No JSON');
+    }catch(e){
+      // Fallback suggestions
+      setSuggestions(conflicts.slice(0,5).map((c,i)=>({
+        conflictSummary:c,icon:'🔄',
+        title:`Resolve conflict ${i+1}`,
+        reason:'Review this conflict manually and reassign or reschedule as needed.',
+        changeType:'reassign',before:c.split(':')[0]||'',after:'TBC',
+        freelancerName:null,freelancerNote:null,ganttChange:null
+      })));
+      setStage('suggestions');
+    }
+  };
+
+  const applyApproved=()=>{
+    const toApply=suggestions.filter((_,i)=>approved[i]&&!rejected[i]);
+    toApply.forEach(sug=>{
+      if(!sug.ganttChange)return;
+      onApply(sug.ganttChange);
+    });
+    onClose();
+  };
+
+  const approvedCount=Object.values(approved).filter(Boolean).length;
+
+  return(
+    <div className="modal-ov" onClick={onClose}>
+      <div className="cr-modal" onClick={e=>e.stopPropagation()}>
+        <div className="cr-hdr">
+          <div className="cr-title">
+            <span>⚠️</span>
+            <span>Schedule Conflicts</span>
+            <span className="ai-badge">✦ AI</span>
+            <button onClick={onClose} style={{marginLeft:'auto',background:'none',border:'none',fontSize:20,color:'#bbb',cursor:'pointer',lineHeight:1,padding:0}}>×</button>
+          </div>
+          <div style={{fontSize:12,color:'#888',fontWeight:500,marginTop:4}}>
+            {conflicts.length} conflict{conflicts.length!==1?'s':''} detected — engineers double-booked on the same dates
+          </div>
+        </div>
+
+        <div className="cr-body">
+          {stage==='list'&&(<>
+            <div style={{fontSize:11,fontWeight:700,color:'#aaa',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>Detected Conflicts</div>
+            {conflicts.slice(0,12).map((c,i)=><div key={i} className="conflict-item">⚡ {c}</div>)}
+            {conflicts.length>12&&<div style={{fontSize:11,color:'#aaa',fontWeight:500,marginBottom:8}}>+{conflicts.length-12} more conflicts…</div>}
+          </>)}
+
+          {stage==='loading'&&(
+            <div style={{textAlign:'center',padding:'40px 0'}}>
+              <div style={{fontSize:36,marginBottom:14}}>🤖</div>
+              <div style={{fontSize:14,fontWeight:700,color:'#333',marginBottom:6}}>AI is analysing your schedule…</div>
+              <div style={{fontSize:12,color:'#aaa',fontWeight:500}}>Checking engineer workloads, available freelancers, and optimal resolutions</div>
+              <div style={{width:200,height:3,background:'#e5e5e5',borderRadius:3,margin:'18px auto 0',overflow:'hidden'}}>
+                <div style={{height:'100%',width:'60%',background:'#111',borderRadius:3,animation:'pulse 1.2s ease-in-out infinite'}}/>
+              </div>
+            </div>
+          )}
+
+          {stage==='suggestions'&&(<>
+            <div style={{fontSize:11,fontWeight:700,color:'#aaa',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:10}}>AI Suggestions — Review and Approve</div>
+            {suggestions.map((sug,i)=>(
+              <div key={i} className={`suggestion-card${approved[i]?' approved':rejected[i]?' rejected':''}`}>
+                <div className="sug-header">
+                  <div className="sug-icon">{sug.icon||'🔄'}</div>
+                  <div style={{flex:1}}>
+                    <div className="sug-title">{sug.title}</div>
+                    <div className="sug-reason">{sug.reason}</div>
+                  </div>
+                  {approved[i]&&<span style={{fontSize:11,fontWeight:700,color:'#2e7d32',background:'#e8f5e9',padding:'2px 8px',borderRadius:10,flexShrink:0}}>✓ Approved</span>}
+                  {rejected[i]&&<span style={{fontSize:11,fontWeight:700,color:'#aaa',flexShrink:0}}>Skipped</span>}
+                </div>
+                <div className="sug-change">
+                  <span style={{fontSize:10,color:'#aaa',fontWeight:700,textTransform:'uppercase',letterSpacing:'.05em',flexShrink:0}}>
+                    {sug.changeType==='reassign'?'Engineer':sug.changeType==='reschedule'?'Dates':'Freelancer'}
+                  </span>
+                  <span className="sug-before">{sug.before}</span>
+                  <span style={{color:'#555',fontWeight:700}}>→</span>
+                  <span className="sug-after">{sug.after}</span>
+                </div>
+                {sug.freelancerName&&(
+                  <div className="sug-freelancer">
+                    👤 <b>{sug.freelancerName}</b> recommended — {sug.freelancerNote}
+                  </div>
+                )}
+                {!approved[i]&&!rejected[i]&&(
+                  <div className="sug-actions">
+                    <button className="sug-btn-approve" onClick={()=>setApproved(p=>({...p,[i]:true}))}>✓ Approve</button>
+                    <button className="sug-btn-reject" onClick={()=>setRejected(p=>({...p,[i]:true}))}>Skip</button>
+                  </div>
+                )}
+                {approved[i]&&(
+                  <button className="sug-btn-reject" onClick={()=>setApproved(p=>({...p,[i]:false}))}>Undo approve</button>
+                )}
+              </div>
+            ))}
+          </>)}
+        </div>
+
+        <div className="cr-footer">
+          {stage==='list'&&<>
+            <button className="btn-p" onClick={getSuggestions} style={{display:'flex',alignItems:'center',gap:6}}>
+              <span>✦ Get AI Suggestions</span>
+            </button>
+            <button className="btn-g" onClick={onClose}>Close</button>
+          </>}
+          {stage==='loading'&&<button className="btn-g" onClick={onClose}>Cancel</button>}
+          {stage==='suggestions'&&<>
+            <button className="btn-p" onClick={applyApproved} disabled={approvedCount===0} style={{opacity:approvedCount>0?1:.4}}>
+              Apply {approvedCount>0?approvedCount+' ':''}{approvedCount===1?'change':'changes'}
+            </button>
+            <button className="btn-g" onClick={()=>setStage('list')}>← Back</button>
+            <span style={{marginLeft:'auto',fontSize:11,color:'#aaa',fontWeight:500}}>{approvedCount}/{suggestions.length} approved</span>
+          </>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── App ────────────────────────────────────────────────────────────────────
 function App(){
   const [data,setData]=useState(null);const [view,setView]=useState('table');const [sel,setSel]=useState(null);const [showAddBoard,setShowAddBoard]=useState(false);const [loaded,setLoaded]=useState(false);
+  const [showConflicts,setShowConflicts]=useState(false);
   const saveRef=useRef(null);
   const isMaster=data&&data.activeBoard==='__master__';
   const isLongform=data&&data.activeBoard==='__longform__';
-  useEffect(()=>{(async()=>{try{const r=await window.storage.get('wb4_data');setData(r&&r.value?JSON.parse(r.value):INIT)}catch{setData(INIT)}setLoaded(true)})()},[]);
-  useEffect(()=>{if(!loaded||!data)return;clearTimeout(saveRef.current);saveRef.current=setTimeout(async()=>{try{await window.storage.set('wb4_data',JSON.stringify(data))}catch{}},700)},[data,loaded]);
+
+  useEffect(()=>{(async()=>{try{const r=await window.storage.get('wb5_data');setData(r&&r.value?JSON.parse(r.value):INIT)}catch{setData(INIT)}setLoaded(true)})()},[]);
+  useEffect(()=>{if(!loaded||!data)return;clearTimeout(saveRef.current);saveRef.current=setTimeout(async()=>{try{await window.storage.set('wb5_data',JSON.stringify(data))}catch{}},700)},[data,loaded]);
+
+  // Compute gantt-derived items for Active Projects (read-only view)
+  const ganttDerivedItems=useMemo(()=>{
+    if(!data)return[];
+    return data.masterGantt.map(proj=>{
+      const allTasks=proj.episodes.flatMap(ep=>ep.tasks);
+      const done=allTasks.filter(t=>t.status==='Done').length;
+      const ip=allTasks.filter(t=>t.status==='In Progress').length;
+      const status=done===allTasks.length?'Done':ip>0?'In Progress':'Not Started';
+      const endDates=allTasks.map(t=>t.endDate).filter(Boolean).sort();
+      const engineers=[...new Set(allTasks.map(t=>t.assignee).filter(Boolean))];
+      return{
+        id:'gd_'+proj.id,name:proj.code+' — '+proj.name,
+        notes:`${proj.type} · ${proj.episodes.length} ep · ${proj.client}`,
+        startDate:allTasks[0]?.startDate||'',timeLogs:[],
+        _fromGantt:true,_ganttId:proj.id,
+        values:{c1:status,c2:engineers[0]||'',c3:proj.client,c4:endDates[endDates.length-1]||'',c5:null,c6:allTasks.length}
+      };
+    });
+  },[data]);
+
+  const [showAddEngineer,setShowAddEngineer]=useState(false);
+
+  // Collect engineers from the engineers board for use across the app
+  const engineerList=useMemo(()=>{
+    if(!data)return[];
+    const eb=data.boards.find(b=>b.id==='b3');if(!eb)return[];
+    return eb.groups.flatMap(g=>g.items).map(i=>i.name).filter(Boolean);
+  },[data]);
+
+  // Collect engineer data (with skills) for conflict resolution
+  const freelancerList=useMemo(()=>{
+    if(!data)return[];
+    const eb=data.boards.find(b=>b.id==='b3');if(!eb)return[];
+    return eb.groups.flatMap(g=>g.items).map(i=>({
+      name:i.name,specialty:i.values?.c2||'',rate:i.values?.c3||'',
+      available:i.values?.c4||'TBC',
+      skills:ENGINEER_SKILLS.filter(s=>(i.skills||{})[s.id]).map(s=>s.label),
+    }));
+  },[data]);
+
+  const addEngineer=useCallback((eng)=>{
+    const eb=data.boards.find(b=>b.id==='b3');if(!eb)return;
+    const groupId=eb.groups.find(g=>g.name===eng._group)?.id||eb.groups[0]?.id;
+    const {_group,...cleanEng}=eng;
+    updBoard('b3',b=>({...b,groups:b.groups.map(g=>g.id===groupId?{...g,items:[...g.items,cleanEng]}:g)}));
+    setShowAddEngineer(false);
+  },[data,updBoard]);
+
   const board=data&&!isMaster&&!isLongform?data.boards.find(b=>b.id===data.activeBoard):null;
   const setBoard=id=>{setData(p=>({...p,activeBoard:id}));setView('table');setSel(null)};
   const updBoard=useCallback((bid,fn)=>setData(p=>({...p,boards:p.boards.map(b=>b.id===bid?(typeof fn==='function'?fn(b):{...b,...fn}):b)})),[]);
   const updLongform=fn=>setData(p=>({...p,longform:typeof fn==='function'?fn(p.longform):{...p.longform,...fn}}));
   const updMasterGantt=fn=>setData(p=>({...p,masterGantt:typeof fn==='function'?fn(p.masterGantt):[...p.masterGantt,...fn]}));
+
+  // Apply a gantt change from conflict resolution
+  const applyGanttChange=useCallback(change=>{
+    if(!change)return;
+    setData(p=>({...p,masterGantt:p.masterGantt.map(proj=>{
+      if(proj.name!==change.projName&&proj.code!==change.projName)return proj;
+      return{...proj,episodes:proj.episodes.map(ep=>{
+        if(ep.name!==change.epName)return ep;
+        return{...ep,tasks:ep.tasks.map(t=>{
+          if(t.name!==change.taskName)return t;
+          return{...t,[change.field]:change.value};
+        })};
+      })};
+    })}));
+  },[]);
+
   const addBoard=(name,icon)=>{const nb={id:uid(),name,icon,color:GCOLS[data.boards.length%GCOLS.length],columns:[{id:uid(),name:'Status',type:'status'},{id:uid(),name:'Assigned',type:'person'},{id:uid(),name:'Due Date',type:'date'}],groups:[{id:uid(),name:'Group 1',color:'#5c6bc0',collapsed:false,items:[]}]};setData(p=>({...p,boards:[...p.boards,nb],activeBoard:nb.id}));setShowAddBoard(false)};
   const quickAdd=()=>{if(!board||!board.groups.length)return;const it={id:uid(),name:'New item',notes:'',startDate:'',timeLogs:[],values:{}};updBoard(board.id,p=>({...p,groups:p.groups.map((g,i)=>i===0?{...g,items:[it,...g.items]}:g)}))};
   const VIEWS=[{id:'table',l:'⊞ Table'},{id:'kanban',l:'▣ Kanban'},{id:'calendar',l:'📅 Calendar'},{id:'gantt',l:'📊 Gantt'}];
+
   if(!loaded)return<div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',background:'#f0f0f0',flexDirection:'column',gap:12}}><div style={{width:48,height:48,background:'#111',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',fontSize:24}}>🎙️</div><div style={{fontSize:14,fontWeight:700,color:'#555',letterSpacing:'.05em',textTransform:'uppercase'}}>Loading WorkBoard…</div></div>;
+
   return(<div className="app">
     <div className="sidebar">
       <div className="sb-logo">
@@ -2308,7 +2852,7 @@ function App(){
             <span className="bcount">{data.masterGantt.reduce((n,p)=>n+p.episodes.reduce((m,e)=>m+e.tasks.length,0),0)} tasks across {data.masterGantt.length} projects</span>
           </div>
           <div style={{flex:1,overflow:'hidden',minHeight:0,display:'flex',flexDirection:'column'}}>
-            <MasterGantt ganttData={data.masterGantt} onUpdateGantt={updMasterGantt}/>
+            <MasterGantt ganttData={data.masterGantt} onUpdateGantt={updMasterGantt} onShowConflicts={()=>setShowConflicts(true)}/>
           </div>
         </div>
       ):isLongform?(
@@ -2320,10 +2864,49 @@ function App(){
         <>
           <div className="board-header">
             <div className="board-title"><span>{board.icon}</span><span>{board.name}</span><span className="bcount">{board.groups.reduce((n,g)=>n+g.items.length,0)} items</span></div>
-            <div className="toolbar">{VIEWS.map(v=><button key={v.id} className={`view-btn${view===v.id?' active':''}`} onClick={()=>setView(v.id)}>{v.l}</button>)}<div className="t-sep"/><button className="t-btn">🔍 Filter</button><button className="t-btn hi" onClick={quickAdd}>+ New item</button></div>
+            <div className="toolbar">{VIEWS.map(v=><button key={v.id} className={`view-btn${view===v.id?' active':''}`} onClick={()=>setView(v.id)}>{v.l}</button>)}<div className="t-sep"/><button className="t-btn">🔍 Filter</button>
+              {board.id==='b3'
+                ?<button className="t-btn hi" onClick={()=>setShowAddEngineer(true)}>+ Add Engineer</button>
+                :<button className="t-btn hi" onClick={quickAdd}>+ New item</button>
+              }
+            </div>
             <hr className="hdr-div"/>
           </div>
           <div className="board-content">
+            {/* Studio rooms panel — only on Studio Schedule */}
+            {board.id==='b2'&&board.rooms&&<StudioRooms rooms={board.rooms} onUpdateRoom={rm=>updBoard(board.id,b=>({...b,rooms:b.rooms.map(r=>r.id===rm.id?rm:r)}))}/>}
+
+            {/* Gantt-derived projects — only on Active Projects */}
+            {board.id==='b1'&&ganttDerivedItems.length>0&&view==='table'&&(
+              <div className="group-block">
+                <div className="group-header">
+                  <span className="g-dot" style={{background:'#8e24aa'}}/>
+                  <span className="g-name" style={{color:'#8e24aa'}}>From Master Gantt</span>
+                  <span className="g-cnt">{ganttDerivedItems.length} live projects</span>
+                  <span style={{marginLeft:8,fontSize:10,color:'#8e24aa',fontWeight:600,cursor:'pointer',textDecoration:'underline'}} onClick={()=>setBoard('__master__')}>Open Gantt →</span>
+                </div>
+                <div className="tbl-wrap">
+                  <div className="tbl-head">
+                    <div className="th th-name">Project</div>
+                    {board.columns.map(c=><div key={c.id} className="th th-col">{c.name}</div>)}
+                  </div>
+                  {ganttDerivedItems.map(item=>(
+                    <div key={item.id} className="tbl-row" onClick={()=>setBoard('__master__')} style={{cursor:'pointer'}}>
+                      <div className="td-name">
+                        <span className="gantt-sync-badge">GANTT</span>
+                        <span className="td-nm-txt" style={{color:'#8e24aa'}}>{item.name}</span>
+                      </div>
+                      {board.columns.map(c=>(
+                        <div key={c.id} className="td-col">
+                          <Cell col={c} value={item.values[c.id]} onChange={()=>{}}/>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {view==='table'&&<TableView board={board} onUpdate={fn=>updBoard(board.id,fn)} onSelect={(bid,gid,iid)=>setSel({bid,gid,iid})}/>}
             {view==='kanban'&&<KanbanView board={board} onSelect={(bid,gid,iid)=>setSel({bid,gid,iid})}/>}
             {view==='calendar'&&<CalendarView board={board} onSelect={(bid,gid,iid)=>setSel({bid,gid,iid})}/>}
@@ -2331,8 +2914,28 @@ function App(){
           </div>
         </>
       ):<div className="empty"><h3>Select a board</h3></div>}
-      {sel&&<ItemDetail boards={data.boards} sel={sel} onClose={()=>setSel(null)} onUpdate={updBoard}/>}
+      {sel&&<ItemDetail boards={data.boards} sel={sel} onClose={()=>setSel(null)} onUpdate={updBoard} engineers={engineerList}/>}
       {showAddBoard&&<AddBoardModal onAdd={addBoard} onClose={()=>setShowAddBoard(false)}/>}
+      {showAddEngineer&&<AddEngineerModal onAdd={addEngineer} onClose={()=>setShowAddEngineer(false)}/>}
+      {showConflicts&&data&&(
+        <div className="modal-ov" onClick={()=>setShowConflicts(false)}>
+          <ConflictResolutionModal
+            conflicts={data.masterGantt.reduce((all,proj)=>{
+              const tasks=proj.episodes.flatMap(ep=>ep.tasks.map(t=>({...t,projName:proj.name})));
+              for(let i=0;i<tasks.length;i++)for(let j=i+1;j<tasks.length;j++){
+                const a=tasks[i],b=tasks[j];
+                if(a.assignee&&a.assignee===b.assignee&&a.status!=='Done'&&b.status!=='Done'&&a.startDate<=b.endDate&&b.startDate<=a.endDate)
+                  all.push(`${a.assignee} double-booked: ${a.projName} ${a.name} (${a.startDate}–${a.endDate}) vs ${b.projName} ${b.name} (${b.startDate}–${b.endDate})`);
+              }
+              return all;
+            },[])}
+            ganttData={data.masterGantt}
+            freelancers={freelancerList}
+            onApply={change=>{applyGanttChange(change)}}
+            onClose={()=>setShowConflicts(false)}
+          />
+        </div>
+      )}
     </div>
   </div>);
 }
