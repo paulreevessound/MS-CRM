@@ -719,13 +719,13 @@ const INIT={
      groups:[
        {id:'g1',name:'Staff',color:'#5c6bc0',collapsed:false,items:[
          {id:'i1',name:'Paul Reeves',notes:'Senior Sound Engineer. paul@mightysound.studio',startDate:'',timeLogs:[],
-          skills:{dialogueEdit:true,musicEdit:true,sfxEdit:true,backgrounds:true,preReMix:true,finalMix:true,revisions:true,qcChanges:true,deliverables:true},
+          skills:{dialogueEdit:true,musicEdit:true,sfxEdit:true,backgrounds:true,preReMix:true,finalMix:true,revisions:true,qcChanges:true,deliverables:true,remoteVO:true,onsiteVO:true,attendedSession:true},
           values:{c1:'In Progress',c2:'Senior Engineer',c3:850,c4:'2026-04-14',c5:18}},
          {id:'i2',name:'Matthew Perrott',notes:'Founder / Lead Mix Engineer. matt@mightysound.studio',startDate:'',timeLogs:[],
-          skills:{dialogueEdit:true,musicEdit:true,sfxEdit:true,backgrounds:true,preReMix:true,finalMix:true,revisions:true,qcChanges:true,deliverables:true},
+          skills:{dialogueEdit:true,musicEdit:true,sfxEdit:true,backgrounds:true,preReMix:true,finalMix:true,revisions:true,qcChanges:true,deliverables:true,remoteVO:true,onsiteVO:true,attendedSession:true},
           values:{c1:'In Progress',c2:'Lead Mix Engineer',c3:950,c4:'2026-04-14',c5:20}},
          {id:'i3',name:'Kristen Settinelli',notes:'QC & Delivery specialist. kristen@mightysound.studio',startDate:'',timeLogs:[],
-          skills:{dialogueEdit:false,musicEdit:false,sfxEdit:false,backgrounds:false,preReMix:false,finalMix:false,revisions:true,qcChanges:true,deliverables:true},
+          skills:{dialogueEdit:false,musicEdit:false,sfxEdit:false,backgrounds:false,preReMix:false,finalMix:false,revisions:true,qcChanges:true,deliverables:true,remoteVO:false,onsiteVO:false,attendedSession:false},
           values:{c1:'In Progress',c2:'QC & Delivery',c3:650,c4:'2026-04-14',c5:15}},
        ]},
        {id:'g2',name:'Freelancers',color:'#8e24aa',collapsed:false,items:[
@@ -750,6 +750,7 @@ const INIT={
      ]},
   ],
   masterGantt: INIT_MASTER_GANTT,
+  engineerSkills: DEFAULT_ENGINEER_SKILLS,
   longform:{
     activeProduction:'p1',
     productions:[
@@ -788,7 +789,7 @@ function Cell({col,value,onChange}){
 }
 
 // ── TableView ──────────────────────────────────────────────────────────────
-function TableView({board,onUpdate,onSelect}){
+function TableView({board,onUpdate,onSelect,onEditItem}){
   const [addingG,setAddingG]=useState(false);const [newG,setNewG]=useState('');const [showC,setShowC]=useState(false);const [edName,setEdName]=useState(null);
   const toggle=gid=>onUpdate(p=>({...p,groups:p.groups.map(g=>g.id===gid?{...g,collapsed:!g.collapsed}:g)}));
   const updCell=(gid,iid,cid,v)=>onUpdate(p=>({...p,groups:p.groups.map(g=>g.id===gid?{...g,items:g.items.map(i=>i.id===iid?{...i,values:{...i.values,[cid]:v}}:i)}:g)}));
@@ -809,7 +810,9 @@ function TableView({board,onUpdate,onSelect}){
           <div className="td-name">{edName===item.id?<input className="ni" value={item.name} autoFocus onChange={e=>updName(g.id,item.id,e.target.value)} onBlur={()=>setEdName(null)} onKeyDown={e=>e.key==='Enter'&&setEdName(null)} onClick={e=>e.stopPropagation()}/>:
             <><span className="td-nm-txt" onDoubleClick={e=>{e.stopPropagation();setEdName(item.id)}} onClick={()=>onSelect(board.id,g.id,item.id)}>{item.name}</span>
             {item.notes&&<span style={{fontSize:9,color:'#ccc'}}>📝</span>}
-            {item.timeLogs&&item.timeLogs.length>0&&<span style={{fontSize:9,color:'#ccc'}}>⏱</span>}</>}
+            {item.timeLogs&&item.timeLogs.length>0&&<span style={{fontSize:9,color:'#ccc'}}>⏱</span>}
+            {onEditItem&&<button onClick={e=>{e.stopPropagation();onEditItem(item,g.name)}} style={{marginLeft:6,background:'none',border:'1px solid #ddd',borderRadius:4,padding:'1px 7px',fontSize:10,fontWeight:700,color:'#888',cursor:'pointer',flexShrink:0}} title="Edit">✏️ Edit</button>}
+            </>}
           </div>
           {board.columns.map(c=><div key={c.id} className="td-col"><Cell col={c} value={item.values[c.id]} onChange={v=>updCell(g.id,item.id,c.id,v)}/></div>)}
         </div>))}
@@ -2308,51 +2311,87 @@ function TimeTracker({item,onUpdate}){
   </div>);
 }
 
-// ── Engineer Skills ────────────────────────────────────────────────────────
-const ENGINEER_SKILLS=[
-  {id:'dialogueEdit', label:'Dialogue Edit',  color:'#d32f2f'},
-  {id:'musicEdit',    label:'Music Edit',     color:'#1565c0'},
-  {id:'sfxEdit',      label:'SFX Edit',       color:'#2e7d32'},
-  {id:'backgrounds',  label:'Backgrounds',    color:'#546e7a'},
-  {id:'preReMix',     label:'Pre Mix',        color:'#bf360c'},
-  {id:'finalMix',     label:'Final Mix',      color:'#283593'},
-  {id:'revisions',    label:'Revisions',      color:'#6a1b9a'},
-  {id:'qcChanges',    label:'QC Changes',     color:'#e65100'},
-  {id:'deliverables', label:'Deliverables',   color:'#f9a825'},
+// ── Engineer Skills — default list (stored in data.engineerSkills) ─────────
+const DEFAULT_ENGINEER_SKILLS=[
+  {id:'dialogueEdit',   label:'Dialogue Edit',      color:'#d32f2f'},
+  {id:'musicEdit',      label:'Music Edit',          color:'#1565c0'},
+  {id:'sfxEdit',        label:'SFX Edit',            color:'#2e7d32'},
+  {id:'backgrounds',    label:'Backgrounds',         color:'#546e7a'},
+  {id:'preReMix',       label:'Pre Mix',             color:'#bf360c'},
+  {id:'finalMix',       label:'Final Mix',           color:'#283593'},
+  {id:'revisions',      label:'Revisions',           color:'#6a1b9a'},
+  {id:'qcChanges',      label:'QC Changes',          color:'#e65100'},
+  {id:'deliverables',   label:'Deliverables',        color:'#f9a825'},
+  {id:'remoteVO',       label:'Remote VO Record',    color:'#00838f'},
+  {id:'onsiteVO',       label:'On Site VO Record',   color:'#558b2f'},
+  {id:'attendedSession',label:'Attended Session',    color:'#6d4c41'},
 ];
+// Runtime reference — overridden by data.engineerSkills when loaded
+let ENGINEER_SKILLS=DEFAULT_ENGINEER_SKILLS;
 
 // ── Modals ─────────────────────────────────────────────────────────────────
 function AddColModal({onAdd,onClose}){const [name,setName]=useState('');const [type,setType]=useState('text');const TYPES=[{t:'text',l:'Text'},{t:'status',l:'Status'},{t:'priority',l:'Priority'},{t:'person',l:'Person'},{t:'date',l:'Date'},{t:'number',l:'Number'},{t:'currency',l:'Currency ($)'}];return(<div className="modal-ov" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()}><h3>Add column</h3><label>Name</label><input className="m-in" placeholder="Column name" value={name} onChange={e=>setName(e.target.value)} autoFocus onKeyDown={e=>e.key==='Enter'&&name&&onAdd(name,type)}/><label>Type</label><select className="m-sel" value={type} onChange={e=>setType(e.target.value)}>{TYPES.map(c=><option key={c.t} value={c.t}>{c.l}</option>)}</select><div className="m-actions"><button className="btn-g" onClick={onClose}>Cancel</button><button className="btn-p" onClick={()=>name&&onAdd(name,type)}>Add</button></div></div></div>);}
 function AddBoardModal({onAdd,onClose}){const ICONS=['📁','🎙️','🎬','📊','👥','💰','📅','🔧','📝','⚡','🎚️','🎛️','🎧','🗂️'];const [name,setName]=useState('');const [icon,setIcon]=useState('📁');return(<div className="modal-ov" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()}><h3>New board</h3><label>Name</label><input className="m-in" placeholder="Board name" value={name} onChange={e=>setName(e.target.value)} autoFocus/><label>Icon</label><div className="icon-grid">{ICONS.map(ic=><span key={ic} className={`icon-opt${icon===ic?' sel':''}`} onClick={()=>setIcon(ic)}>{ic}</span>)}</div><div className="m-actions"><button className="btn-g" onClick={onClose}>Cancel</button><button className="btn-p" onClick={()=>name&&onAdd(name,icon)}>Create</button></div></div></div>);}
 
-function AddEngineerModal({onAdd,onClose,editItem}){
+function AddEngineerModal({onAdd,onClose,editItem,skillsList,onAddSkill}){
   const [name,setName]=useState(editItem?.name||'');
   const [role,setRole]=useState(editItem?.values?.c2||'');
   const [rate,setRate]=useState(editItem?.values?.c3||'');
+  const [avail,setAvail]=useState(editItem?.values?.c4||'');
   const [group,setGroup]=useState(editItem?._group||'Staff');
   const [notes,setNotes]=useState(editItem?.notes||'');
   const [skills,setSkills]=useState(editItem?.skills||{});
+  const [newSkillName,setNewSkillName]=useState('');
+  const [showAddSkill,setShowAddSkill]=useState(false);
+  const SKILL_COLORS=['#d32f2f','#1565c0','#2e7d32','#546e7a','#bf360c','#283593','#6a1b9a','#e65100','#f9a825','#00838f','#558b2f','#6d4c41','#ad1457','#0277bd'];
+
   const toggleSkill=id=>setSkills(p=>({...p,[id]:!p[id]}));
-  const activeSkills=ENGINEER_SKILLS.filter(s=>skills[s.id]);
+
+  const addCustomSkill=()=>{
+    const label=newSkillName.trim();if(!label)return;
+    const id='custom_'+label.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
+    const color=SKILL_COLORS[skillsList.length%SKILL_COLORS.length];
+    onAddSkill({id,label,color});
+    setSkills(p=>({...p,[id]:true}));
+    setNewSkillName('');setShowAddSkill(false);
+  };
+
   const save=()=>{
     if(!name.trim())return;
     onAdd({
-      id:editItem?.id||uid(),name:name.trim(),notes,startDate:'',timeLogs:[],skills,
+      id:editItem?.id||uid(),
+      name:name.trim(),notes,startDate:'',
+      timeLogs:editItem?.timeLogs||[],
+      skills,
       _group:group,
-      values:{c1:'Available',c2:role,c3:parseFloat(rate)||0,c4:'',c5:0,...(editItem?.values||{})}
+      values:{
+        c1:editItem?.values?.c1||'Available',
+        c2:role,
+        c3:parseFloat(rate)||0,
+        c4:avail,
+        c5:editItem?.values?.c5||0,
+      }
     });
   };
+
+  const activeSkillCount=skillsList.filter(s=>skills[s.id]).length;
+
   return(
     <div className="modal-ov" onClick={onClose}>
-      <div className="modal" style={{width:480}} onClick={e=>e.stopPropagation()}>
-        <h3>{editItem?'Edit Engineer':'Add Engineer'}</h3>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+      <div className="modal" style={{width:500,maxHeight:'88vh',overflowY:'auto'}} onClick={e=>e.stopPropagation()}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
+          <h3 style={{margin:0}}>{editItem?'Edit Engineer':'Add Engineer'}</h3>
+          <button onClick={onClose} style={{background:'none',border:'none',fontSize:20,color:'#bbb',cursor:'pointer'}}>×</button>
+        </div>
+
+        {/* Profile fields */}
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:4}}>
           <div>
             <label>Full Name</label>
             <input className="m-in" placeholder="e.g. Alex Rodriguez" value={name} onChange={e=>setName(e.target.value)} autoFocus/>
           </div>
           <div>
-            <label>Role</label>
+            <label>Role / Title</label>
             <input className="m-in" placeholder="e.g. Sound Editor" value={role} onChange={e=>setRole(e.target.value)}/>
           </div>
           <div>
@@ -2360,33 +2399,72 @@ function AddEngineerModal({onAdd,onClose,editItem}){
             <input className="m-in" type="number" placeholder="750" value={rate} onChange={e=>setRate(e.target.value)}/>
           </div>
           <div>
-            <label>Type</label>
-            <select className="m-sel" value={group} onChange={e=>setGroup(e.target.value)}>
-              <option value="Staff">Staff</option>
-              <option value="Freelancers">Freelancer</option>
-            </select>
+            <label>Next Available</label>
+            <input className="m-in" type="date" value={avail} onChange={e=>setAvail(e.target.value)}/>
           </div>
         </div>
-        <label style={{marginTop:12,display:'block'}}>Skills</label>
-        <div style={{fontSize:11,color:'#aaa',fontWeight:500,marginBottom:6}}>Tick the tasks this engineer can handle</div>
-        <div className="skills-grid">
-          {ENGINEER_SKILLS.map(s=>(
-            <div key={s.id} className={`skill-check${skills[s.id]?' active':''}`} onClick={()=>toggleSkill(s.id)}>
-              <input type="checkbox" checked={!!skills[s.id]} onChange={()=>toggleSkill(s.id)} onClick={e=>e.stopPropagation()}/>
-              <span className="skill-check-label">{s.label}</span>
+        <div style={{marginBottom:4}}>
+          <label>Type</label>
+          <div style={{display:'flex',gap:6}}>
+            {['Staff','Freelancers'].map(g=>(
+              <div key={g} onClick={()=>setGroup(g)}
+                style={{flex:1,padding:'7px 12px',borderRadius:7,border:`2px solid ${group===g?'#111':'#e5e5e5'}`,background:group===g?'#111':'#fff',color:group===g?'#fff':'#555',fontSize:12,fontWeight:700,cursor:'pointer',textAlign:'center',transition:'all .13s'}}>
+                {g==='Staff'?'👤 Staff':'🔗 Freelancer'}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Skills */}
+        <div style={{marginTop:14}}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:6}}>
+            <label style={{margin:0}}>Skills <span style={{fontSize:11,color:'#aaa',fontWeight:500}}>({activeSkillCount}/{skillsList.length} selected)</span></label>
+            <button onClick={()=>setShowAddSkill(p=>!p)}
+              style={{background:'none',border:'1px solid #ddd',borderRadius:5,padding:'3px 10px',fontSize:11,fontWeight:700,color:'#555',cursor:'pointer',display:'flex',alignItems:'center',gap:4}}>
+              + Add Skill
+            </button>
+          </div>
+
+          {showAddSkill&&(
+            <div style={{display:'flex',gap:6,marginBottom:10,padding:'8px 10px',background:'#f8f8f8',borderRadius:7,border:'1px solid #e5e5e5'}}>
+              <input className="m-in" style={{flex:1,margin:0,padding:'5px 8px',fontSize:12}} placeholder="New skill name..."
+                value={newSkillName} onChange={e=>setNewSkillName(e.target.value)}
+                onKeyDown={e=>e.key==='Enter'&&newSkillName.trim()&&addCustomSkill()}
+                autoFocus/>
+              <button className="btn-p" style={{padding:'5px 12px',fontSize:11,flexShrink:0}} onClick={addCustomSkill} disabled={!newSkillName.trim()}>Add</button>
+              <button className="btn-g" style={{padding:'5px 10px',fontSize:11,flexShrink:0}} onClick={()=>{setShowAddSkill(false);setNewSkillName('')}}>Cancel</button>
             </div>
-          ))}
-        </div>
-        {activeSkills.length>0&&(
-          <div style={{display:'flex',flexWrap:'wrap',gap:4,marginTop:8}}>
-            {activeSkills.map(s=><span key={s.id} className="eng-skill-pill" style={{background:s.color+'22',color:s.color}}>{s.label}</span>)}
+          )}
+
+          <div className="skills-grid">
+            {skillsList.map(s=>(
+              <div key={s.id} className={`skill-check${skills[s.id]?' active':''}`} onClick={()=>toggleSkill(s.id)}>
+                <input type="checkbox" checked={!!skills[s.id]} onChange={()=>toggleSkill(s.id)} onClick={e=>e.stopPropagation()}/>
+                <span className="skill-check-label">{s.label}</span>
+                {s.id.startsWith('custom_')&&<span style={{marginLeft:'auto',fontSize:9,color:'#bbb',fontWeight:600,flexShrink:0}}>custom</span>}
+              </div>
+            ))}
           </div>
-        )}
-        <label style={{marginTop:10,display:'block'}}>Notes</label>
-        <textarea className="m-in" style={{minHeight:54,resize:'vertical'}} placeholder="Contact details, availability notes..." value={notes} onChange={e=>setNotes(e.target.value)}/>
-        <div className="m-actions">
+
+          {activeSkillCount>0&&(
+            <div style={{display:'flex',flexWrap:'wrap',gap:4,marginTop:8}}>
+              {skillsList.filter(s=>skills[s.id]).map(s=>(
+                <span key={s.id} style={{fontSize:9,fontWeight:700,background:s.color+'22',color:s.color,padding:'2px 7px',borderRadius:10}}>{s.label}</span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div style={{marginTop:12}}>
+          <label>Notes</label>
+          <textarea className="m-in" style={{minHeight:54,resize:'vertical'}} placeholder="Contact details, availability notes..." value={notes} onChange={e=>setNotes(e.target.value)}/>
+        </div>
+
+        <div className="m-actions" style={{marginTop:14}}>
           <button className="btn-g" onClick={onClose}>Cancel</button>
-          <button className="btn-p" onClick={save} disabled={!name.trim()} style={{opacity:name.trim()?1:.5}}>{editItem?'Save Changes':'Add Engineer'}</button>
+          <button className="btn-p" onClick={save} disabled={!name.trim()} style={{opacity:name.trim()?1:.5}}>
+            {editItem?'Save Changes':'Add Engineer'}
+          </button>
         </div>
       </div>
     </div>
@@ -2454,7 +2532,7 @@ function ProjectSettings({item,engineers,onUpdate}){
   );
 }
 
-function ItemDetail({boards,sel,onClose,onUpdate,engineers}){
+function ItemDetail({boards,sel,onClose,onUpdate,engineers,skillsList}){
   const [tab,setTab]=useState('fields');if(!sel)return null;
   const {bid,gid,iid}=sel;const board=boards.find(b=>b.id===bid);if(!board)return null;
   const group=board.groups.find(g=>g.id===gid);if(!group)return null;
@@ -2491,10 +2569,10 @@ function ItemDetail({boards,sel,onClose,onUpdate,engineers}){
           <div style={{marginTop:10}}>
             <div className="det-label" style={{marginBottom:6}}>Skills</div>
             <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
-              {ENGINEER_SKILLS.filter(s=>item.skills[s.id]).map(s=>(
+              {(skillsList||DEFAULT_ENGINEER_SKILLS).filter(s=>item.skills[s.id]).map(s=>(
                 <span key={s.id} className="eng-skill-pill" style={{background:s.color+'22',color:s.color}}>{s.label}</span>
               ))}
-              {!ENGINEER_SKILLS.some(s=>item.skills[s.id])&&<span style={{fontSize:11,color:'#bbb',fontWeight:500}}>No skills set — open Skills tab to configure</span>}
+              {!(skillsList||DEFAULT_ENGINEER_SKILLS).some(s=>item.skills[s.id])&&<span style={{fontSize:11,color:'#bbb',fontWeight:500}}>No skills set — open Skills tab to configure</span>}
             </div>
           </div>
         )}
@@ -2503,22 +2581,23 @@ function ItemDetail({boards,sel,onClose,onUpdate,engineers}){
       {tab==='skills'&&isEngineerBoard&&(
         <div>
           <div style={{fontSize:12,color:'#888',fontWeight:500,marginBottom:12,lineHeight:1.5}}>
-            Select which post-production tasks this engineer can handle. This helps the AI suggest the right person when resolving scheduling conflicts.
+            Tick which tasks this engineer can handle. The AI uses this when resolving scheduling conflicts.
           </div>
           <div className="skills-grid">
-            {ENGINEER_SKILLS.map(s=>{
+            {(skillsList||DEFAULT_ENGINEER_SKILLS).map(s=>{
               const active=!!(item.skills||{})[s.id];
               return(
                 <div key={s.id} className={`skill-check${active?' active':''}`}
                   onClick={()=>upd('skills',{...(item.skills||{}),[s.id]:!active})}>
                   <input type="checkbox" checked={active} onChange={()=>{}} onClick={e=>e.stopPropagation()}/>
                   <span className="skill-check-label">{s.label}</span>
+                  {s.id.startsWith('custom_')&&<span style={{marginLeft:'auto',fontSize:9,color:'#bbb',fontWeight:600}}>custom</span>}
                 </div>
               );
             })}
           </div>
-          <div style={{marginTop:12,fontSize:11,color:'#aaa',fontWeight:500}}>
-            {ENGINEER_SKILLS.filter(s=>(item.skills||{})[s.id]).length} of {ENGINEER_SKILLS.length} skills selected
+          <div style={{marginTop:10,fontSize:11,color:'#aaa',fontWeight:500}}>
+            {(skillsList||DEFAULT_ENGINEER_SKILLS).filter(s=>(item.skills||{})[s.id]).length} of {(skillsList||DEFAULT_ENGINEER_SKILLS).length} skills selected
           </div>
         </div>
       )}
@@ -2767,8 +2846,17 @@ function App(){
   },[data]);
 
   const [showAddEngineer,setShowAddEngineer]=useState(false);
+  const [editEngineer,setEditEngineer]=useState(null); // {item, groupName}
 
-  // Collect engineers from the engineers board for use across the app
+  // Live skills list from data
+  const skillsList=useMemo(()=>data?.engineerSkills||DEFAULT_ENGINEER_SKILLS,[data]);
+
+  // Add a custom skill to the global list
+  const addSkillToList=useCallback(skill=>{
+    setData(p=>({...p,engineerSkills:[...(p.engineerSkills||DEFAULT_ENGINEER_SKILLS),skill]}));
+  },[]);
+
+  // Collect engineer names for dropdowns
   const engineerList=useMemo(()=>{
     if(!data)return[];
     const eb=data.boards.find(b=>b.id==='b3');if(!eb)return[];
@@ -2782,17 +2870,23 @@ function App(){
     return eb.groups.flatMap(g=>g.items).map(i=>({
       name:i.name,specialty:i.values?.c2||'',rate:i.values?.c3||'',
       available:i.values?.c4||'TBC',
-      skills:ENGINEER_SKILLS.filter(s=>(i.skills||{})[s.id]).map(s=>s.label),
+      skills:(skillsList||[]).filter(s=>(i.skills||{})[s.id]).map(s=>s.label),
     }));
-  },[data]);
+  },[data,skillsList]);
 
-  const addEngineer=useCallback((eng)=>{
+  const saveEngineer=useCallback((eng)=>{
     const eb=data.boards.find(b=>b.id==='b3');if(!eb)return;
-    const groupId=eb.groups.find(g=>g.name===eng._group)?.id||eb.groups[0]?.id;
     const {_group,...cleanEng}=eng;
-    updBoard('b3',b=>({...b,groups:b.groups.map(g=>g.id===groupId?{...g,items:[...g.items,cleanEng]}:g)}));
-    setShowAddEngineer(false);
-  },[data,updBoard]);
+    if(editEngineer){
+      // Update existing in place
+      updBoard('b3',b=>({...b,groups:b.groups.map(g=>({...g,items:g.items.map(i=>i.id===cleanEng.id?cleanEng:i)}))}));
+    } else {
+      // Add new to correct group
+      const groupId=eb.groups.find(g=>g.name===_group)?.id||eb.groups[0]?.id;
+      updBoard('b3',b=>({...b,groups:b.groups.map(g=>g.id===groupId?{...g,items:[...g.items,cleanEng]}:g)}));
+    }
+    setShowAddEngineer(false);setEditEngineer(null);
+  },[data,editEngineer,updBoard]);
 
   const board=data&&!isMaster&&!isLongform?data.boards.find(b=>b.id===data.activeBoard):null;
   const setBoard=id=>{setData(p=>({...p,activeBoard:id}));setView('table');setSel(null)};
@@ -2866,7 +2960,7 @@ function App(){
             <div className="board-title"><span>{board.icon}</span><span>{board.name}</span><span className="bcount">{board.groups.reduce((n,g)=>n+g.items.length,0)} items</span></div>
             <div className="toolbar">{VIEWS.map(v=><button key={v.id} className={`view-btn${view===v.id?' active':''}`} onClick={()=>setView(v.id)}>{v.l}</button>)}<div className="t-sep"/><button className="t-btn">🔍 Filter</button>
               {board.id==='b3'
-                ?<button className="t-btn hi" onClick={()=>setShowAddEngineer(true)}>+ Add Engineer</button>
+                ?<button className="t-btn hi" onClick={()=>{setEditEngineer(null);setShowAddEngineer(true)}}>+ Add Engineer</button>
                 :<button className="t-btn hi" onClick={quickAdd}>+ New item</button>
               }
             </div>
@@ -2907,16 +3001,24 @@ function App(){
               </div>
             )}
 
-            {view==='table'&&<TableView board={board} onUpdate={fn=>updBoard(board.id,fn)} onSelect={(bid,gid,iid)=>setSel({bid,gid,iid})}/>}
+            {view==='table'&&<TableView board={board} onUpdate={fn=>updBoard(board.id,fn)} onSelect={(bid,gid,iid)=>setSel({bid,gid,iid})}
+              onEditItem={board.id==='b3'?(item,groupName)=>{setEditEngineer({item,groupName});setShowAddEngineer(true)}:null}
+            />}
             {view==='kanban'&&<KanbanView board={board} onSelect={(bid,gid,iid)=>setSel({bid,gid,iid})}/>}
             {view==='calendar'&&<CalendarView board={board} onSelect={(bid,gid,iid)=>setSel({bid,gid,iid})}/>}
             {view==='gantt'&&<GanttView board={board} onSelect={(bid,gid,iid)=>setSel({bid,gid,iid})}/>}
           </div>
         </>
       ):<div className="empty"><h3>Select a board</h3></div>}
-      {sel&&<ItemDetail boards={data.boards} sel={sel} onClose={()=>setSel(null)} onUpdate={updBoard} engineers={engineerList}/>}
+      {sel&&<ItemDetail boards={data.boards} sel={sel} onClose={()=>setSel(null)} onUpdate={updBoard} engineers={engineerList} skillsList={skillsList}/>}
       {showAddBoard&&<AddBoardModal onAdd={addBoard} onClose={()=>setShowAddBoard(false)}/>}
-      {showAddEngineer&&<AddEngineerModal onAdd={addEngineer} onClose={()=>setShowAddEngineer(false)}/>}
+      {showAddEngineer&&<AddEngineerModal
+        editItem={editEngineer?{...editEngineer.item,_group:editEngineer.groupName}:null}
+        skillsList={skillsList}
+        onAdd={saveEngineer}
+        onAddSkill={addSkillToList}
+        onClose={()=>{setShowAddEngineer(false);setEditEngineer(null)}}
+      />}
       {showConflicts&&data&&(
         <div className="modal-ov" onClick={()=>setShowConflicts(false)}>
           <ConflictResolutionModal
