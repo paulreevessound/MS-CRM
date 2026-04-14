@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mighty Sound — WorkBoard</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800;900&family=Barlow+Condensed:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body,#root{height:100%}
+body{font-family:'Barlow',sans-serif;background:#f0f0f0;color:#111;overflow:hidden}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(0,0,0,.18);border-radius:3px}
+input,select,textarea,button{font-family:'Barlow',sans-serif}
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* SIDEBAR — dark brand */
+.sidebar{width:230px;flex-shrink:0;background:#0f0f0f;border-right:1px solid #222;display:flex;flex-direction:column;overflow:hidden}
+.sb-logo{padding:16px 15px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #222}
+.sb-logo-icon{width:32px;height:32px;background:#fff;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-logo-icon svg{width:20px;height:20px}
+.sb-logo-text{display:flex;flex-direction:column}
+.sb-logo-brand{font-size:13px;font-weight:800;color:#fff;letter-spacing:.04em;text-transform:uppercase;line-height:1.1}
+.sb-logo-sub{font-size:9px;font-weight:600;color:rgba(255,255,255,.3);letter-spacing:.12em;text-transform:uppercase;margin-top:1px}
+.sb-section{padding:12px 14px 4px;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.22)}
+.sb-item{display:flex;align-items:center;gap:9px;padding:7px 11px;margin:1px 6px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;color:rgba(255,255,255,.48);transition:all .13s;user-select:none}
+.sb-item:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.85)}
+.sb-item.active{background:rgba(255,255,255,.12);color:#fff}
+.sb-icon{font-size:13px;width:17px;text-align:center;flex-shrink:0}
+.sb-add{display:flex;align-items:center;gap:9px;padding:7px 11px;margin:1px 6px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;color:rgba(255,255,255,.24);transition:all .13s}
+.sb-add:hover{color:rgba(255,255,255,.55);background:rgba(255,255,255,.05)}
+.sb-scroll{flex:1;overflow-y:auto;padding-bottom:8px}
+.sb-footer{padding:12px 14px;border-top:1px solid #222;display:flex;align-items:center;gap:9px}
+.user-av{width:30px;height:30px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#000;flex-shrink:0}
+.sb-badge{font-size:9px;font-weight:700;background:rgba(255,255,255,.12);color:rgba(255,255,255,.6);padding:2px 6px;border-radius:4px;margin-left:auto;letter-spacing:.04em;text-transform:uppercase}
+.sb-badge.new{background:rgba(255,200,50,.15);color:rgba(255,200,50,.8)}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#f0f0f0;position:relative}
+.board-header{padding:18px 22px 0;flex-shrink:0;background:#f0f0f0}
+.board-title{font-size:22px;font-weight:800;color:#111;display:flex;align-items:center;gap:10px;margin-bottom:12px;letter-spacing:-.4px;line-height:1}
+.bcount{font-size:13px;color:#888;font-weight:500}
+.toolbar{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.view-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-weight:600;transition:all .13s;background:transparent;color:#666;letter-spacing:.02em}
+.view-btn:hover{background:rgba(0,0,0,.07);color:#111}
+.view-btn.active{background:#111;color:#fff}
+.t-sep{width:1px;height:18px;background:#ddd;margin:0 3px}
+.t-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;border:1px solid #d5d5d5;cursor:pointer;font-size:12px;font-weight:600;background:#fff;color:#444;transition:all .13s}
+.t-btn:hover{border-color:#aaa;color:#111}
+.t-btn.hi{background:#111;border-color:#111;color:#fff}
+.t-btn.hi:hover{background:#333;border-color:#333}
+.hdr-div{border:none;border-top:1px solid #e0e0e0;margin-top:12px}
+.board-content{flex:1;overflow:auto;padding:16px 22px 60px}
+
+/* TABLE */
+.group-block{margin-bottom:20px}
+.group-header{display:flex;align-items:center;gap:8px;padding:5px 0 7px;cursor:pointer;user-select:none}
+.g-chev{font-size:9px;color:#aaa;transition:transform .18s;flex-shrink:0}
+.g-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.g-name{font-size:14px;font-weight:700;color:#111}
+.g-cnt{font-size:11px;color:#aaa;font-weight:500}
+.tbl-wrap{border-radius:8px;overflow:hidden;border:1px solid #e0e0e0;background:#fff}
+.tbl-head{display:flex;background:#f8f8f8;border-bottom:1px solid #e8e8e8}
+.th{padding:8px 10px;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#999;border-right:1px solid #ededed;white-space:nowrap;user-select:none}
+.th-name{flex:0 0 225px}.th-col{flex:0 0 130px;text-align:center}
+.th-add{padding:8px 12px;font-size:11px;color:#bbb;cursor:pointer;white-space:nowrap}.th-add:hover{color:#555}
+.tbl-row{display:flex;background:#fff;border-bottom:1px solid #f0f0f0;transition:background .1s}
+.tbl-row:hover{background:#fafafa}.tbl-row:last-child{border-bottom:none}
+.td-name{flex:0 0 225px;padding:0 10px;display:flex;align-items:center;gap:7px;border-right:1px solid #ededed;cursor:pointer;min-height:38px}
+.td-nm-txt{font-size:13px;color:#222;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:8px 0;font-weight:500}
+.td-nm-txt:hover{color:#000}
+.td-col{flex:0 0 130px;padding:0 8px;display:flex;align-items:center;justify-content:center;border-right:1px solid #ededed;min-height:38px}
+.add-row{display:flex;background:#fafafa;border-top:1px solid #f0f0f0}
+.add-row-btn{padding:8px 11px;font-size:12px;color:#bbb;cursor:pointer;display:flex;align-items:center;gap:5px;flex:1;transition:color .13s;font-weight:600}
+.add-row-btn:hover{color:#555}
+.sum-row{display:flex;flex-wrap:wrap;gap:18px;padding:7px 12px;background:#f8f8f8;border-top:1px solid #ededed;font-size:11px;color:#aaa;font-weight:500}
+.sum-row b{font-weight:700;color:#555;font-family:'DM Mono',monospace}
+
+/* CELLS */
+.sbadge{display:inline-flex;align-items:center;justify-content:center;padding:3px 10px;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;min-width:88px;text-align:center}
+.sbadge:hover{opacity:.85}
+.pchip{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#444;cursor:pointer;font-weight:500}
+.pav{border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0}
+.dcell{font-size:12px;color:#555;cursor:pointer;white-space:nowrap;font-weight:500}.dcell:hover{color:#111}
+.ncell{font-size:13px;color:#333;font-family:'DM Mono',monospace;cursor:pointer;font-weight:500}.ncell:hover{color:#111}
+.tcell{font-size:12px;color:#555;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:114px;font-weight:500}.tcell:hover{color:#111}
+.muted{color:#ccc!important}
+.ii{background:#fff;border:1.5px solid #111;border-radius:4px;padding:3px 7px;color:#111;font-size:12px;outline:none;font-weight:500}
+.ni{background:#fff;border:1.5px solid #111;border-radius:4px;padding:3px 6px;color:#111;font-size:13px;outline:none;flex:1;font-weight:600}
+.pop{position:absolute;background:#fff;border:1px solid #ddd;border-radius:8px;padding:6px;z-index:250;box-shadow:0 6px 24px rgba(0,0,0,.14);min-width:158px}
+.pop-item{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:5px;cursor:pointer;font-size:12px;color:#333;font-weight:500;transition:background .1s}
+.pop-item:hover{background:#f5f5f5}
+.pop-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+
+/* KANBAN */
+.kb{display:flex;gap:14px;padding:4px 0 20px;overflow-x:auto;min-height:350px}
+.kb-col{flex:0 0 250px;display:flex;flex-direction:column;gap:7px}
+.kb-col-h{display:flex;align-items:center;gap:7px;padding:6px 3px}
+.kb-ct{font-size:12px;font-weight:700;color:#333}
+.kb-cnt{font-size:11px;color:#aaa;background:#e8e8e8;padding:1px 7px;border-radius:10px;font-weight:600}
+.kb-card{background:#fff;border:1px solid #e5e5e5;border-radius:8px;padding:11px 12px;cursor:pointer;transition:all .14s}
+.kb-card:hover{border-color:#aaa;transform:translateY(-1px);box-shadow:0 3px 12px rgba(0,0,0,.07)}
+.kb-ctitle{font-size:13px;color:#222;font-weight:600;margin-bottom:7px;line-height:1.4}
+.kb-meta{display:flex;align-items:center;justify-content:space-between}
+.kb-date{font-size:11px;color:#aaa;font-weight:500}
+.kb-empty{font-size:12px;color:#ccc;padding:8px 4px;text-align:center;border:1px dashed #ddd;border-radius:7px}
+
+/* CALENDAR */
+.cal-nav{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.cal-nav-btn{background:#fff;border:1px solid #ddd;border-radius:6px;padding:5px 12px;color:#555;cursor:pointer;font-size:13px;font-weight:600;transition:all .13s}
+.cal-nav-btn:hover{background:#111;border-color:#111;color:#fff}
+.cal-month{font-size:18px;font-weight:800;color:#111;min-width:180px;text-align:center;letter-spacing:-.3px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:#ddd;border:1px solid #ddd;border-radius:9px;overflow:hidden}
+.cal-day-hdr{background:#f8f8f8;padding:7px 4px;text-align:center;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#888}
+.cal-cell{background:#fff;min-height:100px;padding:6px;transition:background .1s}
+.cal-cell:hover{background:#fafafa}
+.cal-cell.today{background:#fffbf0}
+.cal-cell.other-month{background:#f8f8f8}
+.cal-date{font-size:12px;font-weight:600;color:#bbb;margin-bottom:4px}
+.cal-date.today-num{color:#111;font-weight:800}
+.cal-chip{font-size:11px;padding:2px 6px;border-radius:3px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;display:block;font-weight:600}
+.cal-chip:hover{opacity:.8}
+.cal-more{font-size:10px;color:#aaa;margin-top:2px;cursor:pointer;font-weight:600}
+
+/* BOARD GANTT */
+.gantt-wrap{border-radius:8px;overflow:hidden;border:1px solid #e0e0e0;background:#fff}
+.gantt-head{display:flex;border-bottom:1px solid #e8e8e8;background:#f8f8f8}
+.gantt-label-col{flex:0 0 210px;padding:8px 12px;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#999;border-right:1px solid #ededed;flex-shrink:0}
+.gantt-week{flex:0 0 112px;padding:8px 6px;font-size:10px;color:#999;border-right:1px solid #ededed;text-align:center;white-space:nowrap;font-weight:600}
+.gantt-row{display:flex;border-bottom:1px solid #f2f2f2;background:#fff;min-height:34px}
+.gantt-row:hover{background:#fafafa}
+.gantt-row-label{flex:0 0 210px;padding:0 12px;display:flex;align-items:center;font-size:12px;color:#444;border-right:1px solid #ededed;flex-shrink:0;cursor:pointer;font-weight:500}
+.gantt-row-label:hover{color:#111}
+.gantt-timeline{flex:1;position:relative;min-height:34px;overflow:hidden}
+.gantt-bar{position:absolute;top:7px;height:20px;border-radius:4px;display:flex;align-items:center;padding:0 7px;font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;cursor:pointer;transition:opacity .14s}
+.gantt-bar:hover{opacity:.8}
+.gantt-today-line{position:absolute;top:0;bottom:0;width:2px;background:rgba(200,50,50,.5);pointer-events:none;z-index:5}
+.gantt-grp-hdr{display:flex;background:#f8f8f8;border-bottom:1px solid #ededed}
+.gantt-grp-label{flex:0 0 210px;padding:5px 12px;font-size:11px;font-weight:700;color:#888;border-right:1px solid #ededed}
+
+/* ── MASTER GANTT SCHEDULER ── */
+.mg-wrap{height:100%;display:flex;flex-direction:column;background:#f0f0f0}
+.mg-toolbar{display:flex;align-items:center;gap:8px;padding:0 0 14px;flex-wrap:wrap;flex-shrink:0}
+.mg-conflict-banner{background:#fff3cd;border:1px solid #ffc107;border-radius:7px;padding:9px 14px;margin-bottom:14px;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#856404;flex-shrink:0}
+.mg-conflict-banner .resolve-btn{margin-left:auto;background:#856404;border:none;border-radius:5px;padding:4px 12px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.03em;text-transform:uppercase}
+.mg-gantt-container{flex:1;overflow:auto;background:#fff;border-radius:9px;border:1px solid #e0e0e0}
+.mg-head-sticky{position:sticky;top:0;z-index:20;background:#f5f5f5;border-bottom:1px solid #ddd}
+.mg-head-row{display:flex}
+.mg-left-header{flex:0 0 220px;padding:8px 12px;background:#f5f5f5;border-right:1px solid #ddd;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#999;flex-shrink:0}
+.mg-day-cell{flex-shrink:0;border-right:1px solid #e8e8e8;text-align:center;background:#f5f5f5}
+.mg-day-cell.weekend{background:#fff5f5}
+.mg-day-top{font-size:9px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.05em;padding:4px 0 0}
+.mg-day-num{font-size:14px;font-weight:800;color:#333;line-height:1;padding-bottom:4px}
+.mg-day-num.today-num{color:#c00;background:#ffeeee;border-radius:4px;padding:0 4px}
+.mg-project-row{display:flex;background:#1a1a1a;min-height:34px;border-bottom:1px solid #333;cursor:pointer;user-select:none}
+.mg-project-label{flex:0 0 220px;padding:0 10px 0 12px;display:flex;align-items:center;gap:8px;border-right:1px solid #333;flex-shrink:0}
+.mg-project-name{font-size:12px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:.04em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mg-project-code{font-size:9px;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:.07em;flex-shrink:0}
+.mg-project-timeline{flex:1;background:#111}
+.mg-ep-row{display:flex;background:#f8f8f8;min-height:28px;border-bottom:1px solid #eee;cursor:pointer;user-select:none}
+.mg-ep-label{flex:0 0 220px;padding:0 10px 0 22px;display:flex;align-items:center;gap:6px;border-right:1px solid #e5e5e5;flex-shrink:0}
+.mg-ep-name{font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.06em}
+.mg-ep-dates{font-size:10px;color:#aaa;font-weight:500}
+.mg-ep-timeline{flex:1;position:relative;background:#f8f8f8}
+.mg-ep-spine{position:absolute;top:10px;height:8px;border-radius:3px;background:rgba(0,0,0,.06);border:1px solid rgba(0,0,0,.1)}
+.mg-task-row{display:flex;background:#fff;min-height:30px;border-bottom:1px solid #f5f5f5}
+.mg-task-row:hover{background:#fafafa}
+.mg-task-label{flex:0 0 220px;padding:0 10px 0 28px;display:flex;align-items:center;gap:8px;border-right:1px solid #ededed;flex-shrink:0}
+.mg-task-name{font-size:12px;font-weight:600;color:#333;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mg-task-eng{font-size:10px;font-weight:600;margin-left:auto;padding-right:4px;flex-shrink:0}
+.mg-task-timeline{flex:1;position:relative;min-height:30px}
+.mg-task-bar{position:absolute;top:5px;height:20px;border-radius:4px;display:flex;align-items:center;overflow:hidden;cursor:pointer;transition:opacity .13s}
+.mg-task-bar:hover{opacity:.8;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.mg-bar-bg{position:absolute;inset:0;border-radius:4px;opacity:.85}
+.mg-bar-content{position:relative;display:flex;align-items:center;gap:4px;padding:0 6px;width:100%;overflow:hidden}
+.mg-bar-abbr{font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.mg-bar-eng{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:800;background:rgba(255,255,255,.35);flex-shrink:0;color:inherit}
+.mg-bar-edit{width:16px;height:16px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;background:rgba(255,255,255,.35);flex-shrink:0;cursor:pointer;flex-shrink:0}
+.mg-today-line{position:absolute;top:0;bottom:0;width:2px;background:rgba(200,0,0,.4);pointer-events:none;z-index:8}
+.mg-weekend-col{background:rgba(255,0,0,.018);position:absolute;top:0;bottom:0;pointer-events:none}
+.mg-nav-btn{background:#fff;border:1px solid #ddd;border-radius:6px;padding:5px 12px;color:#555;cursor:pointer;font-size:12px;font-weight:700;transition:all .13s}
+.mg-nav-btn:hover{background:#111;border-color:#111;color:#fff}
+.mg-date-range{font-size:13px;color:#555;font-weight:600}
+.mg-view-toggle{display:flex;gap:4px}
+.mg-vtab{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid #ddd;background:#fff;color:#666;transition:all .13s}
+.mg-vtab.active{background:#111;border-color:#111;color:#fff}
+
+/* DETAIL PANEL */
+.overlay{position:absolute;inset:0;background:rgba(0,0,0,.35);z-index:100;display:flex;justify-content:flex-end}
+.detail{width:480px;background:#fff;border-left:1px solid #e0e0e0;display:flex;flex-direction:column;overflow:hidden;animation:slin .18s ease;box-shadow:-6px 0 24px rgba(0,0,0,.08)}
+@keyframes slin{from{transform:translateX(100%)}to{transform:translateX(0)}}
+.det-hdr{padding:17px 17px 13px;border-bottom:1px solid #f0f0f0;flex-shrink:0}
+.det-close{float:right;background:none;border:none;color:#bbb;cursor:pointer;font-size:22px;line-height:1;padding:0}
+.det-close:hover{color:#111}
+.det-title{background:none;border:none;font-size:18px;font-weight:800;color:#111;width:100%;outline:none;padding:0;letter-spacing:-.3px}
+.det-title::placeholder{color:#ccc}
+.det-sub{font-size:11px;color:#aaa;margin-top:3px;font-weight:500}
+.det-tabs{display:flex;border-bottom:1px solid #f0f0f0;flex-shrink:0}
+.det-tab{padding:9px 16px;font-size:12px;font-weight:600;color:#aaa;cursor:pointer;border-bottom:2px solid transparent;transition:all .13s}
+.det-tab:hover{color:#555}
+.det-tab.active{color:#111;border-bottom-color:#111}
+.det-body{flex:1;overflow-y:auto;padding:14px 16px}
+.det-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:13px}
+.det-field .det-label{font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#aaa;margin-bottom:5px}
+.det-in{background:#f8f8f8;border:1px solid #e5e5e5;border-radius:6px;padding:7px 10px;color:#111;font-size:13px;width:100%;outline:none;font-weight:500}
+.det-in:focus{border-color:#111;background:#fff}
+.det-notes{background:#f8f8f8;border:1px solid #e5e5e5;border-radius:7px;padding:9px 11px;color:#333;font-size:13px;width:100%;min-height:100px;resize:vertical;outline:none;line-height:1.6;font-weight:400}
+.det-notes:focus{border-color:#111;background:#fff}
+.det-div{border:none;border-top:1px solid #f0f0f0;margin:13px 0}
+
+/* TIMER */
+.timer-display{font-size:26px;font-weight:800;font-family:'DM Mono',monospace;color:#111;letter-spacing:.05em}
+.timer-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:7px;border:1.5px solid;cursor:pointer;font-size:12px;font-weight:700;transition:all .13s;text-transform:uppercase;letter-spacing:.04em}
+.time-log-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #f0f0f0;font-size:12px;color:#555}
+.tl-del{background:none;border:none;color:#ccc;cursor:pointer;font-size:14px;padding:0;line-height:1;margin-left:auto}
+.tl-del:hover{color:#e53935}
+.tl-hrs{font-family:'DM Mono',monospace;font-weight:700;color:#333;min-width:38px}
+
+/* MODALS */
+.modal-ov{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:300;display:flex;align-items:center;justify-content:center}
+.modal{background:#fff;border:1px solid #ddd;border-radius:12px;padding:22px;width:440px;box-shadow:0 12px 40px rgba(0,0,0,.15)}
+.modal h3{font-size:16px;font-weight:800;color:#111;margin-bottom:14px;letter-spacing:-.2px}
+.modal label{font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#aaa;display:block;margin-bottom:4px;margin-top:10px}
+.m-in{background:#f8f8f8;border:1px solid #e5e5e5;border-radius:6px;padding:8px 10px;color:#111;font-size:13px;width:100%;outline:none;margin-bottom:5px;font-weight:500}
+.m-in:focus{border-color:#111;background:#fff}
+.m-sel{background:#f8f8f8;border:1px solid #e5e5e5;border-radius:6px;padding:8px 10px;color:#333;font-size:13px;width:100%;outline:none;margin-bottom:5px;font-weight:500}
+.m-actions{display:flex;gap:7px;margin-top:14px;justify-content:flex-end}
+.btn-p{background:#111;border:none;border-radius:6px;padding:8px 16px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.05em}
+.btn-p:hover{background:#333}
+.btn-g{background:transparent;border:1px solid #ddd;border-radius:6px;padding:8px 14px;color:#666;font-size:12px;font-weight:600;cursor:pointer}
+.btn-g:hover{border-color:#aaa;color:#111}
+.btn-del{background:#fff5f5;border:1px solid #f5c6c6;border-radius:6px;padding:7px 14px;color:#c00;font-size:12px;cursor:pointer;font-weight:600;margin-right:auto}
+.icon-grid{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px}
+.icon-opt{cursor:pointer;font-size:18px;padding:4px 6px;border-radius:5px;background:#f5f5f5;border:1px solid transparent;transition:all .12s}
+.icon-opt.sel{background:#e8e8e8;border-color:#333}
+
+/* IMPORT MODAL */
+.import-drop{border:2px dashed #d5d5d5;border-radius:10px;padding:32px 20px;text-align:center;cursor:pointer;transition:all .13s;background:#fafafa;margin-bottom:14px}
+.import-drop:hover,.import-drop.drag{border-color:#111;background:#f5f5f5}
+.import-drop-icon{font-size:32px;margin-bottom:8px}
+.import-drop-title{font-size:14px;font-weight:700;color:#333;margin-bottom:4px}
+.import-drop-sub{font-size:12px;color:#aaa;font-weight:500}
+.import-type-pills{display:flex;gap:6px;justify-content:center;margin-top:10px}
+.import-type{padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.import-type.xlsx{background:#e8f5e9;color:#2e7d32}
+.import-type.pdf{background:#ffebee;color:#c62828}
+.import-type.img{background:#e3f2fd;color:#1565c0}
+.import-preview{background:#f8f8f8;border:1px solid #e5e5e5;border-radius:8px;padding:12px;max-height:220px;overflow-y:auto;margin-bottom:12px}
+.import-row{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;color:#333;border-bottom:1px solid #ededed;font-weight:500}
+.import-row:last-child{border-bottom:none}
+.import-status{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;text-transform:uppercase}
+.import-status.done{background:#e8f5e9;color:#2e7d32}
+.import-status.proc{background:#fff3e0;color:#e65100}
+.ai-badge{background:#111;color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:3px;letter-spacing:.05em;text-transform:uppercase;display:inline-flex;align-items:center;gap:4px}
+.progress-bar{background:#e5e5e5;border-radius:10px;height:4px;overflow:hidden;margin:8px 0}
+.progress-fill{height:100%;background:#111;border-radius:10px;transition:width .4s}
+
+/* GCAL */
+.gcal-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:12px}
+.gcal-row:last-child{border-bottom:none}
+
+/* LONGFORM */
+.lf-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.lf-tab{padding:7px 16px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid #ddd;color:#888;background:#fff;transition:all .13s;text-transform:uppercase;letter-spacing:.04em}
+.lf-tab:hover{border-color:#aaa;color:#333}
+.lf-tab.active{background:#111;border-color:#111;color:#fff}
+.lf-vbtn{padding:5px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid #ddd;color:#888;background:#fff;transition:all .13s;text-transform:uppercase;letter-spacing:.03em}
+.lf-vbtn:hover{border-color:#aaa;color:#333}
+.lf-vbtn.active{background:#111;border-color:#111;color:#fff}
+.lf-hdr-card{background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:16px 18px;margin-bottom:16px}
+.lf-title{font-size:18px;font-weight:800;color:#111;letter-spacing:-.3px}
+.lf-meta{font-size:12px;color:#888;margin-top:2px;font-weight:500}
+.lf-stat{background:#f5f5f5;border-radius:7px;padding:8px 14px;text-align:center}
+.lf-stat-val{font-size:18px;font-weight:800;color:#111;font-family:'DM Mono',monospace}
+.lf-stat-lbl{font-size:9px;color:#999;text-transform:uppercase;letter-spacing:.08em;margin-top:2px;font-weight:700}
+.lf-stage{flex:1;text-align:center}
+.lf-stage-name{font-size:8px;text-transform:uppercase;letter-spacing:.07em;color:#aaa;margin-bottom:4px;font-weight:700}
+.lf-stage-bar{height:5px;border-radius:2px;background:#e8e8e8;overflow:hidden;margin-bottom:3px}
+.lf-stage-fill{height:100%;border-radius:2px;transition:width .4s}
+.lf-stage-pct{font-size:9px;color:#aaa;font-family:'DM Mono',monospace;font-weight:500}
+.ep-table{border-radius:8px;overflow:hidden;border:1px solid #e5e5e5;background:#fff}
+.ep-head{display:flex;background:#f8f8f8;border-bottom:1px solid #e8e8e8}
+.ep-th{padding:7px 10px;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#999;border-right:1px solid #ededed}
+.ep-th-name{flex:0 0 220px}.ep-th-stage{flex:0 0 72px;text-align:center}.ep-th-due{flex:0 0 90px;text-align:center}.ep-th-status{flex:0 0 100px;text-align:center}
+.ep-row{display:flex;background:#fff;border-bottom:1px solid #f2f2f2;align-items:center}
+.ep-row:hover{background:#fafafa}.ep-row:last-child{border-bottom:none}
+.ep-name{flex:0 0 220px;padding:9px 10px;font-size:13px;color:#222;border-right:1px solid #ededed;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.ep-stage{flex:0 0 72px;padding:4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;border-right:1px solid #ededed}
+.ep-stg-bar{width:48px;height:4px;border-radius:2px;background:#e8e8e8;overflow:hidden}
+.ep-stg-fill{height:100%;border-radius:2px}
+.ep-stg-pct{font-size:9px;color:#aaa;font-family:'DM Mono',monospace;cursor:pointer;font-weight:500}
+.ep-due{flex:0 0 90px;padding:0 10px;font-size:11px;color:#888;border-right:1px solid #ededed;text-align:center;font-weight:500}
+.ep-status{flex:0 0 100px;padding:4px 8px;display:flex;justify-content:center;border-right:1px solid #ededed}
+
+/* LONGFORM GANTT */
+.lfg-wrap{border-radius:9px;overflow:hidden;border:1px solid #e5e5e5;background:#fff}
+.lfg-legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;padding:10px 14px;background:#fff;border:1px solid #e5e5e5;border-radius:8px;align-items:center}
+.lfg-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#555;font-weight:600}
+.lfg-legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.lfg-ep-row{display:flex;background:#f5f5f5;border-bottom:1px solid #e5e5e5;min-height:36px;cursor:pointer}
+.lfg-ep-row:hover{background:#eeeeee}
+.lfg-ep-label{flex:0 0 240px;padding:0 10px 0 12px;display:flex;align-items:center;gap:8px;border-right:1px solid #ddd;flex-shrink:0;font-size:13px;font-weight:700;color:#333}
+.lfg-ep-timeline{flex:1;position:relative;min-height:36px}
+.lfg-ep-spine{position:absolute;top:14px;height:8px;border-radius:4px;background:rgba(0,0,0,.07);border:1px solid rgba(0,0,0,.12)}
+.lfg-task-row{display:flex;background:#fff;border-bottom:1px solid #f5f5f5;min-height:28px}
+.lfg-task-row:hover{background:#fafafa}
+.lfg-task-label{flex:0 0 240px;padding:0 10px 0 32px;display:flex;align-items:center;gap:7px;border-right:1px solid #ededed;flex-shrink:0;font-size:11px;color:#666;font-weight:600}
+.lfg-task-timeline{flex:1;position:relative;min-height:28px}
+.lfg-task-bar{position:absolute;top:5px;height:18px;border-radius:3px;cursor:pointer;overflow:hidden;transition:opacity .13s}
+.lfg-task-bar:hover{opacity:.8}
+.lfg-bar-fill{position:absolute;top:0;left:0;height:100%;border-radius:3px}
+.lfg-bar-label{position:absolute;inset:0;display:flex;align-items:center;padding:0 6px;font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden}
+.lfg-today{position:absolute;top:0;bottom:0;width:2px;background:rgba(200,0,0,.5);pointer-events:none;z-index:5}
+.lfg-head{display:flex;background:#f8f8f8;border-bottom:1px solid #e5e5e5;position:sticky;top:0;z-index:10}
+.lfg-lbl-col{flex:0 0 240px;padding:8px 12px;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#999;border-right:1px solid #ddd;flex-shrink:0;background:#f8f8f8}
+.lfg-week{font-size:10px;color:#999;border-right:1px solid #ededed;text-align:center;white-space:nowrap;padding:8px 0;background:#f8f8f8;font-weight:600}
+.empty{text-align:center;padding:48px 20px;color:#bbb}
+.empty h3{font-size:16px;color:#aaa;margin-bottom:6px;font-weight:700}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script type="text/babel">
+const {useState,useEffect,useCallback,useRef,useMemo}=React;
+
+// ── Constants ──────────────────────────────────────────────────────────────
+const ST=[{l:'Not Started',c:'#757575',bg:'#f5f5f5'},{l:'In Progress',c:'#1565c0',bg:'#e3f2fd'},{l:'Review',c:'#6a1fa2',bg:'#f3e5f5'},{l:'Done',c:'#2e7d32',bg:'#e8f5e9'},{l:'Stuck',c:'#c62828',bg:'#ffebee'},{l:'On Hold',c:'#e65100',bg:'#fff3e0'}];
+const PRI=[{l:'Critical',c:'#c62828',bg:'#ffebee'},{l:'High',c:'#d84315',bg:'#fbe9e7'},{l:'Medium',c:'#f57f17',bg:'#fffde7'},{l:'Low',c:'#2e7d32',bg:'#e8f5e9'}];
+const PAL=['#5c6bc0','#e53935','#43a047','#fb8c00','#00acc1','#8e24aa','#f4511e','#3949ab'];
+const PEOPLE=['Matthew P','Paul R','Kristen S','Tom B','Alex R','Mia L'];
+const GCOLS=['#5c6bc0','#43a047','#fb8c00','#e53935','#00acc1','#8e24aa'];
+const STAGES=['Brief','Capture','Edit','Mix','Master','QC','Deliver'];
+const STAGE_COLORS=['#00acc1','#fb8c00','#5c6bc0','#8e24aa','#43a047','#f4511e','#3949ab'];
+
+const TASK_DEFS=[
+  {name:'Ingest',    abbr:'ING', color:'#546e7a',text:'#fff'},
+  {name:'DX Edit',   abbr:'DX',  color:'#d32f2f',text:'#fff'},
+  {name:'MX Edit',   abbr:'MX',  color:'#1565c0',text:'#fff'},
+  {name:'SFX Edit',  abbr:'SFX', color:'#2e7d32',text:'#fff'},
+  {name:'Pre Mix',   abbr:'PRE', color:'#bf360c',text:'#fff'},
+  {name:'Final Mix', abbr:'MIX', color:'#283593',text:'#fff'},
+  {name:'QC',        abbr:'QC',  color:'#e65100',text:'#fff'},
+  {name:'Delivery',  abbr:'DEL', color:'#f9a825',text:'#333'},
+];
+const uid=()=>Math.random().toString(36).slice(2,9);
+const sOpts=t=>t==='priority'?PRI:ST;
+const sStyle=(v,t='status')=>{const o=sOpts(t).find(x=>x.l===v);return o?{background:o.bg,color:o.c,border:`1px solid ${o.c}30`}:{background:'#f5f5f5',color:'#999'}};
+const pColor=n=>PAL[PEOPLE.indexOf(n)%PAL.length]||'#5c6bc0';
+const inits=n=>n?n.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2):'?';
+const fmtD=d=>{if(!d)return'';const dt=new Date(d+'T00:00:00');return dt.toLocaleDateString('en-AU',{day:'numeric',month:'short'})};
+const fmtM=d=>{if(!d)return'';const dt=new Date(d+'T00:00:00');return dt.toLocaleDateString('en-AU',{month:'long',year:'numeric'})};
+const fmtCur=v=>{if(v===''||v==null)return'';const n=parseFloat(v);return isNaN(n)?'':'$'+n.toLocaleString('en-AU',{minimumFractionDigits:0})};
+const minsToHrs=m=>(m/60).toFixed(1);
+const today=()=>new Date().toISOString().split('T')[0];
+const addDays=(d,n)=>{const dt=new Date(d+'T00:00:00');dt.setDate(dt.getDate()+n);return dt.toISOString().split('T')[0]};
+const daysBetween=(a,b)=>Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/(86400000));
+const tk=(id,nm,sd,ed,st,pct,who)=>({id,name:nm,startDate:sd,endDate:ed,status:st,pct:pct||0,assignee:who||'Paul R'});
+const taskDef=name=>TASK_DEFS.find(t=>t.name===name)||TASK_DEFS[0];
+
+// ── Master Gantt Data ──────────────────────────────────────────────────────
+const INIT_MASTER_GANTT=[
+  {id:'mg1',code:'MS1039',name:'Shark Net',client:'Pocket Money Prods',type:'film',
+   episodes:[
+     {id:'e1',name:'Film',tasks:[
+       tk('a1','Ingest',   '2026-06-01','2026-06-03','Done',100,'Paul R'),
+       tk('a2','DX Edit',  '2026-06-03','2026-06-10','In Progress',60,'Paul R'),
+       tk('a3','MX Edit',  '2026-06-03','2026-06-10','In Progress',40,'Matthew P'),
+       tk('a4','SFX Edit', '2026-06-04','2026-06-11','Not Started',0,'Paul R'),
+       tk('a5','Pre Mix',  '2026-06-15','2026-06-18','Not Started',0,'Paul R'),
+       tk('a6','Final Mix','2026-06-22','2026-06-26','Not Started',0,'Matthew P'),
+       tk('a7','QC',       '2026-06-26','2026-06-28','Not Started',0,'Kristen S'),
+       tk('a8','Delivery', '2026-06-29','2026-06-30','Not Started',0,'Kristen S'),
+     ]}]},
+  {id:'mg2',code:'MS0972',name:'Sydney Fish Markets',client:'FMC Productions',type:'series',
+   episodes:[
+     {id:'e1',name:'Ep 1',tasks:[
+       tk('b1','Ingest',   '2026-04-18','2026-04-19','Done',100,'Paul R'),
+       tk('b2','DX Edit',  '2026-04-20','2026-04-21','Done',100,'Paul R'),
+       tk('b3','MX Edit',  '2026-04-20','2026-04-21','In Progress',70,'Matthew P'),
+       tk('b4','SFX Edit', '2026-04-21','2026-04-22','Not Started',0,'Tom B'),
+       tk('b5','Pre Mix',  '2026-04-23','2026-04-24','Not Started',0,'Paul R'),
+       tk('b6','Final Mix','2026-04-24','2026-04-26','Not Started',0,'Matthew P'),
+       tk('b7','QC',       '2026-04-26','2026-04-27','Not Started',0,'Kristen S'),
+       tk('b8','Delivery', '2026-04-28','2026-04-28','Not Started',0,'Kristen S'),
+     ]},
+     {id:'e2',name:'Ep 2',tasks:[
+       tk('c1','Ingest',   '2026-04-25','2026-04-26','In Progress',45,'Alex R'),
+       tk('c2','DX Edit',  '2026-04-27','2026-04-29','Not Started',0,'Paul R'),
+       tk('c3','MX Edit',  '2026-04-27','2026-04-29','Not Started',0,'Matthew P'),
+       tk('c4','SFX Edit', '2026-04-29','2026-05-01','Not Started',0,'Tom B'),
+       tk('c5','Pre Mix',  '2026-05-02','2026-05-04','Not Started',0,'Paul R'),
+       tk('c6','Final Mix','2026-05-04','2026-05-06','Not Started',0,'Matthew P'),
+       tk('c7','QC',       '2026-05-06','2026-05-07','Not Started',0,'Kristen S'),
+       tk('c8','Delivery', '2026-05-07','2026-05-08','Not Started',0,'Kristen S'),
+     ]},
+     {id:'e3',name:'Ep 3',tasks:[
+       tk('d1','Ingest',   '2026-05-04','2026-05-05','Not Started',0,'Alex R'),
+       tk('d2','DX Edit',  '2026-05-05','2026-05-07','Not Started',0,'Paul R'),
+       tk('d3','MX Edit',  '2026-05-05','2026-05-07','Not Started',0,'Matthew P'),
+       tk('d4','SFX Edit', '2026-05-07','2026-05-09','Not Started',0,'Tom B'),
+       tk('d5','Pre Mix',  '2026-05-09','2026-05-11','Not Started',0,'Paul R'),
+       tk('d6','Final Mix','2026-05-11','2026-05-13','Not Started',0,'Matthew P'),
+       tk('d7','QC',       '2026-05-13','2026-05-14','Not Started',0,'Kristen S'),
+       tk('d8','Delivery', '2026-05-14','2026-05-15','Not Started',0,'Kristen S'),
+     ]},
+   ]},
+  {id:'mg3',code:'MS1041',name:'Nike TVC Campaign',client:'Nike ANZ',type:'film',
+   episodes:[
+     {id:'e1',name:'Film',tasks:[
+       tk('e1','Ingest',   '2026-04-13','2026-04-13','Done',100,'Paul R'),
+       tk('e2','DX Edit',  '2026-04-13','2026-04-14','Done',100,'Paul R'),
+       tk('e3','MX Edit',  '2026-04-13','2026-04-14','In Progress',80,'Matthew P'),
+       tk('e4','SFX Edit', '2026-04-14','2026-04-15','Not Started',0,'Tom B'),
+       tk('e5','Pre Mix',  '2026-04-15','2026-04-16','Not Started',0,'Paul R'),
+       tk('e6','Final Mix','2026-04-16','2026-04-18','Not Started',0,'Paul R'),
+       tk('e7','QC',       '2026-04-18','2026-04-19','Not Started',0,'Kristen S'),
+       tk('e8','Delivery', '2026-04-20','2026-04-20','Not Started',0,'Kristen S'),
+     ]}]},
+];
+
+// ── Initial App Data ───────────────────────────────────────────────────────
+const INIT={
+  activeBoard:'b1',
+  boards:[
+    {id:'b1',name:'Active Projects',icon:'🎙️',color:'#5c6bc0',
+     columns:[{id:'c1',name:'Status',type:'status'},{id:'c2',name:'Engineer',type:'person'},{id:'c3',name:'Client',type:'text'},{id:'c4',name:'Due Date',type:'date'},{id:'c5',name:'Budget',type:'currency'},{id:'c6',name:'Hours',type:'number'}],
+     groups:[
+       {id:'g1',name:'In Progress',color:'#5c6bc0',collapsed:false,items:[
+         {id:'i1',name:'TVC Mix — Nike Campaign',notes:'Final stem delivery. -1.0dBTP, -14 LUFS.',startDate:'2026-04-08',timeLogs:[{id:'t1',date:'2026-04-10',mins:180,person:'Paul R',note:'Initial mix'},{id:'t2',date:'2026-04-11',mins:240,person:'Paul R',note:'Stem balancing'}],values:{c1:'In Progress',c2:'Paul R',c3:'Nike ANZ',c4:'2026-04-20',c5:4500,c6:12}},
+         {id:'i2',name:'Documentary Mix — Wanderers',notes:'Ep 3 of 5. ADR session Tue 14th.',startDate:'2026-03-24',timeLogs:[{id:'t3',date:'2026-04-07',mins:420,person:'Matthew P',note:'Ep1-2'},{id:'t4',date:'2026-04-09',mins:360,person:'Matthew P',note:'Ep3 grade'}],values:{c1:'Review',c2:'Matthew P',c3:'Wanderers Film Co',c4:'2026-04-18',c5:8200,c6:28}},
+       ]},
+       {id:'g2',name:'Upcoming',color:'#43a047',collapsed:false,items:[
+         {id:'i3',name:'Radio Spots — CommBank',notes:'3x 30sec spots. Talent booked.',startDate:'2026-04-22',timeLogs:[],values:{c1:'Not Started',c2:'Tom B',c3:'CommBank',c4:'2026-04-28',c5:2100,c6:6}},
+         {id:'i4',name:'Podcast Series — The Brief',notes:'10 ep. -16 LUFS.',startDate:'2026-04-28',timeLogs:[],values:{c1:'Not Started',c2:'Paul R',c3:'The Brief Podcast',c4:'2026-05-05',c5:3600,c6:20}},
+       ]},
+       {id:'g3',name:'Completed',color:'#43a047',collapsed:true,items:[
+         {id:'i5',name:'Feature Mix — Still Water',notes:'Delivered 4 Apr. Archive to NAS.',startDate:'2026-03-10',timeLogs:[{id:'t5',date:'2026-03-20',mins:480,person:'Matthew P',note:'Full mix'}],values:{c1:'Done',c2:'Matthew P',c3:'Still Water Prods',c4:'2026-04-05',c5:14000,c6:45}},
+       ]},
+     ]},
+    {id:'b2',name:'Studio Schedule',icon:'📅',color:'#43a047',
+     columns:[{id:'c1',name:'Status',type:'status'},{id:'c2',name:'Engineer',type:'person'},{id:'c3',name:'Studio',type:'text'},{id:'c4',name:'Date',type:'date'},{id:'c5',name:'Hours',type:'number'},{id:'c6',name:'Project',type:'text'}],
+     groups:[
+       {id:'g1',name:'This Week',color:'#43a047',collapsed:false,items:[
+         {id:'i1',name:'ADR Session — Wanderers Ep3',notes:'3 actors. Book green room.',startDate:'2026-04-14',timeLogs:[],values:{c1:'In Progress',c2:'Matthew P',c3:'Studio A',c4:'2026-04-14',c5:4,c6:'Wanderers'}},
+         {id:'i2',name:'Podcast Record — The Brief Ep1',notes:'Host only. Remote guest via Source Connect.',startDate:'2026-04-16',timeLogs:[],values:{c1:'Not Started',c2:'Tom B',c3:'Studio B',c4:'2026-04-16',c5:3,c6:'The Brief'}},
+       ]},
+       {id:'g2',name:'Next Week',color:'#fb8c00',collapsed:false,items:[
+         {id:'i3',name:'TVC Final Mix — Nike',notes:'Stems + stereo + mono delivery COB.',startDate:'2026-04-21',timeLogs:[],values:{c1:'Not Started',c2:'Paul R',c3:'Studio A',c4:'2026-04-21',c5:6,c6:'Nike'}},
+       ]},
+     ]},
+    {id:'b3',name:'Freelancers',icon:'👥',color:'#8e24aa',
+     columns:[{id:'c1',name:'Status',type:'status'},{id:'c2',name:'Specialty',type:'text'},{id:'c3',name:'Rate ($/hr)',type:'currency'},{id:'c4',name:'Next Available',type:'date'},{id:'c5',name:'Hrs This Month',type:'number'}],
+     groups:[
+       {id:'g1',name:'Active',color:'#8e24aa',collapsed:false,items:[
+         {id:'i1',name:'David Chen',notes:'Preferred for Foley. david@chenfoley.com.au',startDate:'',timeLogs:[],values:{c1:'In Progress',c2:'Foley Artist',c3:95,c4:'2026-04-30',c5:14}},
+         {id:'i2',name:'Emma Walsh',notes:'Mon–Thu only. ADR supervisor. NIDA trained.',startDate:'',timeLogs:[],values:{c1:'In Progress',c2:'ADR Supervisor',c3:110,c4:'2026-04-25',c5:8}},
+       ]},
+     ]},
+    {id:'b4',name:'Budget Tracker',icon:'💰',color:'#fb8c00',
+     columns:[{id:'c1',name:'Status',type:'status'},{id:'c2',name:'Client',type:'text'},{id:'c3',name:'Quoted',type:'currency'},{id:'c4',name:'Invoiced',type:'currency'},{id:'c5',name:'Paid',type:'currency'},{id:'c6',name:'Due Date',type:'date'}],
+     groups:[
+       {id:'g1',name:'Outstanding',color:'#fb8c00',collapsed:false,items:[
+         {id:'i1',name:'Nike TVC Mix',notes:'Invoice #1042. Net 30.',startDate:'',timeLogs:[],values:{c1:'In Progress',c2:'Nike ANZ',c3:4500,c4:4500,c5:0,c6:'2026-05-15'}},
+         {id:'i2',name:'Wanderers Documentary',notes:'Milestone 2 of 3. Balance on delivery.',startDate:'',timeLogs:[],values:{c1:'Review',c2:'Wanderers Film Co',c3:8200,c4:4100,c5:4100,c6:'2026-04-30'}},
+       ]},
+       {id:'g2',name:'Paid',color:'#43a047',collapsed:false,items:[
+         {id:'i3',name:'Still Water Feature Mix',notes:'Paid in full 8 Apr.',startDate:'',timeLogs:[],values:{c1:'Done',c2:'Still Water Prods',c3:14000,c4:14000,c5:14000,c6:'2026-04-10'}},
+       ]},
+     ]},
+  ],
+  masterGantt: INIT_MASTER_GANTT,
+  longform:{
+    activeProduction:'p1',
+    productions:[
+      {id:'p1',name:'Wanderers — Documentary Series',type:'Documentary (5-Part)',client:'Wanderers Film Co',engineer:'Matthew P',budget:8200,
+       episodes:[
+         {id:'e1',name:'Ep 1 — The Journey Begins',dueDate:'2026-03-20',status:'Done',stages:{Brief:100,Capture:100,Edit:100,Mix:100,Master:100,QC:100,Deliver:100},tasks:[tk('w1a','Ingest','2026-03-01','2026-03-03','Done',100,'Matthew P'),tk('w1b','DX Edit','2026-03-03','2026-03-06','Done',100,'Matthew P'),tk('w1c','MX Edit','2026-03-06','2026-03-09','Done',100,'Matthew P'),tk('w1d','SFX Edit','2026-03-09','2026-03-12','Done',100,'Matthew P'),tk('w1e','Pre Mix','2026-03-12','2026-03-14','Done',100,'Matthew P'),tk('w1f','Final Mix','2026-03-14','2026-03-17','Done',100,'Matthew P'),tk('w1g','QC','2026-03-17','2026-03-19','Done',100,'Kristen S'),tk('w1h','Delivery','2026-03-19','2026-03-20','Done',100,'Kristen S')]},
+         {id:'e2',name:'Ep 2 — Into the Wild',dueDate:'2026-04-05',status:'Review',stages:{Brief:100,Capture:100,Edit:100,Mix:100,Master:80,QC:0,Deliver:0},tasks:[tk('w2a','Ingest','2026-03-15','2026-03-17','Done',100,'Matthew P'),tk('w2b','DX Edit','2026-03-17','2026-03-20','Done',100,'Matthew P'),tk('w2c','MX Edit','2026-03-20','2026-03-23','Done',100,'Matthew P'),tk('w2d','SFX Edit','2026-03-23','2026-03-26','Done',100,'Matthew P'),tk('w2e','Pre Mix','2026-03-26','2026-03-28','Done',100,'Matthew P'),tk('w2f','Final Mix','2026-03-28','2026-04-01','Done',100,'Matthew P'),tk('w2g','QC','2026-04-01','2026-04-04','In Progress',40,'Kristen S'),tk('w2h','Delivery','2026-04-04','2026-04-05','Not Started',0,'Kristen S')]},
+         {id:'e3',name:'Ep 3 — The Summit',dueDate:'2026-04-18',status:'In Progress',stages:{Brief:100,Capture:100,Edit:65,Mix:0,Master:0,QC:0,Deliver:0},tasks:[tk('w3a','Ingest','2026-03-28','2026-03-30','Done',100,'Matthew P'),tk('w3b','DX Edit','2026-03-30','2026-04-02','Done',100,'Matthew P'),tk('w3c','MX Edit','2026-04-02','2026-04-07','In Progress',65,'Matthew P'),tk('w3d','SFX Edit','2026-04-07','2026-04-10','Not Started',0,'Matthew P'),tk('w3e','Pre Mix','2026-04-10','2026-04-12','Not Started',0,'Matthew P'),tk('w3f','Final Mix','2026-04-12','2026-04-15','Not Started',0,'Matthew P'),tk('w3g','QC','2026-04-15','2026-04-17','Not Started',0,'Kristen S'),tk('w3h','Delivery','2026-04-17','2026-04-18','Not Started',0,'Kristen S')]},
+         {id:'e4',name:'Ep 4 — Coming Home',dueDate:'2026-05-02',status:'In Progress',stages:{Brief:100,Capture:45,Edit:0,Mix:0,Master:0,QC:0,Deliver:0},tasks:[tk('w4a','Ingest','2026-04-08','2026-04-12','In Progress',45,'Matthew P'),tk('w4b','DX Edit','2026-04-12','2026-04-16','Not Started',0,'Matthew P'),tk('w4c','MX Edit','2026-04-16','2026-04-20','Not Started',0,'Matthew P'),tk('w4d','SFX Edit','2026-04-20','2026-04-23','Not Started',0,'Tom B'),tk('w4e','Pre Mix','2026-04-23','2026-04-25','Not Started',0,'Matthew P'),tk('w4f','Final Mix','2026-04-25','2026-04-29','Not Started',0,'Matthew P'),tk('w4g','QC','2026-04-29','2026-05-01','Not Started',0,'Kristen S'),tk('w4h','Delivery','2026-05-01','2026-05-02','Not Started',0,'Kristen S')]},
+         {id:'e5',name:'Ep 5 — Legacy',dueDate:'2026-05-16',status:'Not Started',stages:{Brief:80,Capture:0,Edit:0,Mix:0,Master:0,QC:0,Deliver:0},tasks:[tk('w5a','Ingest','2026-04-18','2026-04-21','Not Started',0,'Matthew P'),tk('w5b','DX Edit','2026-04-21','2026-04-25','Not Started',0,'Matthew P'),tk('w5c','MX Edit','2026-04-25','2026-04-29','Not Started',0,'Matthew P'),tk('w5d','SFX Edit','2026-04-29','2026-05-03','Not Started',0,'Tom B'),tk('w5e','Pre Mix','2026-05-03','2026-05-05','Not Started',0,'Matthew P'),tk('w5f','Final Mix','2026-05-05','2026-05-09','Not Started',0,'Matthew P'),tk('w5g','QC','2026-05-09','2026-05-12','Not Started',0,'Kristen S'),tk('w5h','Delivery','2026-05-12','2026-05-16','Not Started',0,'Kristen S')]},
+       ]},
+      {id:'p2',name:'The Brief — Podcast Series',type:'Podcast (10-Part)',client:'The Brief Podcast',engineer:'Paul R',budget:3600,
+       episodes:[
+         {id:'b1',name:'Ep 01 — The State of Play',dueDate:'2026-05-01',status:'Review',stages:{Brief:100,Capture:100,Edit:100,Mix:100,Master:100,QC:20,Deliver:0},tasks:[tk('b1a','Ingest','2026-04-18','2026-04-19','Done',100,'Paul R'),tk('b1b','DX Edit','2026-04-19','2026-04-21','Done',100,'Paul R'),tk('b1c','MX Edit','2026-04-21','2026-04-22','Done',100,'Paul R'),tk('b1d','SFX Edit','2026-04-22','2026-04-23','Done',100,'Paul R'),tk('b1e','Pre Mix','2026-04-23','2026-04-24','Done',100,'Paul R'),tk('b1f','Final Mix','2026-04-24','2026-04-27','Done',100,'Paul R'),tk('b1g','QC','2026-04-27','2026-04-30','In Progress',20,'Kristen S'),tk('b1h','Delivery','2026-04-30','2026-05-01','Not Started',0,'Kristen S')]},
+         {id:'b2',name:'Ep 02 — Follow the Money',dueDate:'2026-05-08',status:'In Progress',stages:{Brief:100,Capture:90,Edit:40,Mix:0,Master:0,QC:0,Deliver:0},tasks:[tk('b2a','Ingest','2026-04-24','2026-04-25','Done',100,'Paul R'),tk('b2b','DX Edit','2026-04-25','2026-04-28','In Progress',40,'Paul R'),tk('b2c','MX Edit','2026-04-28','2026-04-30','Not Started',0,'Paul R'),tk('b2d','SFX Edit','2026-04-30','2026-05-01','Not Started',0,'Paul R'),tk('b2e','Pre Mix','2026-05-01','2026-05-02','Not Started',0,'Paul R'),tk('b2f','Final Mix','2026-05-02','2026-05-05','Not Started',0,'Paul R'),tk('b2g','QC','2026-05-05','2026-05-07','Not Started',0,'Kristen S'),tk('b2h','Delivery','2026-05-07','2026-05-08','Not Started',0,'Kristen S')]},
+       ]},
+    ]
+  }
+};
+
+// ── Simple Components ──────────────────────────────────────────────────────
+function SBadge({v,t='status',onClick}){return<span className="sbadge" style={sStyle(v,t)} onClick={onClick}>{v||'— set'}</span>}
+function SPop({t,cur,onSel,onClose}){const ref=useRef();useEffect(()=>{const h=e=>{if(ref.current&&!ref.current.contains(e.target))onClose()};setTimeout(()=>document.addEventListener('mousedown',h),0);return()=>document.removeEventListener('mousedown',h)},[]);return<div className="pop" ref={ref}>{sOpts(t).map(o=><div key={o.l} className="pop-item" onClick={()=>{onSel(o.l);onClose()}}><span className="pop-dot" style={{background:o.c}}/>{o.l}{o.l===cur&&<span style={{marginLeft:'auto',fontSize:10,color:'#bbb'}}>✓</span>}</div>)}</div>}
+function PPop({cur,onSel,onClose}){const ref=useRef();useEffect(()=>{const h=e=>{if(ref.current&&!ref.current.contains(e.target))onClose()};setTimeout(()=>document.addEventListener('mousedown',h),0);return()=>document.removeEventListener('mousedown',h)},[]);return<div className="pop" ref={ref}><div className="pop-item" style={{color:'#bbb'}} onClick={()=>{onSel('');onClose()}}>— unassign</div>{PEOPLE.map(p=><div key={p} className="pop-item" onClick={()=>{onSel(p);onClose()}}><span className="pav" style={{background:pColor(p),width:20,height:20,fontSize:8}}>{inits(p)}</span>{p}{p===cur&&<span style={{marginLeft:'auto',fontSize:10,color:'#bbb'}}>✓</span>}</div>)}</div>}
+
+function Cell({col,value,onChange}){
+  const [ed,setEd]=useState(false);const [ev,setEv]=useState('');const [pop,setPop]=useState(false);
+  const start=()=>{setEv(value??'');setEd(true)};const commit=()=>{setEd(false);onChange(ev)};
+  if(col.type==='status'||col.type==='priority')return<div style={{position:'relative'}}><SBadge v={value} t={col.type} onClick={e=>{e.stopPropagation();setPop(!pop)}}/>{pop&&<div style={{position:'absolute',top:'100%',left:0,zIndex:200}}><SPop t={col.type} cur={value} onSel={onChange} onClose={()=>setPop(false)}/></div>}</div>;
+  if(col.type==='person')return<div style={{position:'relative'}}>{value?<span className="pchip" onClick={e=>{e.stopPropagation();setPop(!pop)}}><span className="pav" style={{background:pColor(value),width:22,height:22}}>{inits(value)}</span><span>{value}</span></span>:<span className="muted tcell" onClick={e=>{e.stopPropagation();setPop(!pop)}}>+ assign</span>}{pop&&<div style={{position:'absolute',top:'100%',left:0,zIndex:200}}><PPop cur={value} onSel={onChange} onClose={()=>setPop(false)}/></div>}</div>;
+  if(col.type==='date'){if(ed)return<input type="date" className="ii" style={{width:118}} value={ev} onChange={e=>setEv(e.target.value)} onBlur={commit} autoFocus/>;return<span className="dcell" onClick={start}>{fmtD(value)||<span className="muted">Set date</span>}</span>;}
+  if(col.type==='currency'){if(ed)return<input className="ii" style={{width:84}} value={ev} onChange={e=>setEv(e.target.value)} onBlur={commit} onKeyDown={e=>e.key==='Enter'&&commit()} autoFocus/>;return<span className="ncell" onClick={start}>{fmtCur(value)||<span className="muted">$0</span>}</span>;}
+  if(col.type==='number'){if(ed)return<input className="ii" style={{width:66}} value={ev} onChange={e=>setEv(e.target.value)} onBlur={commit} onKeyDown={e=>e.key==='Enter'&&commit()} autoFocus/>;return<span className="ncell" onClick={start}>{value!==''&&value!=null?value:<span className="muted">0</span>}</span>;}
+  if(ed)return<input className="ii" value={ev} onChange={e=>setEv(e.target.value)} onBlur={commit} onKeyDown={e=>e.key==='Enter'&&commit()} autoFocus/>;
+  return<span className="tcell" onClick={start}>{value||<span className="muted">—</span>}</span>;
+}
+
+// ── TableView ──────────────────────────────────────────────────────────────
+function TableView({board,onUpdate,onSelect}){
+  const [addingG,setAddingG]=useState(false);const [newG,setNewG]=useState('');const [showC,setShowC]=useState(false);const [edName,setEdName]=useState(null);
+  const toggle=gid=>onUpdate(p=>({...p,groups:p.groups.map(g=>g.id===gid?{...g,collapsed:!g.collapsed}:g)}));
+  const updCell=(gid,iid,cid,v)=>onUpdate(p=>({...p,groups:p.groups.map(g=>g.id===gid?{...g,items:g.items.map(i=>i.id===iid?{...i,values:{...i.values,[cid]:v}}:i)}:g)}));
+  const updName=(gid,iid,name)=>onUpdate(p=>({...p,groups:p.groups.map(g=>g.id===gid?{...g,items:g.items.map(i=>i.id===iid?{...i,name}:i)}:g)}));
+  const addItem=gid=>{const it={id:uid(),name:'New item',notes:'',startDate:'',timeLogs:[],values:{}};onUpdate(p=>({...p,groups:p.groups.map(g=>g.id===gid?{...g,items:[...g.items,it]}:g)}))};
+  const addGroup=()=>{if(!newG.trim())return;const g={id:uid(),name:newG,color:GCOLS[board.groups.length%GCOLS.length],collapsed:false,items:[]};onUpdate(p=>({...p,groups:[...p.groups,g]}));setNewG('');setAddingG(false)};
+  const addCol=(name,type)=>{const c={id:uid(),name,type};onUpdate(p=>({...p,columns:[...p.columns,c]}));setShowC(false)};
+  const totals=useMemo(()=>{const t={};board.columns.forEach(c=>{if(c.type==='number'||c.type==='currency'){let s=0;board.groups.forEach(g=>g.items.forEach(i=>{const v=parseFloat(i.values[c.id]);if(!isNaN(v))s+=v}));t[c.id]={s,t:c.type,n:c.name}}});return t},[board]);
+  return(<div>
+    {board.groups.map(g=>(<div key={g.id} className="group-block">
+      <div className="group-header" onClick={()=>toggle(g.id)}>
+        <span className="g-chev" style={{transform:g.collapsed?'rotate(0)':'rotate(90deg)'}}>▶</span>
+        <span className="g-dot" style={{background:g.color}}/><span className="g-name">{g.name}</span><span className="g-cnt">{g.items.length} item{g.items.length!==1?'s':''}</span>
+      </div>
+      {!g.collapsed&&(<div className="tbl-wrap">
+        <div className="tbl-head"><div className="th th-name">Item</div>{board.columns.map(c=><div key={c.id} className="th th-col">{c.name}</div>)}<div className="th-add" onClick={()=>setShowC(true)}>+ Add column</div></div>
+        {g.items.map(item=>(<div key={item.id} className="tbl-row">
+          <div className="td-name">{edName===item.id?<input className="ni" value={item.name} autoFocus onChange={e=>updName(g.id,item.id,e.target.value)} onBlur={()=>setEdName(null)} onKeyDown={e=>e.key==='Enter'&&setEdName(null)} onClick={e=>e.stopPropagation()}/>:
+            <><span className="td-nm-txt" onDoubleClick={e=>{e.stopPropagation();setEdName(item.id)}} onClick={()=>onSelect(board.id,g.id,item.id)}>{item.name}</span>
+            {item.notes&&<span style={{fontSize:9,color:'#ccc'}}>📝</span>}
+            {item.timeLogs&&item.timeLogs.length>0&&<span style={{fontSize:9,color:'#ccc'}}>⏱</span>}</>}
+          </div>
+          {board.columns.map(c=><div key={c.id} className="td-col"><Cell col={c} value={item.values[c.id]} onChange={v=>updCell(g.id,item.id,c.id,v)}/></div>)}
+        </div>))}
+        <div className="add-row"><div className="add-row-btn" onClick={()=>addItem(g.id)}>+ Add item</div></div>
+        {Object.keys(totals).length>0&&<div className="sum-row">{Object.values(totals).map(t=><div key={t.n}>{t.n}: <b>{t.t==='currency'?fmtCur(t.s):t.s}</b></div>)}</div>}
+      </div>)}
+    </div>))}
+    {addingG?<div style={{display:'flex',gap:7,alignItems:'center',marginTop:8}}>
+      <input className="ni" style={{maxWidth:200}} placeholder="Group name..." value={newG} onChange={e=>setNewG(e.target.value)} autoFocus onKeyDown={e=>{if(e.key==='Enter')addGroup();if(e.key==='Escape')setAddingG(false)}}/>
+      <button className="btn-p" onClick={addGroup} style={{padding:'5px 12px',fontSize:12}}>Add</button>
+      <button className="btn-g" onClick={()=>setAddingG(false)} style={{padding:'5px 10px',fontSize:12}}>Cancel</button>
+    </div>:<span style={{fontSize:13,color:'#bbb',cursor:'pointer',display:'block',marginTop:10,fontWeight:600}} onClick={()=>setAddingG(true)}>+ Add group</span>}
+    {showC&&<AddColModal onAdd={addCol} onClose={()=>setShowC(false)}/>}
+  </div>);
+}
+
+// ── KanbanView ─────────────────────────────────────────────────────────────
+function KanbanView({board,onSelect}){
+  const sc=board.columns.find(c=>c.type==='status');if(!sc)return<div className="empty"><h3>No status column</h3></div>;
+  const pc=board.columns.find(c=>c.type==='person');const dc=board.columns.find(c=>c.type==='date');
+  const lanes=ST.map(o=>({...o,items:board.groups.flatMap(g=>g.items.filter(i=>i.values[sc.id]===o.l).map(i=>({...i,gid:g.id})))})).filter(l=>l.items.length>0||['Not Started','In Progress','Review','Done'].includes(l.l));
+  return(<div className="kb">{lanes.map(lane=>(<div key={lane.l} className="kb-col">
+    <div className="kb-col-h"><span style={{width:9,height:9,borderRadius:'50%',background:lane.c,display:'inline-block'}}/><span className="kb-ct">{lane.l}</span><span className="kb-cnt">{lane.items.length}</span></div>
+    {lane.items.map(item=>(<div key={item.id} className="kb-card" onClick={()=>onSelect(board.id,item.gid,item.id)}>
+      <div className="kb-ctitle">{item.name}</div>
+      <div className="kb-meta">
+        {pc&&item.values[pc.id]&&<span className="pav" style={{background:pColor(item.values[pc.id]),width:22,height:22,display:'inline-flex',alignItems:'center',justifyContent:'center',borderRadius:'50%',color:'#fff',fontWeight:700,fontSize:9}}>{inits(item.values[pc.id])}</span>}
+        {dc&&item.values[dc.id]&&<span className="kb-date">{fmtD(item.values[dc.id])}</span>}
+      </div>
+    </div>))}
+    {lane.items.length===0&&<div className="kb-empty">Empty</div>}
+  </div>))}</div>);
+}
+
+// ── CalendarView ───────────────────────────────────────────────────────────
+function CalendarView({board,onSelect}){
+  const now=new Date();const [yr,setYr]=useState(now.getFullYear());const [mo,setMo]=useState(now.getMonth());
+  const dcol=board.columns.find(c=>c.type==='date');const todayStr=today();
+  const allItems=useMemo(()=>board.groups.flatMap(g=>g.items.map(i=>({...i,gid:g.id}))).filter(i=>{if(!dcol)return false;const d=i.values[dcol.id];if(!d)return false;const dt=new Date(d+'T00:00:00');return dt.getFullYear()===yr&&dt.getMonth()===mo}),[board,yr,mo,dcol]);
+  const itemsByDay=useMemo(()=>{const m={};allItems.forEach(i=>{const d=new Date(i.values[dcol.id]+'T00:00:00').getDate();if(!m[d])m[d]=[];m[d].push(i)});return m},[allItems]);
+  const firstDay=new Date(yr,mo,1).getDay();const daysInMonth=new Date(yr,mo+1,0).getDate();const daysInPrev=new Date(yr,mo,0).getDate();
+  const cells=[];for(let i=firstDay-1;i>=0;i--)cells.push({day:daysInPrev-i,other:true});for(let d=1;d<=daysInMonth;d++)cells.push({day:d,other:false});const rem=42-cells.length;for(let d=1;d<=rem;d++)cells.push({day:d,other:true});
+  const prevMo=()=>{if(mo===0){setYr(y=>y-1);setMo(11)}else setMo(m=>m-1)};const nextMo=()=>{if(mo===11){setYr(y=>y+1);setMo(0)}else setMo(m=>m+1)};
+  const isToday=(d,other)=>{if(other)return false;return new Date(yr,mo,d).toISOString().split('T')[0]===todayStr};
+  const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  if(!dcol)return<div className="empty"><h3>No date column</h3><p>Add a Date column to use Calendar view.</p></div>;
+  return(<div>
+    <div className="cal-nav">
+      <button className="cal-nav-btn" onClick={prevMo}>‹</button>
+      <span className="cal-month">{fmtM(`${yr}-${String(mo+1).padStart(2,'0')}-01`)}</span>
+      <button className="cal-nav-btn" onClick={nextMo}>›</button>
+      <span style={{fontSize:12,color:'#aaa',marginLeft:8,fontWeight:600}}>{allItems.length} items · Google Cal sync coming soon</span>
+    </div>
+    <div className="cal-grid">
+      {DAYS.map(d=><div key={d} className="cal-day-hdr">{d}</div>)}
+      {cells.map((cell,i)=>{const items=(!cell.other&&itemsByDay[cell.day])||[];const tod=isToday(cell.day,cell.other);return(
+        <div key={i} className={`cal-cell${tod?' today':''}${cell.other?' other-month':''}`}>
+          <div className={`cal-date${tod?' today-num':''}`}>{cell.day}</div>
+          {items.slice(0,3).map(item=>{const st=item.values[board.columns.find(c=>c.type==='status')?.id];const c2=st?sStyle(st).color:'#5c6bc0';return<span key={item.id} className="cal-chip" style={{background:c2+'18',color:c2,border:`1px solid ${c2}30`}} onClick={()=>onSelect(board.id,item.gid,item.id)} title={item.name}>{item.name}</span>;})}
+          {items.length>3&&<div className="cal-more">+{items.length-3} more</div>}
+        </div>
+      );})}
+    </div>
+  </div>);
+}
+
+// ── Board GanttView ────────────────────────────────────────────────────────
+function GanttView({board,onSelect}){
+  const dcol=board.columns.find(c=>c.type==='date');const [offsetW,setOffsetW]=useState(0);
+  const WEEKS=12;const PX_WEEK=110;const todayD=today();
+  const startDate=useMemo(()=>addDays(todayD,-14+offsetW*7),[offsetW,todayD]);
+  const totalPx=WEEKS*PX_WEEK;const dToX=d=>daysBetween(startDate,d)*(PX_WEEK/7);const todayX=dToX(todayD);
+  const weeksArr=useMemo(()=>Array.from({length:WEEKS},(_,i)=>{const d=addDays(startDate,i*7);const dt=new Date(d+'T00:00:00');return dt.toLocaleDateString('en-AU',{day:'numeric',month:'short'})}),[startDate]);
+  const allItems=board.groups.flatMap(g=>g.items.map(i=>({...i,gid:g.id,gname:g.name,gcolor:g.color})));
+  const withDates=allItems.filter(i=>dcol&&i.values[dcol.id]);
+  const grouped=board.groups.map(g=>({...g,items:withDates.filter(i=>i.gid===g.id)})).filter(g=>g.items.length>0);
+  const getBar=i=>{const ed=dcol&&i.values[dcol.id];if(!ed)return null;const sd=i.startDate||addDays(ed,-7);const x1=Math.max(0,dToX(sd));const x2=Math.min(totalPx,dToX(ed));const w=x2-x1;if(w<=0)return null;const st=i.values[board.columns.find(c=>c.type==='status')?.id];const c2=st?sStyle(st).color:'#5c6bc0';return{x:x1,w,c:c2}};
+  if(!dcol)return<div className="empty"><h3>No date column</h3></div>;
+  if(withDates.length===0)return<div className="empty"><h3>No items with dates</h3></div>;
+  return(<div>
+    <div className="gantt-nav" style={{display:'flex',gap:8,marginBottom:14}}>
+      <button className="mg-nav-btn" onClick={()=>setOffsetW(o=>o-2)}>‹ Earlier</button>
+      <span style={{fontSize:13,color:'#666',fontWeight:600}}>{weeksArr[0]} — {weeksArr[WEEKS-1]}</span>
+      <button className="mg-nav-btn" onClick={()=>setOffsetW(o=>o+2)}>Later ›</button>
+      <button className="mg-nav-btn" onClick={()=>setOffsetW(0)} style={{fontSize:11}}>Today</button>
+    </div>
+    <div className="gantt-wrap" style={{overflowX:'auto'}}><div style={{minWidth:210+totalPx}}>
+      <div className="gantt-head"><div className="gantt-label-col">Item</div><div style={{display:'flex',minWidth:totalPx}}>{weeksArr.map((w,i)=><div key={i} className="gantt-week" style={{flex:`0 0 ${PX_WEEK}px`}}>{w}</div>)}</div></div>
+      {grouped.map(g=>(<div key={g.id}>
+        <div className="gantt-grp-hdr"><div className="gantt-grp-label" style={{display:'flex',alignItems:'center',gap:6}}><span style={{width:7,height:7,borderRadius:'50%',background:g.color,display:'inline-block'}}/>{g.name}</div><div style={{flex:1,background:'#f8f8f8',minWidth:totalPx}}/></div>
+        {g.items.map(item=>{const bar=getBar(item);return(<div key={item.id} className="gantt-row">
+          <div className="gantt-row-label" onClick={()=>onSelect(board.id,item.gid,item.id)}>{item.name}</div>
+          <div className="gantt-timeline" style={{minWidth:totalPx}}>
+            {todayX>=0&&todayX<=totalPx&&<div className="gantt-today-line" style={{left:todayX}}/>}
+            {bar&&<div className="gantt-bar" style={{left:bar.x,width:bar.w,background:bar.c+'22',border:`1px solid ${bar.c}55`,color:bar.c}} onClick={()=>onSelect(board.id,item.gid,item.id)}>{bar.w>60?item.name:''}</div>}
+          </div>
+        </div>);})}
+      </div>))}
+    </div></div>
+  </div>);
+}
+
+// ── MASTER GANTT SCHEDULER ─────────────────────────────────────────────────
+function MasterGantt({ganttData,onImport,onUpdateGantt}){
+  const [collapsed,setCollapsed]=useState({});
+  const [epCollapsed,setEpCollapsed]=useState({});
+  const [offsetDays,setOffsetDays]=useState(0);
+  const [showImport,setShowImport]=useState(false);
+  const DAYS_VIS=28;const PX_DAY=42;const LBL_W=220;
+  const todayD=today();
+  const startDate=useMemo(()=>addDays(todayD,-7+offsetDays),[offsetDays,todayD]);
+  const daysArr=useMemo(()=>Array.from({length:DAYS_VIS},(_,i)=>{const d=addDays(startDate,i);const dt=new Date(d+'T00:00:00');const dow=dt.getDay();return{date:d,dayNum:dt.getDate(),dayName:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dow],isWeekend:dow===0||dow===6,isToday:d===todayD}}),[startDate,todayD]);
+  const totalPx=DAYS_VIS*PX_DAY;
+  const dToX=d=>{const days=daysBetween(startDate,d);return Math.max(0,Math.min(totalPx,days*PX_DAY))};
+  const todayX=daysBetween(startDate,todayD)*PX_DAY;
+
+  // Conflict detection
+  const conflicts=useMemo(()=>{const dayMap={};ganttData.forEach(proj=>proj.episodes.forEach(ep=>ep.tasks.forEach(task=>{if(!task.assignee||task.status==='Done')return;let d=task.startDate;while(d<=task.endDate){const key=`${d}:${task.assignee}`;if(!dayMap[key])dayMap[key]=[];dayMap[key].push({proj:proj.name,ep:ep.name,task:task.name});d=addDays(d,1)}}))); const conf=[];Object.entries(dayMap).forEach(([k,v])=>{if(v.length>1)conf.push(k)});return conf},[ganttData]);
+
+  const toggleProj=id=>setCollapsed(p=>({...p,[id]:!p[id]}));
+  const toggleEp=id=>setEpCollapsed(p=>({...p,[id]:!p[id]}));
+
+  const getBarStyle=(task)=>{
+    const x1=dToX(task.startDate);const x2=dToX(task.endDate);const w=Math.max(x2-x1,PX_DAY*.5);
+    if(w<=0)return null;
+    const td=taskDef(task.name);
+    return{left:x1,width:w,color:td.text,bgColor:td.color};
+  };
+
+  const getEpSpan=(ep)=>{const ts=ep.tasks;if(!ts.length)return null;const s=ts.reduce((m,t)=>t.startDate<m?t.startDate:m,ts[0].startDate);const e=ts.reduce((m,t)=>t.endDate>m?t.endDate:m,ts[0].endDate);const x1=dToX(s);const x2=dToX(e);return{left:x1,width:x2-x1}};
+
+  return(
+    <div className="mg-wrap">
+      {conflicts.length>0&&(
+        <div className="mg-conflict-banner">
+          <span>⚠</span>
+          <span>{conflicts.length} schedule conflict{conflicts.length!==1?'s':''} detected</span>
+          <button className="resolve-btn">Auto-Resolve</button>
+        </div>
+      )}
+      <div className="mg-toolbar">
+        <button className="mg-nav-btn" onClick={()=>setOffsetDays(o=>o-7)}>‹ Prev Week</button>
+        <span className="mg-date-range">{fmtD(startDate)} — {fmtD(addDays(startDate,DAYS_VIS-1))}</span>
+        <button className="mg-nav-btn" onClick={()=>setOffsetDays(o=>o+7)}>Next Week ›</button>
+        <button className="mg-nav-btn" onClick={()=>setOffsetDays(0)}>Today</button>
+        <div style={{marginLeft:'auto',display:'flex',gap:6}}>
+          <button className="t-btn" onClick={()=>setShowImport(true)} style={{fontWeight:700,fontSize:12}}>⬆ Import Schedule</button>
+          <button className="t-btn" onClick={()=>exportICS(ganttData)} style={{fontWeight:700,fontSize:12}}>📅 Export to .ics</button>
+        </div>
+      </div>
+      <div className="mg-gantt-container">
+        <div style={{minWidth:LBL_W+totalPx}}>
+          {/* Header */}
+          <div className="mg-head-sticky">
+            <div className="mg-head-row">
+              <div className="mg-left-header">Project / Task</div>
+              {daysArr.map((d,i)=>(
+                <div key={i} className={`mg-day-cell${d.isWeekend?' weekend':''}`} style={{width:PX_DAY,flex:`0 0 ${PX_DAY}px`,borderRight:'1px solid #e8e8e8'}}>
+                  <div className="mg-day-top">{d.dayName}</div>
+                  <div className={`mg-day-num${d.isToday?' today-num':''}`}>{d.dayNum}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Rows */}
+          {ganttData.map(proj=>(
+            <React.Fragment key={proj.id}>
+              <div className="mg-project-row" onClick={()=>toggleProj(proj.id)}>
+                <div className="mg-project-label">
+                  <span style={{fontSize:9,color:'rgba(255,255,255,.4)',transform:collapsed[proj.id]?'rotate(0)':'rotate(90deg)',display:'inline-block',transition:'transform .15s'}}>▶</span>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div className="mg-project-code">{proj.code}</div>
+                    <div className="mg-project-name">{proj.name}</div>
+                  </div>
+                  <span style={{fontSize:10,color:'rgba(255,255,255,.3)',flex:'0 0 auto',fontSize:9}}>{proj.client}</span>
+                </div>
+                <div className="mg-project-timeline" style={{minWidth:totalPx,position:'relative'}}>
+                  {todayX>=0&&todayX<=totalPx&&<div className="mg-today-line" style={{left:todayX}}/>}
+                  {daysArr.filter(d=>d.isWeekend).map((d,i)=><div key={i} className="mg-weekend-col" style={{left:daysBetween(startDate,d.date)*PX_DAY,width:PX_DAY}}/>)}
+                </div>
+              </div>
+              {!collapsed[proj.id]&&proj.episodes.map(ep=>{
+                const span=getEpSpan(ep);
+                const isEpOpen=!epCollapsed[ep.id];
+                return(<React.Fragment key={ep.id}>
+                  <div className="mg-ep-row" onClick={()=>toggleEp(ep.id)}>
+                    <div className="mg-ep-label">
+                      <span style={{fontSize:9,color:'#bbb',transform:isEpOpen?'rotate(90deg)':'rotate(0)',display:'inline-block',transition:'transform .15s',flex:'0 0 auto'}}>▶</span>
+                      <div>
+                        <div className="mg-ep-name">{ep.name}</div>
+                        {span&&span.width>0&&<div className="mg-ep-dates">{fmtD(ep.tasks[0]?.startDate)} – {fmtD(ep.tasks[ep.tasks.length-1]?.endDate)}</div>}
+                      </div>
+                    </div>
+                    <div className="mg-ep-timeline" style={{minWidth:totalPx}}>
+                      {todayX>=0&&todayX<=totalPx&&<div className="mg-today-line" style={{left:todayX}}/>}
+                      {daysArr.filter(d=>d.isWeekend).map((d,i)=><div key={i} className="mg-weekend-col" style={{left:daysBetween(startDate,d.date)*PX_DAY,width:PX_DAY}}/>)}
+                      {span&&span.width>0&&<div className="mg-ep-spine" style={{left:span.left,width:Math.max(span.width,4)}}/>}
+                      <span style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',fontSize:10,color:'#bbb',fontWeight:600}}>{fmtD(ep.tasks[ep.tasks.length-1]?.endDate)}</span>
+                    </div>
+                  </div>
+                  {isEpOpen&&ep.tasks.map(task=>{
+                    const bs=getBarStyle(task);
+                    const td=taskDef(task.name);
+                    const isDone=task.status==='Done';
+                    const isIP=task.status==='In Progress';
+                    return(<div key={task.id} className="mg-task-row">
+                      <div className="mg-task-label">
+                        <span style={{width:8,height:8,borderRadius:2,background:td.color,display:'inline-block',flex:'0 0 8px'}}/>
+                        <span className="mg-task-name">{task.name}</span>
+                        {task.assignee&&<span className="mg-task-eng" style={{color:td.color}}>{task.assignee}</span>}
+                      </div>
+                      <div className="mg-task-timeline" style={{minWidth:totalPx,position:'relative'}}>
+                        {todayX>=0&&todayX<=totalPx&&<div className="mg-today-line" style={{left:todayX}}/>}
+                        {daysArr.filter(d=>d.isWeekend).map((d,i)=><div key={i} className="mg-weekend-col" style={{left:daysBetween(startDate,d.date)*PX_DAY,width:PX_DAY}}/>)}
+                        {bs&&bs.width>0&&(
+                          <div className="mg-task-bar" style={{left:bs.left,width:bs.width}}>
+                            <div className="mg-bar-bg" style={{background:td.color,opacity:isDone?0.9:isIP?0.7:0.35}}/>
+                            <div className="mg-bar-content" style={{color:isDone||isIP?td.text:'#333'}}>
+                              <span className="mg-bar-abbr">{bs.width>55?task.name:td.abbr}</span>
+                              {task.assignee&&<span className="mg-bar-eng">{inits(task.assignee)}</span>}
+                              <span className="mg-bar-edit">E</span>
+                            </div>
+                            {isIP&&task.pct>0&&<div style={{position:'absolute',bottom:0,left:0,height:3,width:`${task.pct}%`,background:td.color,borderRadius:'0 0 0 4px',opacity:.9}}/>}
+                          </div>
+                        )}
+                      </div>
+                    </div>);
+                  })}
+                </React.Fragment>);
+              })}
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+      {showImport&&<ImportModal onClose={()=>setShowImport(false)} onImport={proj=>{onUpdateGantt(p=>[...p,proj]);setShowImport(false)}}/>}
+    </div>
+  );
+}
+
+// ── iCal Export ────────────────────────────────────────────────────────────
+function exportICS(ganttData){
+  const fmtICS=d=>d.replace(/-/g,'')+'T090000Z';
+  let ics=`BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Mighty Sound WorkBoard//EN\nCALSCALE:GREGORIAN\n`;
+  ganttData.forEach(proj=>proj.episodes.forEach(ep=>ep.tasks.forEach(task=>{
+    ics+=`BEGIN:VEVENT\nUID:${uid()}@mightysound.studio\nDTSTART:${fmtICS(task.startDate)}\nDTEND:${fmtICS(task.endDate)}\nSUMMARY:${proj.code} ${ep.name} — ${task.name}\nDESCRIPTION:Engineer: ${task.assignee||'TBC'} | Status: ${task.status}\nLOCATION:Mighty Sound Studio\nEND:VEVENT\n`;
+  })));
+  ics+='END:VCALENDAR';
+  const blob=new Blob([ics],{type:'text/calendar'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='mighty_sound_schedule.ics';a.click();URL.revokeObjectURL(url);
+}
+
+// ── Import Modal ───────────────────────────────────────────────────────────
+function ImportModal({onClose,onImport}){
+  const [stage,setStage]=useState('upload');// upload | processing | preview | done
+  const [fileName,setFileName]=useState('');
+  const [fileType,setFileType]=useState('');
+  const [progress,setProgress]=useState(0);
+  const [parsed,setParsed]=useState(null);
+  const [dragOver,setDragOver]=useState(false);
+  const [error,setError]=useState('');
+  const fileRef=useRef();
+
+  const handleFile=async(file)=>{
+    if(!file)return;
+    setFileName(file.name);const ext=file.name.split('.').pop().toLowerCase();
+    setFileType(ext==='xlsx'||ext==='xls'?'xlsx':ext==='pdf'?'pdf':['png','jpg','jpeg'].includes(ext)?'image':'unknown');
+    setStage('processing');setProgress(10);setError('');
+    try{
+      if(ext==='xlsx'||ext==='xls')await parseXLSX(file);
+      else if(ext==='pdf')await parsePDF(file);
+      else if(['png','jpg','jpeg'].includes(ext))await parseImage(file);
+      else setError('Unsupported file type. Please use XLSX, PDF, PNG or JPG.');
+    }catch(e){setError('Failed to parse file: '+e.message);setStage('upload')}
+  };
+
+  const parseXLSX=async(file)=>{
+    setProgress(30);
+    const buf=await file.arrayBuffer();
+    const wb=window.XLSX.read(buf,{type:'array',cellDates:true});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const rows=window.XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
+    setProgress(60);
+    // Extract project name from first rows
+    const projName=rows[0]?.find(c=>c&&typeof c==='string'&&c.length>2)||'Imported Project';
+    const projCode='MS'+Math.floor(Math.random()*9000+1000);
+    // Find audio tasks
+    const AUDIO_MAP={'Audio spotting':'Ingest','Audio spot':'Ingest','Audio edit':'DX Edit','Pre-Mix':'Pre Mix','Pre Mix':'Pre Mix','Final-Mix':'Final Mix','Final Mix':'Final Mix','Deliverables':'Delivery','QC':'QC','Mix':'Final Mix'};
+    const taskEntries=[];let lastDate=null;
+    rows.forEach(row=>{
+      const dateCell=row[2];let d=null;
+      if(dateCell instanceof Date)d=dateCell.toISOString().split('T')[0];
+      else if(typeof dateCell==='string'&&dateCell.match(/\d{4}/))d=new Date(dateCell).toISOString().split('T')[0];
+      if(d)lastDate=d;
+      row.forEach(cell=>{
+        if(typeof cell==='string'){
+          Object.keys(AUDIO_MAP).forEach(kw=>{if(cell.toLowerCase().includes(kw.toLowerCase())&&lastDate){const existing=taskEntries.find(t=>t.name===AUDIO_MAP[kw]);if(!existing)taskEntries.push({name:AUDIO_MAP[kw],date:lastDate})}});
+        }
+      });
+    });
+    setProgress(85);
+    // Build tasks from found entries sorted by date
+    taskEntries.sort((a,b)=>a.date.localeCompare(b.date));
+    const tasks=taskEntries.length>0?taskEntries.map((te,i)=>{const td=TASK_DEFS.find(t=>t.name===te.name)||TASK_DEFS[i%TASK_DEFS.length];return tk(uid(),td.name,te.date,addDays(te.date,3+i),'Not Started',0,'Paul R')})
+    :TASK_DEFS.map((td,i)=>tk(uid(),td.name,addDays(today(),i*5),addDays(today(),i*5+4),'Not Started',0,'Paul R'));
+    const proj={id:uid(),code:projCode,name:projName.toString().slice(0,40),client:'Imported',type:'film',episodes:[{id:uid(),name:'Film',tasks}]};
+    setParsed(proj);setStage('preview');setProgress(100);
+  };
+
+  const parsePDF=async(file)=>{
+    setProgress(30);
+    // Read as text using FileReader
+    const text=await new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsText(file)});
+    setProgress(50);
+    // Call AI to parse
+    await parseWithAI(text.slice(0,3000),'pdf',file.name);
+  };
+
+  const parseImage=async(file)=>{
+    setProgress(25);
+    const base64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file)});
+    setProgress(45);await parseWithAI(base64,'image',file.name);
+  };
+
+  const parseWithAI=async(data,type,name)=>{
+    setProgress(55);
+    try{
+      const msgContent=type==='image'?[{type:'image',source:{type:'base64',media_type:'image/png',data}},{type:'text',text:`Extract this production schedule as JSON. Return ONLY valid JSON with this structure: {"projectName":"...","episodes":[{"name":"...","tasks":[{"task":"Ingest|DX Edit|MX Edit|SFX Edit|Pre Mix|Final Mix|QC|Delivery","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD","assignee":"TBC"}]}]}. Map milestones to tasks: Picture Lock / Final Lock → Ingest start, Online Playback → DX/MX Edit, Mix Playback → Pre Mix/Final Mix, Deliver for QC → QC, Final Delivery → Delivery. Use the dates from the table directly.`}]
+      :[{type:'text',text:`Extract this production schedule from text and return ONLY valid JSON: {"projectName":"...","episodes":[{"name":"...","tasks":[{"task":"task type","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD","assignee":"TBC"}]}]}. Text: ${data.slice(0,2000)}`}];
+      const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:msgContent}]})});
+      setProgress(80);
+      const result=await resp.json();
+      const text2=result.content?.find(c=>c.type==='text')?.text||'';
+      const jsonMatch=text2.match(/\{[\s\S]*\}/);
+      if(!jsonMatch)throw new Error('No JSON in response');
+      const schedule=JSON.parse(jsonMatch[0]);
+      const projCode='MS'+Math.floor(Math.random()*9000+1000);
+      const episodes=(schedule.episodes||[{name:'Film',tasks:[]}]).map(ep=>({
+        id:uid(),name:ep.name||'Film',
+        tasks:(ep.tasks||TASK_DEFS.map((td,i)=>({task:td.name,startDate:addDays(today(),i*4),endDate:addDays(today(),i*4+3),assignee:'TBC'}))).map(t=>tk(uid(),t.task||'Ingest',t.startDate||today(),t.endDate||addDays(today(),3),t.status||'Not Started',0,t.assignee||'Paul R'))
+      }));
+      const proj={id:uid(),code:projCode,name:schedule.projectName||name.replace(/\.[^.]+$/,'').slice(0,40),client:'Imported',type:episodes.length>1?'series':'film',episodes};
+      setParsed(proj);setStage('preview');setProgress(100);
+    }catch(e){
+      // Fallback: create placeholder project
+      const proj={id:uid(),code:'MS'+Math.floor(Math.random()*9000+1000),name:name.replace(/\.[^.]+$/,'').slice(0,40),client:'Imported',type:'film',episodes:[{id:uid(),name:'Film',tasks:TASK_DEFS.map((td,i)=>tk(uid(),td.name,addDays(today(),i*5),addDays(today(),i*5+4),'Not Started',0,'Paul R'))}]};
+      setParsed(proj);setStage('preview');setProgress(100);
+    }
+  };
+
+  const onDrop=e=>{e.preventDefault();setDragOver(false);const f=e.dataTransfer.files[0];if(f)handleFile(f)};
+
+  return(
+    <div className="modal-ov" onClick={onClose}>
+      <div className="modal" style={{width:500}} onClick={e=>e.stopPropagation()}>
+        <h3 style={{display:'flex',alignItems:'center',gap:8}}>
+          Import Production Schedule
+          <span className="ai-badge">✦ AI Powered</span>
+        </h3>
+        {stage==='upload'&&(<>
+          <div className={`import-drop${dragOver?' drag':''}`} onDragOver={e=>{e.preventDefault();setDragOver(true)}} onDragLeave={()=>setDragOver(false)} onDrop={onDrop} onClick={()=>fileRef.current.click()}>
+            <div className="import-drop-icon">⬆</div>
+            <div className="import-drop-title">Drop your production schedule here</div>
+            <div className="import-drop-sub">or click to browse files</div>
+            <div className="import-type-pills">
+              <span className="import-type xlsx">XLSX</span>
+              <span className="import-type pdf">PDF</span>
+              <span className="import-type img">PNG / JPG</span>
+            </div>
+          </div>
+          <input ref={fileRef} type="file" accept=".xlsx,.xls,.pdf,.png,.jpg,.jpeg" style={{display:'none'}} onChange={e=>e.target.files[0]&&handleFile(e.target.files[0])}/>
+          {error&&<div style={{color:'#c62828',fontSize:12,marginTop:6,fontWeight:600}}>{error}</div>}
+          <div style={{fontSize:11,color:'#aaa',marginTop:8,lineHeight:1.6,fontWeight:500}}>
+            Supports Shark Net-style Excel schedules, PDF master schedules, and image screenshots of milestone tables. AI extracts milestones and maps them to your 8 audio tasks automatically.
+          </div>
+        </>)}
+        {stage==='processing'&&(<>
+          <div style={{textAlign:'center',padding:'24px 0'}}>
+            <div style={{fontSize:32,marginBottom:12}}>⚙️</div>
+            <div style={{fontSize:14,fontWeight:700,color:'#333',marginBottom:8}}>Processing {fileName}</div>
+            <div style={{fontSize:12,color:'#aaa',marginBottom:16,fontWeight:500}}>
+              {fileType==='image'?'Sending to AI for schedule extraction…':fileType==='pdf'?'Extracting text and parsing milestones…':'Reading spreadsheet and mapping audio tasks…'}
+            </div>
+            <div className="progress-bar"><div className="progress-fill" style={{width:`${progress}%`}}/></div>
+            <div style={{fontSize:11,color:'#bbb',marginTop:6,fontWeight:600}}>{progress}%</div>
+          </div>
+        </>)}
+        {stage==='preview'&&parsed&&(<>
+          <div style={{marginBottom:12}}>
+            <div style={{fontSize:12,color:'#888',marginBottom:6,fontWeight:600,textTransform:'uppercase',letterSpacing:'.06em'}}>Extracted: {parsed.code} — {parsed.name}</div>
+            <div className="import-preview">
+              {parsed.episodes.map(ep=>(<div key={ep.id}>
+                <div style={{fontSize:11,fontWeight:700,color:'#555',padding:'4px 0',textTransform:'uppercase',letterSpacing:'.05em'}}>{ep.name}</div>
+                {ep.tasks.map(t=>{const td=taskDef(t.name);return(
+                  <div key={t.id} className="import-row">
+                    <span style={{width:8,height:8,borderRadius:2,background:td.color,display:'inline-block',flex:'0 0 8px'}}/>
+                    <span style={{flex:1}}>{t.name}</span>
+                    <span style={{color:'#aaa',fontSize:11}}>{fmtD(t.startDate)} → {fmtD(t.endDate)}</span>
+                    <span className={`import-status${t.status==='Done'?' done':' proc'}`}>{t.status==='Done'?'Done':'Pending'}</span>
+                  </div>
+                );})}
+              </div>))}
+            </div>
+          </div>
+          <div style={{fontSize:11,color:'#aaa',marginBottom:12,fontWeight:500}}>
+            This schedule will be added to the Master Gantt Scheduler. You can edit any task after import.
+          </div>
+        </>)}
+        <div className="m-actions">
+          <button className="btn-g" onClick={onClose}>Cancel</button>
+          {stage==='preview'&&parsed&&<button className="btn-p" onClick={()=>onImport(parsed)}>Add to Master Gantt</button>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── LongformView ───────────────────────────────────────────────────────────
+function LongformGantt({longform,activeProd}){
+  const [collapsed,setCollapsed]=useState({});const [offsetW,setOffsetW]=useState(0);
+  const prod=longform.productions.find(p=>p.id===activeProd)||longform.productions[0];
+  const WEEKS=14;const PX_WEEK=90;const todayD=today();
+  const startDate=useMemo(()=>addDays(todayD,-21+offsetW*7),[offsetW,todayD]);
+  const totalPx=WEEKS*PX_WEEK;const dToX=d=>daysBetween(startDate,d)*(PX_WEEK/7);const todayX=dToX(todayD);
+  const weeksArr=useMemo(()=>Array.from({length:WEEKS},(_,i)=>{const d=addDays(startDate,i*7);const dt=new Date(d+'T00:00:00');return dt.toLocaleDateString('en-AU',{day:'numeric',month:'short'})}),[startDate]);
+  const toggleEp=id=>setCollapsed(p=>({...p,[id]:!p[id]}));
+  if(!prod)return null;
+  return(<div>
+    <div className="lfg-legend">
+      {TASK_DEFS.map(t=><div key={t.name} className="lfg-legend-item"><span className="lfg-legend-dot" style={{background:t.color}}/>{t.name}</div>)}
+    </div>
+    <div style={{display:'flex',gap:8,marginBottom:12}}>
+      <button className="mg-nav-btn" onClick={()=>setOffsetW(o=>o-2)}>‹ Earlier</button>
+      <span style={{fontSize:13,color:'#555',fontWeight:600}}>{weeksArr[0]} — {weeksArr[WEEKS-1]}</span>
+      <button className="mg-nav-btn" onClick={()=>setOffsetW(o=>o+2)}>Later ›</button>
+      <button className="mg-nav-btn" onClick={()=>setOffsetW(0)} style={{fontSize:11}}>Today</button>
+      <span style={{marginLeft:'auto',fontSize:11,color:'#bbb',fontWeight:500}}>Click episode row to expand tasks</span>
+    </div>
+    <div className="lfg-wrap" style={{overflowX:'auto'}}><div style={{minWidth:240+totalPx}}>
+      <div className="lfg-head"><div className="lfg-lbl-col">Episode / Task</div><div style={{display:'flex',minWidth:totalPx}}>{weeksArr.map((w,i)=><div key={i} className="lfg-week" style={{flex:`0 0 ${PX_WEEK}px`}}>{w}</div>)}</div></div>
+      {prod.episodes.map(ep=>{
+        const ts=ep.tasks||[];const isOpen=!collapsed[ep.id];
+        const s=ts.length?ts.reduce((m,t)=>t.startDate<m?t.startDate:m,ts[0].startDate):null;const e=ts.length?ts.reduce((m,t)=>t.endDate>m?t.endDate:m,ts[0].endDate):null;
+        const x1=s?Math.max(0,dToX(s)):0;const x2=e?Math.min(totalPx,dToX(e)):0;
+        return(<React.Fragment key={ep.id}>
+          <div className="lfg-ep-row" onClick={()=>toggleEp(ep.id)}>
+            <div className="lfg-ep-label">
+              <span style={{fontSize:9,color:'#aaa',transform:isOpen?'rotate(90deg)':'rotate(0)',display:'inline-block',transition:'transform .15s',flex:'0 0 auto'}}>▶</span>
+              <span style={{flex:1}}>{ep.name}</span>
+              <SBadge v={ep.status} onClick={e=>e.stopPropagation()}/>
+            </div>
+            <div className="lfg-ep-timeline" style={{minWidth:totalPx}}>
+              {todayX>=0&&todayX<=totalPx&&<div className="lfg-today" style={{left:todayX}}/>}
+              {x2>x1&&x2-x1>0&&<div className="lfg-ep-spine" style={{left:x1,width:x2-x1}}/>}
+              <span style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',fontSize:11,color:'#bbb',fontWeight:600}}>{fmtD(ep.dueDate)}</span>
+            </div>
+          </div>
+          {isOpen&&ts.map(task=>{
+            const td=taskDef(task.name);const tx1=Math.max(0,dToX(task.startDate));const tx2=Math.min(totalPx,dToX(task.endDate));const w=tx2-tx1;
+            const isDone=task.status==='Done';const isIP=task.status==='In Progress';
+            return(<div key={task.id} className="lfg-task-row">
+              <div className="lfg-task-label"><span style={{width:8,height:8,borderRadius:2,background:td.color,display:'inline-block',flex:'0 0 8px'}}/><span>{task.name}</span>{task.assignee&&<span style={{marginLeft:'auto',fontSize:9,color:'#bbb',fontWeight:600}}>{task.assignee.split(' ')[0]}</span>}</div>
+              <div className="lfg-task-timeline" style={{minWidth:totalPx}}>
+                {todayX>=0&&todayX<=totalPx&&<div className="lfg-today" style={{left:todayX}}/>}
+                {w>0&&(<div className="lfg-task-bar" style={{left:tx1,width:w,background:isDone?td.color+'dd':isIP?td.color+'55':'#f0f0f0',border:`1px solid ${td.color}${isDone?'cc':isIP?'88':'33'}`}} title={`${task.name}: ${task.status} (${task.pct}%)`}>
+                  {isIP&&task.pct>0&&<div className="lfg-bar-fill" style={{width:`${task.pct}%`,background:td.color}}/>}
+                  <div className="lfg-bar-label" style={{color:isDone?'#fff':isIP?td.color:'#bbb'}}>{w>55?task.name:''}</div>
+                </div>)}
+              </div>
+            </div>);
+          })}
+        </React.Fragment>);
+      })}
+    </div></div>
+  </div>);
+}
+
+function LongformPipeline({prod,onUpdate,prodId}){
+  if(!prod)return null;
+  const stageAvg=s=>Math.round(prod.episodes.reduce((sum,e)=>sum+(e.stages[s]||0),0)/Math.max(prod.episodes.length,1));
+  const doneCount=prod.episodes.filter(e=>e.status==='Done').length;
+  const totalPct=Math.round(STAGES.reduce((s,st)=>s+stageAvg(st),0)/STAGES.length);
+  const updEpStage=(eid,stage,val)=>onUpdate(lf=>({...lf,productions:lf.productions.map(p=>p.id===prodId?{...p,episodes:p.episodes.map(e=>e.id===eid?{...e,stages:{...e.stages,[stage]:Math.min(100,Math.max(0,parseInt(val)||0))}}:e)}:p)}));
+  const updEpStatus=(eid,status)=>onUpdate(lf=>({...lf,productions:lf.productions.map(p=>p.id===prodId?{...p,episodes:p.episodes.map(e=>e.id===eid?{...e,status}:e)}:p)}));
+  return(<div>
+    <div className="lf-hdr-card">
+      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:12}}>
+        <div><div className="lf-title">{prod.name}</div><div className="lf-meta">{prod.type} · {prod.client} · {prod.engineer}</div></div>
+        <div style={{textAlign:'right'}}><div style={{fontSize:26,fontWeight:900,color:'#111',fontFamily:'DM Mono,monospace'}}>{totalPct}%</div><div style={{fontSize:9,color:'#aaa',textTransform:'uppercase',letterSpacing:'.08em',fontWeight:700}}>Complete</div></div>
+      </div>
+      <div style={{display:'flex',gap:14,flexWrap:'wrap'}}>
+        {[{v:prod.episodes.length,l:'Episodes'},{v:doneCount,l:'Delivered'},{v:prod.episodes.length-doneCount,l:'Remaining'},{v:fmtCur(prod.budget),l:'Budget'}].map(s=><div key={s.l} className="lf-stat"><div className="lf-stat-val">{s.v}</div><div className="lf-stat-lbl">{s.l}</div></div>)}
+      </div>
+      <div style={{display:'flex',gap:2,marginTop:14,alignItems:'center'}}>
+        {STAGES.map((stage,i)=>(<React.Fragment key={stage}>{i>0&&<span style={{fontSize:10,color:'#ccc',margin:'0 1px',marginBottom:10}}>→</span>}<div className="lf-stage"><div className="lf-stage-name">{stage}</div><div className="lf-stage-bar"><div className="lf-stage-fill" style={{width:`${stageAvg(stage)}%`,background:STAGE_COLORS[i]}}/></div><div className="lf-stage-pct">{stageAvg(stage)}%</div></div></React.Fragment>))}
+      </div>
+    </div>
+    <div className="ep-table">
+      <div className="ep-head">
+        <div className="ep-th ep-th-name">Episode</div>
+        {STAGES.map((s,i)=><div key={s} className="ep-th ep-th-stage" style={{color:STAGE_COLORS[i]}}>{s}</div>)}
+        <div className="ep-th ep-th-due">Due</div>
+        <div className="ep-th ep-th-status">Status</div>
+      </div>
+      {prod.episodes.map(ep=>(<div key={ep.id} className="ep-row">
+        <div className="ep-name">{ep.name}</div>
+        {STAGES.map((stage,i)=>(<div key={stage} className="ep-stage"><div className="ep-stg-bar"><div className="ep-stg-fill" style={{width:`${ep.stages[stage]}%`,background:STAGE_COLORS[i]}}/></div><div className="ep-stg-pct" onClick={()=>{const v=prompt(`${stage} % for "${ep.name}"`,ep.stages[stage]);if(v!==null)updEpStage(ep.id,stage,v)}}>{ep.stages[stage]}%</div></div>))}
+        <div className="ep-due">{fmtD(ep.dueDate)||'—'}</div>
+        <div className="ep-status"><SBadge v={ep.status} onClick={()=>{const opts=ST.map(s=>s.l);const next=(opts.indexOf(ep.status)+1)%opts.length;updEpStatus(ep.id,opts[next])}}/></div>
+      </div>))}
+    </div>
+  </div>);
+}
+
+function LongformView({longform,onUpdate}){
+  const [activeProd,setActiveProd]=useState(longform.activeProduction);
+  const [lfView,setLfView]=useState('pipeline');
+  const prod=longform.productions.find(p=>p.id===activeProd)||longform.productions[0];
+  return(<div>
+    <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:18}}>
+      <div className="lf-tabs" style={{marginBottom:0,flex:1}}>
+        {longform.productions.map(p=><div key={p.id} className={`lf-tab${p.id===activeProd?' active':''}`} onClick={()=>setActiveProd(p.id)}>{p.name}</div>)}
+        <div className="lf-tab" style={{borderStyle:'dashed'}}>+ New</div>
+      </div>
+      <div style={{display:'flex',gap:6}}>
+        <button className={`lf-vbtn${lfView==='pipeline'?' active':''}`} onClick={()=>setLfView('pipeline')}>⊟ Pipeline</button>
+        <button className={`lf-vbtn${lfView==='gantt'?' active':''}`} onClick={()=>setLfView('gantt')}>📊 Gantt</button>
+      </div>
+    </div>
+    {lfView==='pipeline'&&<LongformPipeline prod={prod} prodId={activeProd} onUpdate={onUpdate}/>}
+    {lfView==='gantt'&&<LongformGantt longform={longform} activeProd={activeProd}/>}
+  </div>);
+}
+
+// ── TimeTracker ────────────────────────────────────────────────────────────
+function TimeTracker({item,onUpdate}){
+  const [running,setRunning]=useState(false);const [elapsed,setElapsed]=useState(0);const [person,setPerson]=useState(PEOPLE[0]);const [note,setNote]=useState('');const [manHrs,setManHrs]=useState('');const [manDate,setManDate]=useState(today());const [manNote,setManNote]=useState('');const [manPerson,setManPerson]=useState(PEOPLE[0]);
+  const startRef=useRef(null);const ivRef=useRef(null);
+  const fmt=s=>`${String(Math.floor(s/3600)).padStart(2,'0')}:${String(Math.floor((s%3600)/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  const start=()=>{setRunning(true);startRef.current=Date.now()-elapsed*1000;ivRef.current=setInterval(()=>setElapsed(Math.floor((Date.now()-startRef.current)/1000)),500)};
+  const stop=()=>{clearInterval(ivRef.current);setRunning(false);const mins=Math.round(elapsed/60);if(mins>0)onUpdate('timeLogs',[...(item.timeLogs||[]),{id:uid(),date:today(),mins,person,note}]);setElapsed(0);setNote('')};
+  const addManual=()=>{const h=parseFloat(manHrs);if(isNaN(h)||h<=0)return;onUpdate('timeLogs',[...(item.timeLogs||[]),{id:uid(),date:manDate,mins:Math.round(h*60),person:manPerson,note:manNote}]);setManHrs('');setManNote('')};
+  const del=id=>onUpdate('timeLogs',(item.timeLogs||[]).filter(l=>l.id!==id));
+  useEffect(()=>()=>clearInterval(ivRef.current),[]);
+  const logs=item.timeLogs||[];const totalMins=logs.reduce((s,l)=>s+(l.mins||0),0);
+  return(<div>
+    <div style={{background:'#f8f8f8',border:'1px solid #e5e5e5',borderRadius:8,padding:14,marginBottom:14}}>
+      <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:12}}>
+        <div className="timer-display">{fmt(elapsed)}</div>
+        {running?<button className="timer-btn" onClick={stop} style={{background:'#fff5f5',borderColor:'#f5c6c6',color:'#c62828'}}>⏹ Stop &amp; Log</button>:<button className="timer-btn" onClick={start} style={{background:'#e8f5e9',borderColor:'#c8e6c9',color:'#2e7d32'}}>▶ Start Timer</button>}
+      </div>
+      {running&&<div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+        <div><div className="det-label">Engineer</div><select className="m-sel" style={{padding:'6px 8px',fontSize:12,marginBottom:0}} value={person} onChange={e=>setPerson(e.target.value)}>{PEOPLE.map(p=><option key={p}>{p}</option>)}</select></div>
+        <div><div className="det-label">Note</div><input className="det-in" style={{fontSize:12}} placeholder="What are you working on?" value={note} onChange={e=>setNote(e.target.value)}/></div>
+      </div>}
+      <div style={{fontSize:12,color:'#aaa',marginTop:8,fontWeight:600}}>Total logged: <b style={{color:'#333',fontFamily:'DM Mono,monospace'}}>{minsToHrs(totalMins)}h</b></div>
+    </div>
+    <div style={{marginBottom:14}}>
+      <div style={{fontSize:9,fontWeight:700,letterSpacing:'.09em',textTransform:'uppercase',color:'#aaa',marginBottom:8}}>Log time manually</div>
+      <div style={{display:'grid',gridTemplateColumns:'80px 100px 1fr',gap:7,marginBottom:7}}>
+        <div><div className="det-label">Hours</div><input className="det-in" type="number" step="0.5" min="0" placeholder="0.5" value={manHrs} onChange={e=>setManHrs(e.target.value)}/></div>
+        <div><div className="det-label">Date</div><input className="det-in" type="date" value={manDate} onChange={e=>setManDate(e.target.value)}/></div>
+        <div><div className="det-label">Note</div><input className="det-in" placeholder="Session note..." value={manNote} onChange={e=>setManNote(e.target.value)}/></div>
+      </div>
+      <div style={{display:'flex',gap:7}}><select className="m-sel" style={{flex:1,padding:'6px 8px',fontSize:12,marginBottom:0}} value={manPerson} onChange={e=>setManPerson(e.target.value)}>{PEOPLE.map(p=><option key={p}>{p}</option>)}</select><button className="btn-p" onClick={addManual} style={{padding:'7px 14px',fontSize:12}}>Log time</button></div>
+    </div>
+    {logs.length>0&&<div>
+      <div style={{fontSize:9,fontWeight:700,letterSpacing:'.09em',textTransform:'uppercase',color:'#aaa',marginBottom:8}}>Time log</div>
+      <div style={{background:'#f8f8f8',borderRadius:7,padding:'4px 10px'}}>
+        {[...logs].reverse().map(l=><div key={l.id} className="time-log-row">
+          <span className="tl-hrs">{minsToHrs(l.mins)}h</span>
+          <span style={{fontSize:11,color:'#bbb',fontWeight:500}}>{fmtD(l.date)}</span>
+          <span className="pav" style={{background:pColor(l.person),width:20,height:20,fontSize:8}}>{inits(l.person)}</span>
+          <span style={{flex:1,fontSize:11,color:'#777',fontWeight:500}}>{l.note||'—'}</span>
+          <button className="tl-del" onClick={()=>del(l.id)}>×</button>
+        </div>)}
+      </div>
+    </div>}
+  </div>);
+}
+
+// ── Modals ─────────────────────────────────────────────────────────────────
+function AddColModal({onAdd,onClose}){const [name,setName]=useState('');const [type,setType]=useState('text');const TYPES=[{t:'text',l:'Text'},{t:'status',l:'Status'},{t:'priority',l:'Priority'},{t:'person',l:'Person'},{t:'date',l:'Date'},{t:'number',l:'Number'},{t:'currency',l:'Currency ($)'}];return(<div className="modal-ov" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()}><h3>Add column</h3><label>Name</label><input className="m-in" placeholder="Column name" value={name} onChange={e=>setName(e.target.value)} autoFocus onKeyDown={e=>e.key==='Enter'&&name&&onAdd(name,type)}/><label>Type</label><select className="m-sel" value={type} onChange={e=>setType(e.target.value)}>{TYPES.map(c=><option key={c.t} value={c.t}>{c.l}</option>)}</select><div className="m-actions"><button className="btn-g" onClick={onClose}>Cancel</button><button className="btn-p" onClick={()=>name&&onAdd(name,type)}>Add</button></div></div></div>);}
+function AddBoardModal({onAdd,onClose}){const ICONS=['📁','🎙️','🎬','📊','👥','💰','📅','🔧','📝','⚡','🎚️','🎛️','🎧','🗂️'];const [name,setName]=useState('');const [icon,setIcon]=useState('📁');return(<div className="modal-ov" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()}><h3>New board</h3><label>Name</label><input className="m-in" placeholder="Board name" value={name} onChange={e=>setName(e.target.value)} autoFocus/><label>Icon</label><div className="icon-grid">{ICONS.map(ic=><span key={ic} className={`icon-opt${icon===ic?' sel':''}`} onClick={()=>setIcon(ic)}>{ic}</span>)}</div><div className="m-actions"><button className="btn-g" onClick={onClose}>Cancel</button><button className="btn-p" onClick={()=>name&&onAdd(name,icon)}>Create</button></div></div></div>);}
+
+// ── ItemDetail ─────────────────────────────────────────────────────────────
+function ItemDetail({boards,sel,onClose,onUpdate}){
+  const [tab,setTab]=useState('fields');if(!sel)return null;
+  const {bid,gid,iid}=sel;const board=boards.find(b=>b.id===bid);if(!board)return null;
+  const group=board.groups.find(g=>g.id===gid);if(!group)return null;
+  const item=group.items.find(i=>i.id===iid);if(!item)return null;
+  const upd=(field,val)=>onUpdate(bid,p=>({...p,groups:p.groups.map(g=>g.id===gid?{...g,items:g.items.map(i=>i.id===iid?{...i,[field]:val}:i)}:g)}));
+  const updVal=(cid,val)=>onUpdate(bid,p=>({...p,groups:p.groups.map(g=>g.id===gid?{...g,items:g.items.map(i=>i.id===iid?{...i,values:{...i.values,[cid]:val}}:i)}:g)}));
+  const del=()=>{onUpdate(bid,p=>({...p,groups:p.groups.map(g=>g.id===gid?{...g,items:g.items.filter(i=>i.id!==iid)}:g)}));onClose()};
+  const totalLogged=(item.timeLogs||[]).reduce((s,l)=>s+(l.mins||0),0);
+  return(<div className="overlay" onClick={onClose}><div className="detail" onClick={e=>e.stopPropagation()}>
+    <div className="det-hdr">
+      <button className="det-close" onClick={onClose}>×</button>
+      <input className="det-title" value={item.name} onChange={e=>upd('name',e.target.value)} placeholder="Item name"/>
+      <div className="det-sub">{board.name} / {group.name}{totalLogged>0&&<span style={{marginLeft:10,color:'#5c6bc0',fontWeight:600}}>⏱ {minsToHrs(totalLogged)}h</span>}</div>
+    </div>
+    <div className="det-tabs">{[{id:'fields',l:'Fields'},{id:'time',l:'Time Tracking'},{id:'timeline',l:'Timeline'},{id:'notes',l:'Notes'}].map(t=><div key={t.id} className={`det-tab${tab===t.id?' active':''}`} onClick={()=>setTab(t.id)}>{t.l}</div>)}</div>
+    <div className="det-body">
+      {tab==='fields'&&<><div className="det-grid">{board.columns.map(col=><div key={col.id} className="det-field"><div className="det-label">{col.name}</div><Cell col={col} value={item.values[col.id]} onChange={v=>updVal(col.id,v)}/></div>)}</div><hr className="det-div"/><button className="btn-del" onClick={del}>Delete item</button></>}
+      {tab==='time'&&<TimeTracker item={item} onUpdate={upd}/>}
+      {tab==='timeline'&&<div>
+        <div style={{marginBottom:14}}><div className="det-label">Start Date</div><input type="date" className="det-in" value={item.startDate||''} onChange={e=>upd('startDate',e.target.value)}/></div>
+        <div style={{marginBottom:14}}><div className="det-label">End / Due Date</div>{board.columns.filter(c=>c.type==='date').map(c=><div key={c.id} style={{marginBottom:7}}><div style={{fontSize:11,color:'#bbb',marginBottom:3,fontWeight:600}}>{c.name}</div><Cell col={c} value={item.values[c.id]} onChange={v=>updVal(c.id,v)}/></div>)}</div>
+        {item.startDate&&board.columns.find(c=>c.type==='date')&&item.values[board.columns.find(c=>c.type==='date').id]&&<div style={{background:'#f5f5f5',borderRadius:7,padding:12,fontSize:12,color:'#888',fontWeight:600}}>Duration: <b style={{color:'#333'}}>{daysBetween(item.startDate,item.values[board.columns.find(c=>c.type==='date').id])} days</b></div>}
+      </div>}
+      {tab==='notes'&&<textarea className="det-notes" style={{minHeight:200}} value={item.notes||''} placeholder="Add session notes, delivery specs, links..." onChange={e=>upd('notes',e.target.value)}/>}
+    </div>
+  </div></div>);
+}
+
+// ── App ────────────────────────────────────────────────────────────────────
+function App(){
+  const [data,setData]=useState(null);const [view,setView]=useState('table');const [sel,setSel]=useState(null);const [showAddBoard,setShowAddBoard]=useState(false);const [loaded,setLoaded]=useState(false);
+  const saveRef=useRef(null);
+  const isMaster=data&&data.activeBoard==='__master__';
+  const isLongform=data&&data.activeBoard==='__longform__';
+  useEffect(()=>{(async()=>{try{const r=await window.storage.get('wb4_data');setData(r&&r.value?JSON.parse(r.value):INIT)}catch{setData(INIT)}setLoaded(true)})()},[]);
+  useEffect(()=>{if(!loaded||!data)return;clearTimeout(saveRef.current);saveRef.current=setTimeout(async()=>{try{await window.storage.set('wb4_data',JSON.stringify(data))}catch{}},700)},[data,loaded]);
+  const board=data&&!isMaster&&!isLongform?data.boards.find(b=>b.id===data.activeBoard):null;
+  const setBoard=id=>{setData(p=>({...p,activeBoard:id}));setView('table');setSel(null)};
+  const updBoard=useCallback((bid,fn)=>setData(p=>({...p,boards:p.boards.map(b=>b.id===bid?(typeof fn==='function'?fn(b):{...b,...fn}):b)})),[]);
+  const updLongform=fn=>setData(p=>({...p,longform:typeof fn==='function'?fn(p.longform):{...p.longform,...fn}}));
+  const updMasterGantt=fn=>setData(p=>({...p,masterGantt:typeof fn==='function'?fn(p.masterGantt):[...p.masterGantt,...fn]}));
+  const addBoard=(name,icon)=>{const nb={id:uid(),name,icon,color:GCOLS[data.boards.length%GCOLS.length],columns:[{id:uid(),name:'Status',type:'status'},{id:uid(),name:'Assigned',type:'person'},{id:uid(),name:'Due Date',type:'date'}],groups:[{id:uid(),name:'Group 1',color:'#5c6bc0',collapsed:false,items:[]}]};setData(p=>({...p,boards:[...p.boards,nb],activeBoard:nb.id}));setShowAddBoard(false)};
+  const quickAdd=()=>{if(!board||!board.groups.length)return;const it={id:uid(),name:'New item',notes:'',startDate:'',timeLogs:[],values:{}};updBoard(board.id,p=>({...p,groups:p.groups.map((g,i)=>i===0?{...g,items:[it,...g.items]}:g)}))};
+  const VIEWS=[{id:'table',l:'⊞ Table'},{id:'kanban',l:'▣ Kanban'},{id:'calendar',l:'📅 Calendar'},{id:'gantt',l:'📊 Gantt'}];
+  if(!loaded)return<div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',background:'#f0f0f0',flexDirection:'column',gap:12}}><div style={{width:48,height:48,background:'#111',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',fontSize:24}}>🎙️</div><div style={{fontSize:14,fontWeight:700,color:'#555',letterSpacing:'.05em',textTransform:'uppercase'}}>Loading WorkBoard…</div></div>;
+  return(<div className="app">
+    <div className="sidebar">
+      <div className="sb-logo">
+        <div className="sb-logo-icon">
+          <svg viewBox="0 0 20 20" fill="none"><rect x="2" y="4" width="16" height="12" rx="2" stroke="#000" strokeWidth="1.5"/><path d="M7 8l3 3 3-3" stroke="#000" strokeWidth="1.5" strokeLinecap="round"/></svg>
+        </div>
+        <div className="sb-logo-text">
+          <div className="sb-logo-brand">Mighty Sound</div>
+          <div className="sb-logo-sub">WorkBoard</div>
+        </div>
+      </div>
+      <div className="sb-scroll">
+        <div className="sb-section">Boards</div>
+        {data.boards.map(b=><div key={b.id} className={`sb-item${b.id===data.activeBoard&&!isMaster&&!isLongform?' active':''}`} onClick={()=>setBoard(b.id)}><span className="sb-icon">{b.icon}</span><span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.name}</span></div>)}
+        <div className="sb-add" onClick={()=>setShowAddBoard(true)}><span className="sb-icon">+</span>Add board</div>
+        <div className="sb-section" style={{marginTop:12}}>Scheduler</div>
+        <div className={`sb-item${isMaster?' active':''}`} onClick={()=>setBoard('__master__')}><span className="sb-icon">📊</span>Master Gantt<span className="sb-badge new">Live</span></div>
+        <div className={`sb-item${isLongform?' active':''}`} onClick={()=>setBoard('__longform__')}><span className="sb-icon">🎬</span>Production Overview</div>
+        <div className="sb-section" style={{marginTop:12}}>Workspace</div>
+        {['🔔 Notifications','⚙️ Settings'].map(x=><div key={x} className="sb-item"><span className="sb-icon">{x.slice(0,2)}</span>{x.slice(3)}</div>)}
+      </div>
+      <div className="sb-footer"><div className="user-av">MP</div><div><div style={{fontSize:12,color:'rgba(255,255,255,.85)',fontWeight:700}}>Matthew Perrott</div><div style={{fontSize:11,color:'rgba(255,255,255,.35)',fontWeight:500}}>Founder</div></div></div>
+    </div>
+    <div className="main">
+      {isMaster?(
+        <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',padding:'18px 22px 0'}}>
+          <div className="board-title" style={{marginBottom:14}}>
+            <span>📊</span><span>Master Gantt Scheduler</span>
+            <span className="bcount">{data.masterGantt.reduce((n,p)=>n+p.episodes.reduce((m,e)=>m+e.tasks.length,0),0)} tasks across {data.masterGantt.length} projects</span>
+          </div>
+          <div style={{flex:1,overflow:'hidden'}}>
+            <MasterGantt ganttData={data.masterGantt} onUpdateGantt={updMasterGantt} onImport={()=>{}}/>
+          </div>
+        </div>
+      ):isLongform?(
+        <>
+          <div className="board-header"><div className="board-title"><span>🎬</span><span>Production Overview</span><span className="bcount">{data.longform.productions.reduce((s,p)=>s+p.episodes.length,0)} episodes</span></div><hr className="hdr-div" style={{marginTop:4}}/></div>
+          <div className="board-content"><LongformView longform={data.longform} onUpdate={updLongform}/></div>
+        </>
+      ):board?(
+        <>
+          <div className="board-header">
+            <div className="board-title"><span>{board.icon}</span><span>{board.name}</span><span className="bcount">{board.groups.reduce((n,g)=>n+g.items.length,0)} items</span></div>
+            <div className="toolbar">{VIEWS.map(v=><button key={v.id} className={`view-btn${view===v.id?' active':''}`} onClick={()=>setView(v.id)}>{v.l}</button>)}<div className="t-sep"/><button className="t-btn">🔍 Filter</button><button className="t-btn hi" onClick={quickAdd}>+ New item</button></div>
+            <hr className="hdr-div"/>
+          </div>
+          <div className="board-content">
+            {view==='table'&&<TableView board={board} onUpdate={fn=>updBoard(board.id,fn)} onSelect={(bid,gid,iid)=>setSel({bid,gid,iid})}/>}
+            {view==='kanban'&&<KanbanView board={board} onSelect={(bid,gid,iid)=>setSel({bid,gid,iid})}/>}
+            {view==='calendar'&&<CalendarView board={board} onSelect={(bid,gid,iid)=>setSel({bid,gid,iid})}/>}
+            {view==='gantt'&&<GanttView board={board} onSelect={(bid,gid,iid)=>setSel({bid,gid,iid})}/>}
+          </div>
+        </>
+      ):<div className="empty"><h3>Select a board</h3></div>}
+      {sel&&<ItemDetail boards={data.boards} sel={sel} onClose={()=>setSel(null)} onUpdate={updBoard}/>}
+      {showAddBoard&&<AddBoardModal onAdd={addBoard} onClose={()=>setShowAddBoard(false)}/>}
+    </div>
+  </div>);
+}
+ReactDOM.render(<App/>,document.getElementById('root'));
+</script>
+</body>
+</html>
