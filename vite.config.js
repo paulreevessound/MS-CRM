@@ -9,9 +9,11 @@ export default defineConfig({
       output: {
         globals: {
           xlsx: 'XLSX'
+        },
+        manualChunks: {
+          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore'],
         }
-      },
-      treeshake: false
+      }
     }
   }
 })
