@@ -3184,7 +3184,7 @@ function MightySoundLoader(){
 }
 
 export default function App(){
-  const [data,setData]=useState(null);const [view,setView]=useState('table');const [sel,setSel]=useState(null);const [showAddBoard,setShowAddBoard]=useState(false);const [loaded,setLoaded]=useState(false);
+  const [data,setData]=useState(null);const [view,setView]=useState('table');const [sel,setSel]=useState(null);const [showAddBoard,setShowAddBoard]=useState(false);const [loaded,setLoaded]=useState(false);const [firestoreReady,setFirestoreReady]=useState(false);
   const [showConflicts,setShowConflicts]=useState(false);
   const [account,setAccount]=useState(null);
   const [authLoading,setAuthLoading]=useState(true);
@@ -3228,27 +3228,25 @@ export default function App(){
     return()=>unsub();
   },[]);
 
-  // Load data when user signs in
+  // Load data when user signs in — show app immediately with INIT, sync Firestore in background
   useEffect(()=>{
-    if(!account)return;
+    if(!account){setData(null);setLoaded(false);setFirestoreReady(false);return;}
+    // Immediately load with defaults so app is never stuck
+    setData(INIT);
+    setLoaded(true);
+    // Then try to load saved data from Firestore in background
     let cancelled=false;
-    // Timeout fallback — if Firestore hangs for >6s, load with defaults
-    const timeout=setTimeout(()=>{
-      if(!cancelled){setData(INIT);setLoaded(true);}
-    },6000);
     (async()=>{
       try{
         const saved=await loadUserData(account.uid);
-        if(!cancelled){setData(saved||INIT);}
+        if(!cancelled&&saved){setData(saved);}
       }catch(e){
-        console.warn('Firestore load failed, using defaults:',e);
-        if(!cancelled){setData(INIT);}
+        console.warn('Firestore sync failed, using defaults:',e);
       }finally{
-        clearTimeout(timeout);
-        if(!cancelled){setLoaded(true);}
+        if(!cancelled)setFirestoreReady(true);
       }
     })();
-    return()=>{cancelled=true;clearTimeout(timeout);};
+    return()=>{cancelled=true;};
   },[account?.uid, loginKey]);
 
   // Save data on change
