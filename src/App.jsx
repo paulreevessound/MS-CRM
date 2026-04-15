@@ -559,21 +559,22 @@ function useGoogleCalendar(){
   const pollRef=useRef(null);
 
   // Use Firebase popup to get Google access token with calendar scope
-  const connect=async()=>{
-    try{
-      const provider=new GoogleAuthProvider();
-      provider.addScope('https://www.googleapis.com/auth/calendar');
-      provider.addScope('https://www.googleapis.com/auth/spreadsheets');
-      provider.setCustomParameters({prompt:'consent'});
-      const result=await signInWithPopup(auth,provider);
-      const credential=GoogleAuthProvider.credentialFromResult(result);
-      if(credential?.accessToken){
-        setToken(credential.accessToken);
-      }
-    }catch(e){
-      console.warn('GCal connect failed:',e.message);
+  const connect=()=>{
+    // Use Google Identity Services token client for reliable scope-specific tokens
+    if(!window.google?.accounts?.oauth2){
+      console.warn('GIS not loaded yet');
       setSyncStatus('error');
+      return;
     }
+    const client=window.google.accounts.oauth2.initTokenClient({
+      client_id:GCAL_CLIENT_ID,
+      scope:'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/spreadsheets',
+      callback:(resp)=>{
+        if(resp.error){console.warn('GCal token error:',resp.error);setSyncStatus('error');return;}
+        setToken(resp.access_token);
+      },
+    });
+    client.requestToken();
   };
 
   const disconnect=()=>{setToken(null);setGcalEvents([]);setSyncStatus('idle');clearInterval(pollRef.current)};
