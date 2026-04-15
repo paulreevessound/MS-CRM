@@ -3,6 +3,55 @@ import { auth, signInWithGoogle, signOutUser, loadUserData, saveUserData, loadUs
 import { onAuthStateChanged } from 'firebase/auth';
 const XLSX = window.XLSX;
 
+// ── Icon System — custom SVG icons replacing all emojis ──────────────────
+const ICON_PATHS = {
+  mic:        <><rect x="9" y="2" width="6" height="10" rx="3" stroke="currentColor" strokeWidth="1.5" fill="none"/><path d="M5 11a7 7 0 0 0 14 0" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/><line x1="12" y1="18" x2="12" y2="22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><line x1="9" y1="22" x2="15" y2="22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></>,
+  fader:      <><rect x="4" y="3" width="2.5" height="18" rx="1.25" stroke="currentColor" strokeWidth="1.5" fill="none"/><rect x="3" y="8" width="4.5" height="5" rx="1" fill="currentColor"/><rect x="11" y="3" width="2.5" height="18" rx="1.25" stroke="currentColor" strokeWidth="1.5" fill="none"/><rect x="10" y="12" width="4.5" height="5" rx="1" fill="currentColor"/><rect x="18" y="3" width="2.5" height="18" rx="1.25" stroke="currentColor" strokeWidth="1.5" fill="none"/><rect x="17" y="6" width="4.5" height="5" rx="1" fill="currentColor"/></>,
+  console:    <><rect x="2" y="6" width="20" height="12" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none"/><circle cx="7" cy="12" r="2" stroke="currentColor" strokeWidth="1.5" fill="none"/><circle cx="12" cy="12" r="2" stroke="currentColor" strokeWidth="1.5" fill="none"/><circle cx="17" cy="12" r="2" stroke="currentColor" strokeWidth="1.5" fill="none"/><line x1="5" y1="9" x2="9" y2="9" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/><line x1="10" y1="9" x2="14" y2="9" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/><line x1="15" y1="9" x2="19" y2="9" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/></>,
+  camera:     <><path d="M15 10l4.553-2.277A1 1 0 0 1 21 8.618v6.764a1 1 0 0 1-1.447.894L15 14" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/><rect x="2" y="7" width="13" height="10" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none"/></>,
+  headphones: <><path d="M3 12a9 9 0 0 1 18 0" stroke="currentColor" strokeWidth="1.5" fill="none"/><path d="M3 12v4a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2H3z" stroke="currentColor" strokeWidth="1.5" fill="none"/><path d="M21 12v4a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2h3z" stroke="currentColor" strokeWidth="1.5" fill="none"/></>,
+  clapper:    <><path d="M4 11h16v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8z" stroke="currentColor" strokeWidth="1.5" fill="none"/><path d="M4 11l2-6h12l2 6" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinejoin="round"/><line x1="8" y1="5" x2="9.5" y2="11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><line x1="14" y1="5" x2="15.5" y2="11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></>,
+  person:     <><circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/></>,
+  people:     <><circle cx="9" cy="7" r="3.5" stroke="currentColor" strokeWidth="1.5" fill="none"/><path d="M2 20c0-3.5 3.1-6 7-6s7 2.5 7 6" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/><circle cx="17" cy="7" r="3.5" stroke="currentColor" strokeWidth="1.5" fill="none"/><path d="M15 14.2c.6-.1 1.3-.2 2-.2 3.9 0 7 2.5 7 6" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/></>,
+  money:      <><rect x="2" y="6" width="20" height="13" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none"/><circle cx="12" cy="12.5" r="2.5" stroke="currentColor" strokeWidth="1.5" fill="none"/><line x1="6" y1="6" x2="6" y2="5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><line x1="12" y1="6" x2="12" y2="5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><line x1="18" y1="6" x2="18" y2="5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></>,
+  folder:     <><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" stroke="currentColor" strokeWidth="1.5" fill="none"/></>,
+  calendar:   <><rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none"/><line x1="3" y1="9" x2="21" y2="9" stroke="currentColor" strokeWidth="1.5"/><line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><rect x="7" y="13" width="3" height="3" rx=".5" fill="currentColor"/><rect x="11" y="13" width="3" height="3" rx=".5" fill="currentColor"/></>,
+  gantt:      <><line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" strokeWidth="1" strokeOpacity=".3"/><line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" strokeWidth="1" strokeOpacity=".3"/><line x1="3" y1="18" x2="21" y2="18" stroke="currentColor" strokeWidth="1" strokeOpacity=".3"/><rect x="4" y="4" width="8" height="4" rx="1.5" fill="currentColor"/><rect x="8" y="10" width="10" height="4" rx="1.5" fill="currentColor" opacity=".8"/><rect x="4" y="16" width="6" height="4" rx="1.5" fill="currentColor" opacity=".6"/></>,
+  note:       <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" strokeWidth="1.5" fill="none"/><polyline points="14 2 14 8 20 8" stroke="currentColor" strokeWidth="1.5" fill="none"/><line x1="8" y1="13" x2="16" y2="13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><line x1="8" y1="17" x2="13" y2="17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></>,
+  screen:     <><rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none"/><line x1="8" y1="21" x2="16" y2="21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><line x1="12" y1="17" x2="12" y2="21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></>,
+  refresh:    <><path d="M23 4v6h-6" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/><path d="M1 20v-6h6" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/></>,
+  search:     <><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.5" fill="none"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></>,
+  lock:       <><rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none"/><path d="M8 11V7a4 4 0 0 1 8 0v4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/></>,
+  bell:       <><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/><path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/></>,
+  link:       <><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/></>,
+  wrench:     <><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/></>,
+  files:      <><path d="M3 7a2 2 0 0 1 2-2h4l2 2h3a2 2 0 0 1 2 2v1" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/><path d="M5 10h14a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2z" stroke="currentColor" strokeWidth="1.5" fill="none"/></>,
+  trash:      <><polyline points="3 6 5 6 21 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/></>,
+  dot_green:  <><circle cx="12" cy="12" r="5" fill="#43a047"/><circle cx="12" cy="12" r="8" stroke="#43a047" strokeWidth="1" fill="none" opacity=".4"/></>,
+  lightning:  <><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinejoin="round"/></>,
+  warning:    <><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinejoin="round"/><line x1="12" y1="9" x2="12" y2="13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><circle cx="12" cy="17" r="1" fill="currentColor"/></>,
+  upload:     <><polyline points="16 16 12 12 8 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><line x1="12" y1="12" x2="12" y2="21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/></>,
+  timer:      <><circle cx="12" cy="13" r="8" stroke="currentColor" strokeWidth="1.5" fill="none"/><polyline points="12 9 12 13 14.5 15.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><line x1="9" y1="3" x2="15" y2="3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></>,
+  settings:   <><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5" fill="none"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="currentColor" strokeWidth="1.5" fill="none"/></>,
+  waveform:   <><polyline points="2 12 5 5 8 18 11 8 14 15 17 10 20 12 22 12" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/></>,
+  plus:       <><line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></>,
+};
+
+function Icon({name,size=16,color='currentColor',className='',style={}}){
+  const paths=ICON_PATHS[name];
+  if(!paths)return null;
+  return(
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{display:'inline-block',verticalAlign:'middle',flexShrink:0,color,...style}}>
+      {paths}
+    </svg>
+  );
+}
+
+
+
 
 // ── Constants ──────────────────────────────────────────────────────────────
 const ST=[{l:'Not Started',c:'#757575',bg:'#f5f5f5'},{l:'In Progress',c:'#1565c0',bg:'#e3f2fd'},{l:'Review',c:'#6a1fa2',bg:'#f3e5f5'},{l:'Done',c:'#2e7d32',bg:'#e8f5e9'},{l:'Stuck',c:'#c62828',bg:'#ffebee'},{l:'On Hold',c:'#e65100',bg:'#fff3e0'}];
@@ -311,7 +360,7 @@ const DEFAULT_ENGINEER_SKILLS=[
 const INIT={
   activeBoard:'b1',
   boards:[
-    {id:'b1',name:'Active Projects',icon:'🎙️',color:'#5c6bc0',
+    {id:'b1',name:'Active Projects',icon:'mic',color:'#5c6bc0',
      columns:[{id:'c1',name:'Status',type:'status'},{id:'c2',name:'Engineer',type:'person'},{id:'c3',name:'Client',type:'text'},{id:'c4',name:'Due Date',type:'date'},{id:'c5',name:'Budget',type:'currency'},{id:'c6',name:'Hours',type:'number'}],
      groups:[
        {id:'g1',name:'In Progress',color:'#5c6bc0',collapsed:false,items:[
@@ -326,7 +375,7 @@ const INIT={
          {id:'i5',name:'Feature Mix — Still Water',notes:'Delivered 4 Apr. Archive to NAS.',startDate:'2026-03-10',timeLogs:[{id:'t5',date:'2026-03-20',mins:480,person:'Matthew P',note:'Full mix'}],values:{c1:'Done',c2:'Matthew P',c3:'Still Water Prods',c4:'2026-04-05',c5:14000,c6:45}},
        ]},
      ]},
-    {id:'b3',name:'Engineers',icon:'🎧',color:'#8e24aa',
+    {id:'b3',name:'Engineers',icon:'headphones',color:'#8e24aa',
      columns:[{id:'c1',name:'Status',type:'status'},{id:'c2',name:'Role',type:'text'},{id:'c3',name:'Rate ($/day)',type:'currency'},{id:'c4',name:'Booked From',type:'date'},{id:'c5',name:'Booked To',type:'date'}],
      groups:[
        {id:'g1',name:'Staff',color:'#5c6bc0',collapsed:false,items:[
@@ -349,7 +398,7 @@ const INIT={
           values:{c1:'Available',c2:'ADR Supervisor',c3:880,c4:'',c5:''}},
        ]},
      ]},
-    {id:'b4',name:'Budget Tracker',icon:'💰',color:'#fb8c00',
+    {id:'b4',name:'Budget Tracker',icon:'money',color:'#fb8c00',
      columns:[{id:'c1',name:'Status',type:'status'},{id:'c2',name:'Client',type:'text'},{id:'c3',name:'Quoted',type:'currency'},{id:'c4',name:'Invoiced',type:'currency'},{id:'c5',name:'Paid',type:'currency'},{id:'c6',name:'Due Date',type:'date'}],
      groups:[
        {id:'g1',name:'Outstanding',color:'#fb8c00',collapsed:false,items:[
@@ -420,8 +469,8 @@ function TableView({board,onUpdate,onSelect,onEditItem}){
         {g.items.map(item=>(<div key={item.id} className="tbl-row">
           <div className="td-name">{edName===item.id?<input className="ni" value={item.name} autoFocus onChange={e=>updName(g.id,item.id,e.target.value)} onBlur={()=>setEdName(null)} onKeyDown={e=>e.key==='Enter'&&setEdName(null)} onClick={e=>e.stopPropagation()}/>:
             <><span className="td-nm-txt" onDoubleClick={e=>{e.stopPropagation();setEdName(item.id)}} onClick={()=>onSelect(board.id,g.id,item.id)}>{item.name}</span>
-            {item.notes&&<span style={{fontSize:9,color:'#ccc'}}>📝</span>}
-            {item.timeLogs&&item.timeLogs.length>0&&<span style={{fontSize:9,color:'#ccc'}}>⏱</span>}
+            {item.notes&&<span style={{fontSize:9,color:'#ccc'}}><Icon name="note" size={9}/></span>}
+            {item.timeLogs&&item.timeLogs.length>0&&<span style={{fontSize:9,color:'#ccc'}}><Icon name="timer" size={13}/>/span>}
             {onEditItem&&<button onClick={e=>{e.stopPropagation();onEditItem(item,g.name)}} style={{marginLeft:6,background:'none',border:'1px solid #ddd',borderRadius:4,padding:'1px 7px',fontSize:10,fontWeight:700,color:'#888',cursor:'pointer',flexShrink:0}} title="Edit">✏️ Edit</button>}
             </>}
           </div>
@@ -723,7 +772,7 @@ function WorkboardCalendar({ganttData,boards,account}){
           <span className="gc-title">{titleStr}</span>
           <button className={`gc-sync-btn${gcal.connected?' connected':''}`}
             onClick={e=>{e.stopPropagation();gcal.connected?gcal.fetchEvents():gcal.connect()}}>
-            <span>{gcal.connected?'🟢':'📅'}</span>
+            <span>{gcal.connected?<><Icon name="dot_green" size={14}/></>:'calendar'}</span>
             <span>{gcal.connected?'Google Calendar':'Connect Google'}</span>
           </button>
           <div className="gc-view-toggle">
@@ -853,14 +902,14 @@ function WorkboardCalendar({ganttData,boards,account}){
             <div style={{fontSize:14,fontWeight:700,color:'#111',flex:1,paddingRight:20}}>{detailEvent.event.title}</div>
           </div>
           <div style={{fontSize:12,color:'#555',marginBottom:4}}>
-            📅 {detailEvent.event.start}{detailEvent.event.start!==detailEvent.event.end?` → ${detailEvent.event.end}`:''}
+            <Icon name="calendar" size={12}/> {detailEvent.event.start}{detailEvent.event.start!==detailEvent.event.end?` → ${detailEvent.event.end}`:''}
           </div>
-          {detailEvent.event.assignee&&<div style={{fontSize:12,color:'#555',marginBottom:4}}>👤 {detailEvent.event.assignee}</div>}
-          {detailEvent.event.status&&<div style={{fontSize:12,color:'#555',marginBottom:4}}>⚡ {detailEvent.event.status}</div>}
+          {detailEvent.event.assignee&&<div style={{fontSize:12,color:'#555',marginBottom:4,display:'flex',alignItems:'center',gap:4}}><Icon name="person" size={12}/> {detailEvent.event.assignee}</div>}
+          {detailEvent.event.status&&<div style={{fontSize:12,color:'#555',marginBottom:4,display:'flex',alignItems:'center',gap:4}}><Icon name="lightning" size={12}/> {detailEvent.event.status}</div>}
           {detailEvent.event._type==='gcal'&&(
             <button onClick={()=>{gcal.deleteEvent(detailEvent.event._gcalId);setDetailEvent(null)}}
               style={{marginTop:8,background:'#fff5f5',border:'1px solid #fcc',borderRadius:5,padding:'4px 10px',color:'#c62828',fontSize:11,fontWeight:700,cursor:'pointer'}}>
-              🗑 Delete from Google Calendar
+              Delete from Google Calendar
             </button>
           )}
           {detailEvent.event._type==='workboard'&&gcal.connected&&(
@@ -869,7 +918,7 @@ function WorkboardCalendar({ganttData,boards,account}){
               setDetailEvent(null);
             }}
               style={{marginTop:8,background:'#e8f5e9',border:'1px solid #a5d6a7',borderRadius:5,padding:'4px 10px',color:'#2e7d32',fontSize:11,fontWeight:700,cursor:'pointer'}}>
-              📅 Add to Google Calendar
+              <Icon name="calendar" size={12}/> Add to Google Calendar
             </button>
           )}
         </div>
@@ -889,7 +938,7 @@ function CreateEventModal({date,hour,gcalConnected,onSave,onClose}){
       <input autoFocus style={{width:'100%',border:'none',borderBottom:'2px solid #1a73e8',outline:'none',fontSize:16,fontWeight:400,color:'#111',padding:'4px 0 6px',marginBottom:12,fontFamily:'Barlow,sans-serif'}}
         placeholder="Event title" value={title} onChange={e=>setTitle(e.target.value)}
         onKeyDown={e=>{if(e.key==='Enter'&&title.trim())onSave({title,notes});if(e.key==='Escape')onClose()}}/>
-      <div style={{fontSize:12,color:'#70757a',marginBottom:8}}>📅 {fmt(date)} · {hrFmt(hour)}</div>
+      <div style={{fontSize:12,color:'#70757a',marginBottom:8,display:'flex',alignItems:'center',gap:4}}><Icon name="calendar" size={12}/> {fmt(date)} · {hrFmt(hour)}</div>
       <textarea style={{width:'100%',border:'1px solid #e0e0e0',borderRadius:6,padding:'7px 9px',fontSize:12,resize:'none',height:54,outline:'none',fontFamily:'Barlow,sans-serif',color:'#333'}}
         placeholder="Add notes..." value={notes} onChange={e=>setNotes(e.target.value)}/>
       <div style={{display:'flex',gap:6,marginTop:10,justifyContent:'flex-end'}}>
@@ -1382,9 +1431,9 @@ function MasterGantt({ganttData,onUpdateGantt,onShowConflicts}){
       {/* Conflict banner */}
       {conflicts.length>0&&(
         <div className="mg-conflict-banner">
-          <span>⚠</span>
+          <Icon name="warning" size={14}/>
           <span style={{flex:1}}>{conflicts.length} engineer conflict{conflicts.length!==1?'s':''} detected</span>
-          <button className="resolve-btn" onClick={onShowConflicts}>⚡ View & Fix</button>
+          <button className="resolve-btn" onClick={onShowConflicts}><Icon name="lightning" size={12}/> View & Fix</button>
         </div>
       )}
 
@@ -1405,7 +1454,7 @@ function MasterGantt({ganttData,onUpdateGantt,onShowConflicts}){
           <button ref={datePickerBtnRef} className="mg-nav-btn"
             onClick={()=>setShowDatePicker(p=>!p)}
             style={{display:'flex',alignItems:'center',gap:6,fontWeight:600,background:showDatePicker?'#111':'#fff',color:showDatePicker?'#fff':'#555'}}>
-            📅 Jump to date
+            <Icon name="calendar" size={12}/> Jump to date
           </button>
           {showDatePicker&&<DatePickerPopup anchorRef={datePickerBtnRef}
             onSelect={d=>{
@@ -1423,15 +1472,15 @@ function MasterGantt({ganttData,onUpdateGantt,onShowConflicts}){
             <div style={{display:'flex',alignItems:'center',gap:6,fontSize:11,fontWeight:600,color:sheets.syncStatus==='ok'?'#2e7d32':sheets.syncStatus==='error'?'#c62828':'#888'}}>
               <span style={{width:7,height:7,borderRadius:'50%',background:sheets.syncStatus==='ok'?'#43a047':sheets.syncStatus==='syncing'?'#fb8c00':'#c62828',display:'inline-block'}}/>
               {sheets.syncStatus==='ok'?`Synced ${sheets.lastSync?.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'})}`:sheets.syncStatus==='syncing'?'Syncing…':'Sync error'}
-              <button onClick={sheets.pollSheet} className="mg-nav-btn" style={{fontSize:10,padding:'3px 8px'}}>↻</button>
+              <button onClick={sheets.pollSheet} className="mg-nav-btn" style={{fontSize:10,padding:'3px 8px'}}><Icon name="refresh" size={12}/>/button>
             </div>
           )}
           <button className="t-btn" onClick={()=>setShowSheetsPanel(p=>!p)}
             style={{fontWeight:700,fontSize:12,background:sheets.connected?'#e8f5e9':'#fff',borderColor:sheets.connected?'#a5d6a7':'#ddd',color:sheets.connected?'#2e7d32':'#444'}}>
-            {sheets.connected?'🟢 Sheets':'📊 Connect Sheets'}
+            {sheets.connected?'● Sheets':<><Icon name="gantt" size={12}/> Connect Sheets</>}
           </button>
-          <button className="t-btn" onClick={()=>setShowImport(true)} style={{fontWeight:700,fontSize:12}}>⬆ Import</button>
-          <button className="t-btn" onClick={()=>exportICS(ganttData)} style={{fontWeight:700,fontSize:12}}>📅 .ics</button>
+          <button className="t-btn" onClick={()=>setShowImport(true)} style={{fontWeight:700,fontSize:12}}><Icon name="upload" size={12}/> Import</button>
+          <button className="t-btn" onClick={()=>exportICS(ganttData)} style={{fontWeight:700,fontSize:12}}><Icon name="calendar" size={12}/> .ics</button>
         </div>
       </div>
 
@@ -1623,10 +1672,10 @@ function exportICS(ganttData){
 
 // ── IMPORT MODAL ───────────────────────────────────────────────────────────
 const CONTENT_TYPES=[
-  {id:'series',  icon:'📺', label:'TV Series',     desc:'Multiple episodes, each with a full audio post pipeline'},
-  {id:'film',    icon:'🎬', label:'Film',           desc:'Single feature or short film, one pipeline'},
-  {id:'doco',    icon:'🎥', label:'Documentary',    desc:'Single doc or doc series — treated as one pipeline per ep'},
-  {id:'short',   icon:'⚡', label:'Short Form',     desc:'TVCs, social, podcasts — multiple assets by duration/count'},
+  {id:'series',  icon:'screen', label:'TV Series',     desc:'Multiple episodes, each with a full audio post pipeline'},
+  {id:'film',    icon:'clapper', label:'Film',           desc:'Single feature or short film, one pipeline'},
+  {id:'doco',    icon:'camera', label:'Documentary',    desc:'Single doc or doc series — treated as one pipeline per ep'},
+  {id:'short',   icon:'lightning', label:'Short Form',     desc:'TVCs, social, podcasts — multiple assets by duration/count'},
 ];
 
 function ImportModal({onClose,onImport}){
@@ -1886,7 +1935,7 @@ JSON structure:
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
           <h3 style={{margin:0,display:'flex',alignItems:'center',gap:8}}>
             Import Production Schedule
-            <span className="ai-badge" style={{background:"#e8f5e9",color:"#2e7d32"}}>⚡ Auto</span>
+            <span className="ai-badge" style={{background:"#e8f5e9",color:"#2e7d32"}}><Icon name="lightning" size={11}/> Auto</span>
           </h3>
           {step!=='type'&&<button onClick={()=>setStep('type')} style={{background:'none',border:'none',fontSize:11,fontWeight:700,color:'#aaa',cursor:'pointer',textTransform:'uppercase',letterSpacing:'.05em'}}>← Back</button>}
         </div>
@@ -1946,7 +1995,7 @@ JSON structure:
         {/* Step 3: Processing */}
         {step==='processing'&&(
           <div style={{textAlign:'center',padding:'32px 0'}}>
-            <div style={{fontSize:36,marginBottom:14}}>⚙️</div>
+            <div style={{marginBottom:14}}><Icon name="settings" size={36} style={{color:"#bbb"}}/></div>
             <div style={{fontSize:14,fontWeight:700,color:'#333',marginBottom:6}}>{fileName}</div>
             <div style={{fontSize:12,color:'#aaa',marginBottom:18,fontWeight:500}}>{processingMsg}</div>
             <div className="progress-bar"><div className="progress-fill" style={{width:`${progress}%`}}/></div>
@@ -1965,7 +2014,7 @@ JSON structure:
                   {parsed.assetType&&` · ${parsed.assetType}`}
                 </div>
               </div>
-              <span style={{fontSize:20}}>{CONTENT_TYPES.find(c=>c.id===parsed.type)?.icon||'📁'}</span>
+              <span style={{fontSize:20}}>{CONTENT_TYPES.find(c=>c.id===parsed.type)?.icon||'folder'}</span>
             </div>
             {error&&<div style={{color:'#e65100',fontSize:11,fontWeight:600,marginBottom:8,background:'#fff3e0',padding:'6px 10px',borderRadius:5}}>{error}</div>}
             <div className="import-preview" style={{maxHeight:300}}>
@@ -2367,7 +2416,7 @@ function LongformView({longform,onUpdate}){
       </div>
       <div style={{display:'flex',gap:6}}>
         <button className={`lf-vbtn${lfView==='pipeline'?' active':''}`} onClick={()=>setLfView('pipeline')}>⊟ Pipeline</button>
-        <button className={`lf-vbtn${lfView==='gantt'?' active':''}`} onClick={()=>setLfView('gantt')}>📊 Gantt</button>
+        <button className={`lf-vbtn${lfView==='gantt'?' active':''}`} onClick={()=>setLfView('gantt')}><Icon name="gantt" size={13}/> Gantt</button>
       </div>
     </div>
     {lfView==='pipeline'&&<LongformPipeline prod={prod} prodId={activeProd} onUpdate={onUpdate}/>}
@@ -2492,7 +2541,7 @@ let ENGINEER_SKILLS=DEFAULT_ENGINEER_SKILLS;
 
 // ── Modals ─────────────────────────────────────────────────────────────────
 function AddColModal({onAdd,onClose}){const [name,setName]=useState('');const [type,setType]=useState('text');const TYPES=[{t:'text',l:'Text'},{t:'status',l:'Status'},{t:'priority',l:'Priority'},{t:'person',l:'Person'},{t:'date',l:'Date'},{t:'number',l:'Number'},{t:'currency',l:'Currency ($)'}];return(<div className="modal-ov" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()}><h3>Add column</h3><label>Name</label><input className="m-in" placeholder="Column name" value={name} onChange={e=>setName(e.target.value)} autoFocus onKeyDown={e=>e.key==='Enter'&&name&&onAdd(name,type)}/><label>Type</label><select className="m-sel" value={type} onChange={e=>setType(e.target.value)}>{TYPES.map(c=><option key={c.t} value={c.t}>{c.l}</option>)}</select><div className="m-actions"><button className="btn-g" onClick={onClose}>Cancel</button><button className="btn-p" onClick={()=>name&&onAdd(name,type)}>Add</button></div></div></div>);}
-function AddBoardModal({onAdd,onClose}){const ICONS=['📁','🎙️','🎬','📊','👥','💰','📅','🔧','📝','⚡','🎚️','🎛️','🎧','🗂️'];const [name,setName]=useState('');const [icon,setIcon]=useState('📁');return(<div className="modal-ov" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()}><h3>New board</h3><label>Name</label><input className="m-in" placeholder="Board name" value={name} onChange={e=>setName(e.target.value)} autoFocus/><label>Icon</label><div className="icon-grid">{ICONS.map(ic=><span key={ic} className={`icon-opt${icon===ic?' sel':''}`} onClick={()=>setIcon(ic)}>{ic}</span>)}</div><div className="m-actions"><button className="btn-g" onClick={onClose}>Cancel</button><button className="btn-p" onClick={()=>name&&onAdd(name,icon)}>Create</button></div></div></div>);}
+function AddBoardModal({onAdd,onClose}){const ICONS=['folder','mic','clapper','gantt','people','money','calendar','wrench','note','lightning','fader','console','headphones','files'];const [name,setName]=useState('');const [icon,setIcon]=useState('folder');return(<div className="modal-ov" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()}><h3>New board</h3><label>Name</label><input className="m-in" placeholder="Board name" value={name} onChange={e=>setName(e.target.value)} autoFocus/><label>Icon</label><div className="icon-grid">{ICONS.map(ic=><span key={ic} className={`icon-opt${icon===ic?' sel':''}`} onClick={()=>setIcon(ic)}>{ic}</span>)}</div><div className="m-actions"><button className="btn-g" onClick={onClose}>Cancel</button><button className="btn-p" onClick={()=>name&&onAdd(name,icon)}>Create</button></div></div></div>);}
 
 function AddCustomSkill({onAdd}){
   const [val,setVal]=useState('');
@@ -2553,7 +2602,7 @@ function AddEngineerModal({onAdd,onClose,editItem,skillsList,onAddSkill}){
 
         {/* Staff / Freelancer toggle */}
         <div style={{display:'flex',gap:6,marginBottom:14}}>
-          {[['staff','👤 Staff'],['freelancer','🔗 Freelancer']].map(([t,l])=>(
+          {[['staff','Staff'],['freelancer','Freelancer']].map(([t,l])=>(
             <div key={t} onClick={()=>setEngType(t)}
               style={{flex:1,padding:'8px 12px',borderRadius:7,border:`2px solid ${engType===t?'#111':'#e5e5e5'}`,background:engType===t?'#111':'#fff',color:engType===t?'#fff':'#555',fontSize:12,fontWeight:700,cursor:'pointer',textAlign:'center',transition:'all .13s'}}>
               {l}
@@ -2909,7 +2958,7 @@ function ConflictResolutionModal({conflicts,ganttData,engineers,onApply,onClose}
       if(candidates.length===0){
         results.push({
           conflictSummary:conflictStr,
-          icon:'⚠️',
+          icon:'warning',
           title:`No available engineer for ${taskToMove.projCode} ${taskToMove.name}`,
           reason:`All engineers with ${reqSkill||'required'} skill are occupied on ${taskToMove.startDate}–${taskToMove.endDate}. Consider adjusting dates.`,
           changeType:'manual',before:conflictedEng,after:'TBC',
@@ -2924,7 +2973,7 @@ function ConflictResolutionModal({conflicts,ganttData,engineers,onApply,onClose}
 
       results.push({
         conflictSummary:conflictStr,
-        icon:'🔄',
+        icon:'refresh',
         title:`Reassign ${taskToMove.projCode} ${taskToMove.name} → ${best.name}`,
         reason:`${best.name} (${typeLabel}) has ${skillLabel} skill and is free ${taskToMove.startDate}–${taskToMove.endDate}.`,
         changeType:'reassign',
@@ -2961,9 +3010,9 @@ function ConflictResolutionModal({conflicts,ganttData,engineers,onApply,onClose}
       <div className="cr-modal" onClick={e=>e.stopPropagation()}>
         <div className="cr-hdr">
           <div className="cr-title">
-            <span>⚠️</span>
+            <Icon name="warning" size={16}/>
             <span>Schedule Conflicts</span>
-            <span className="ai-badge" style={{background:"#e8f5e9",color:"#2e7d32"}}>⚡ Auto</span>
+            <span className="ai-badge" style={{background:"#e8f5e9",color:"#2e7d32"}}><Icon name="lightning" size={11}/> Auto</span>
             <button onClick={onClose} style={{marginLeft:'auto',background:'none',border:'none',fontSize:20,color:'#bbb',cursor:'pointer',lineHeight:1,padding:0}}>×</button>
           </div>
           <div style={{fontSize:12,color:'#888',fontWeight:500,marginTop:4}}>
@@ -2974,13 +3023,13 @@ function ConflictResolutionModal({conflicts,ganttData,engineers,onApply,onClose}
         <div className="cr-body">
           {stage==='list'&&(<>
             <div style={{fontSize:11,fontWeight:700,color:'#aaa',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>Detected Conflicts</div>
-            {conflicts.slice(0,12).map((c,i)=><div key={i} className="conflict-item">⚡ {c}</div>)}
+            {conflicts.slice(0,12).map((c,i)=><div key={i} className="conflict-item"><Icon name="lightning" size={11}/> {c}</div>)}
             {conflicts.length>12&&<div style={{fontSize:11,color:'#aaa',fontWeight:500,marginBottom:8}}>+{conflicts.length-12} more conflicts…</div>}
           </>)}
 
           {stage==='loading'&&(
             <div style={{textAlign:'center',padding:'40px 0'}}>
-              <div style={{fontSize:36,marginBottom:14}}>🤖</div>
+              <div style={{marginBottom:14}}><Icon name="waveform" size={40} style={{color:'#bbb'}}/></div>
               <div style={{fontSize:14,fontWeight:700,color:'#333',marginBottom:6}}>Analysing schedule…</div>
               <div style={{fontSize:12,color:'#aaa',fontWeight:500}}>Checking engineer workloads, skills and availability</div>
               <div style={{width:200,height:3,background:'#e5e5e5',borderRadius:3,margin:'18px auto 0',overflow:'hidden'}}>
@@ -2994,7 +3043,7 @@ function ConflictResolutionModal({conflicts,ganttData,engineers,onApply,onClose}
             {suggestions.map((sug,i)=>(
               <div key={i} className={`suggestion-card${approved[i]?' approved':rejected[i]?' rejected':''}`}>
                 <div className="sug-header">
-                  <div className="sug-icon">{sug.icon||'🔄'}</div>
+                  <div className="sug-icon">{sug.icon==='warning'?<Icon name="warning" size={18}/>:<Icon name="refresh" size={18}/>}</div>
                   <div style={{flex:1}}>
                     <div className="sug-title">{sug.title}</div>
                     <div className="sug-reason">{sug.reason}</div>
@@ -3012,7 +3061,7 @@ function ConflictResolutionModal({conflicts,ganttData,engineers,onApply,onClose}
                 </div>
                 {sug.freelancerName&&(
                   <div className="sug-freelancer">
-                    👤 <b>{sug.freelancerName}</b> recommended — {sug.freelancerNote}
+                    <Icon name="person" size={12}/> <b>{sug.freelancerName}</b> recommended — {sug.freelancerNote}
                   </div>
                 )}
                 {!approved[i]&&!rejected[i]&&(
@@ -3032,7 +3081,7 @@ function ConflictResolutionModal({conflicts,ganttData,engineers,onApply,onClose}
         <div className="cr-footer">
           {stage==='list'&&<>
             <button className="btn-p" onClick={getSuggestions} style={{display:'flex',alignItems:'center',gap:6}}>
-              <span>✦ Get AI Suggestions</span>
+              <span><Icon name="lightning" size={12}/> Get Suggestions</span>
             </button>
             <button className="btn-g" onClick={onClose}>Close</button>
           </>}
@@ -3074,6 +3123,66 @@ function can(account,perm){
 
 
 // ── App ────────────────────────────────────────────────────────────────────
+
+// ── Mighty Sound Animated Loader ──────────────────────────────────────────
+function MightySoundLoader(){
+  return(
+    <div style={{
+      display:'flex',alignItems:'center',justifyContent:'center',
+      height:'100vh',background:'#0d0d14',flexDirection:'column',gap:0,
+      fontFamily:"'Barlow Condensed', 'Barlow', sans-serif",
+    }}>
+      <style>{`
+        @keyframes ms-bar { 0%,100%{transform:scaleY(.3)} 50%{transform:scaleY(1)} }
+        @keyframes ms-fade-in { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes ms-pulse { 0%,100%{opacity:.5} 50%{opacity:1} }
+        .ms-bar-wrap { display:flex; align-items:center; gap:5px; margin-bottom:32px; }
+        .ms-bar { width:4px; border-radius:3px; background:#fff; transform-origin:bottom; animation:ms-bar 1s ease-in-out infinite; }
+        .ms-wordmark { animation: ms-fade-in .6s ease both; animation-delay:.2s; opacity:0; }
+        .ms-sub { animation: ms-fade-in .6s ease both; animation-delay:.5s; opacity:0; }
+        .ms-dots { animation: ms-pulse 1.4s ease-in-out infinite; }
+      `}</style>
+
+      {/* Animated waveform bars */}
+      <div className="ms-bar-wrap">
+        {[28,42,20,55,35,48,22,38,50,25,44,18,52,32,45,24,40,30].map((h,i)=>(
+          <div key={i} className="ms-bar" style={{
+            height:h,
+            opacity:.4+((i%3)*.2),
+            animationDelay:`${(i*0.08)%1}s`,
+            animationDuration:`${0.7+(i%4)*0.15}s`,
+            background: i%4===0?'#5c6bc0':i%4===1?'#fff':i%4===2?'rgba(255,255,255,.6)':'#8e96ff',
+          }}/>
+        ))}
+      </div>
+
+      {/* Wordmark */}
+      <div className="ms-wordmark" style={{textAlign:'center'}}>
+        <div style={{
+          fontSize:42,fontWeight:800,color:'#fff',letterSpacing:'-.01em',
+          lineHeight:1,textTransform:'uppercase',
+        }}>
+          Mighty Sound
+        </div>
+        <div style={{
+          fontSize:13,fontWeight:600,color:'rgba(255,255,255,.35)',
+          letterSpacing:'.25em',textTransform:'uppercase',marginTop:6,
+        }}>
+          WorkBoard
+        </div>
+      </div>
+
+      {/* Loading indicator */}
+      <div className="ms-dots" style={{
+        marginTop:48,fontSize:11,fontWeight:600,
+        color:'rgba(255,255,255,.25)',letterSpacing:'.15em',textTransform:'uppercase',
+      }}>
+        Loading
+      </div>
+    </div>
+  );
+}
+
 export default function App(){
   const [data,setData]=useState(null);const [view,setView]=useState('table');const [sel,setSel]=useState(null);const [showAddBoard,setShowAddBoard]=useState(false);const [loaded,setLoaded]=useState(false);
   const [showConflicts,setShowConflicts]=useState(false);
@@ -3224,9 +3333,9 @@ export default function App(){
 
   const addBoard=(name,icon)=>{const nb={id:uid(),name,icon,color:GCOLS[data.boards.length%GCOLS.length],columns:[{id:uid(),name:'Status',type:'status'},{id:uid(),name:'Assigned',type:'person'},{id:uid(),name:'Due Date',type:'date'}],groups:[{id:uid(),name:'Group 1',color:'#5c6bc0',collapsed:false,items:[]}]};setData(p=>({...p,boards:[...p.boards,nb],activeBoard:nb.id}));setShowAddBoard(false)};
   const quickAdd=()=>{if(!board||!board.groups.length)return;const it={id:uid(),name:'New item',notes:'',startDate:'',timeLogs:[],values:{}};updBoard(board.id,p=>({...p,groups:p.groups.map((g,i)=>i===0?{...g,items:[it,...g.items]}:g)}))};
-  const VIEWS=[{id:'table',l:'⊞ Table'},{id:'kanban',l:'▣ Kanban'},{id:'calendar',l:'📅 Calendar'}];
+  const VIEWS=[{id:'table',l:'⊞ Table'},{id:'kanban',l:'▣ Kanban'},{id:'calendar',l:'Calendar'}];
 
-  if(!loaded)return<div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',background:'#f0f0f0',flexDirection:'column',gap:12}}><div style={{width:48,height:48,background:'#111',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',fontSize:24}}>🎙️</div><div style={{fontSize:14,fontWeight:700,color:'#555',letterSpacing:'.05em',textTransform:'uppercase'}}>Loading WorkBoard…</div></div>;
+  if(!loaded)return<MightySoundLoader/>;
 
   if(authLoading)return(
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',background:'#1a1a2e',color:'#fff',fontFamily:'Barlow,sans-serif',fontSize:14}}>
@@ -3266,14 +3375,14 @@ export default function App(){
             if(b.id==='b3'&&!can(account,'viewEngineers'))return false; // hide Engineers from freelancers
             return true;
           })
-          .map(b=><div key={b.id} className={`sb-item${b.id===data.activeBoard&&!isMaster&&!isLongform?' active':''}`} onClick={()=>setBoard(b.id)}><span className="sb-icon">{b.icon}</span><span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.name}</span></div>)}
+          .map(b=><div key={b.id} className={`sb-item${b.id===data.activeBoard&&!isMaster&&!isLongform?' active':''}`} onClick={()=>setBoard(b.id)}><span className="sb-icon"><Icon name={b.icon} size={14}/></span><span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.name}</span></div>)}
         {can(account,'editProjects')&&<div className="sb-add" onClick={()=>setShowAddBoard(true)}><span className="sb-icon">+</span>Add board</div>}
         <div className="sb-section" style={{marginTop:12}}>Scheduler</div>
-        {can(account,'viewGantt')&&<div className={`sb-item${isMaster?' active':''}`} onClick={()=>setBoard('__master__')}><span className="sb-icon">📊</span>Master Gantt<span className="sb-badge new">Live</span></div>}
-        <div className={`sb-item${data.activeBoard==='__calendar__'?' active':''}`} onClick={()=>setBoard('__calendar__')}><span className="sb-icon">📅</span>Calendar<span className="sb-badge" style={{background:'rgba(26,115,232,.2)',color:'rgba(26,115,232,.9)'}}>GCal</span></div>
-        <div className={`sb-item${isLongform?' active':''}`} onClick={()=>setBoard('__longform__')}><span className="sb-icon">🎬</span>Production Overview</div>
+        {can(account,'viewGantt')&&<div className={`sb-item${isMaster?' active':''}`} onClick={()=>setBoard('__master__')}><span className="sb-icon"><Icon name="gantt" size={14}/></span>Master Gantt<span className="sb-badge new">Live</span></div>}
+        <div className={`sb-item${data.activeBoard==='__calendar__'?' active':''}`} onClick={()=>setBoard('__calendar__')}><span className="sb-icon"><Icon name="calendar" size={14}/></span>Calendar<span className="sb-badge" style={{background:'rgba(26,115,232,.2)',color:'rgba(26,115,232,.9)'}}>GCal</span></div>
+        <div className={`sb-item${isLongform?' active':''}`} onClick={()=>setBoard('__longform__')}><span className="sb-icon"><Icon name="clapper" size={14}/></span>Production Overview</div>
         <div className="sb-section" style={{marginTop:12}}>Workspace</div>
-        {['🔔 Notifications','⚙️ Settings'].map(x=><div key={x} className="sb-item"><span className="sb-icon">{x.slice(0,2)}</span>{x.slice(3)}</div>)}
+        {[['bell','Notifications'],['settings','Settings']].map(([icon,label])=><div key={label} className="sb-item"><span className="sb-icon"><Icon name={icon} size={14}/></span>{label}</div>)}
       </div>
       <div className="sb-footer">
         {account.photoURL
@@ -3291,7 +3400,7 @@ export default function App(){
       {isMaster?(
         <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',padding:'18px 22px 12px',minHeight:0}}>
           <div className="board-title" style={{marginBottom:14,flexShrink:0}}>
-            <span>📊</span><span>Master Gantt Scheduler</span>
+            <Icon name="gantt" size={16}/><span>Master Gantt Scheduler</span>
             <span className="bcount">{data.masterGantt.reduce((n,p)=>n+p.episodes.reduce((m,e)=>m+e.tasks.length,0),0)} tasks across {data.masterGantt.length} projects</span>
           </div>
           <div style={{flex:1,overflow:'hidden',minHeight:0,display:'flex',flexDirection:'column'}}>
@@ -3301,7 +3410,7 @@ export default function App(){
       ):isCalendar?(
         <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',padding:'18px 22px 12px',minHeight:0}}>
           <div className="board-title" style={{marginBottom:10,flexShrink:0}}>
-            <span>📅</span><span>Calendar</span>
+            <Icon name="calendar" size={15}/><span>Calendar</span>
             <span className="bcount">All projects · Google Calendar sync</span>
           </div>
           <div style={{flex:1,minHeight:0,display:'flex',flexDirection:'column'}}>
@@ -3310,14 +3419,14 @@ export default function App(){
         </div>
       ):isLongform?(
         <>
-          <div className="board-header"><div className="board-title"><span>🎬</span><span>Production Overview</span><span className="bcount">{data.longform.productions.reduce((s,p)=>s+p.episodes.length,0)} episodes</span></div><hr className="hdr-div" style={{marginTop:4}}/></div>
+          <div className="board-header"><div className="board-title"><Icon name="clapper" size={16}/><span>Production Overview</span><span className="bcount">{data.longform.productions.reduce((s,p)=>s+p.episodes.length,0)} episodes</span></div><hr className="hdr-div" style={{marginTop:4}}/></div>
           <div className="board-content"><LongformView longform={data.longform} onUpdate={updLongform}/></div>
         </>
       ):board?(
         <>
           <div className="board-header">
             <div className="board-title"><span>{board.icon}</span><span>{board.name}</span><span className="bcount">{board.groups.reduce((n,g)=>n+g.items.length,0)} items</span></div>
-            <div className="toolbar">{VIEWS.map(v=><button key={v.id} className={`view-btn${view===v.id?' active':''}`} onClick={()=>setView(v.id)}>{v.l}</button>)}<div className="t-sep"/><button className="t-btn">🔍 Filter</button>
+            <div className="toolbar">{VIEWS.map(v=><button key={v.id} className={`view-btn${view===v.id?' active':''}`} onClick={()=>setView(v.id)}>{v.l}</button>)}<div className="t-sep"/><button className="t-btn"><Icon name="search" size={12}/> Filter</button>
               {board.id==='b3'
                 ?<button className="t-btn hi" onClick={()=>{setEditEngineer(null);setShowAddEngineer(true)}}>+ Add Engineer</button>
                 :<button className="t-btn hi" onClick={quickAdd}>+ New item</button>
@@ -3328,7 +3437,7 @@ export default function App(){
           <div className="board-content">
             {/* Permission gate for budget board */}
             {board.id==='b4'&&!can(account,'viewBudget')&&(
-              <div className="perm-denied">🔒 You don't have permission to view budget information.</div>
+              <div className="perm-denied">You don't have permission to view budget information.</div>
             )}
 
             {/* Gantt-derived projects — only on Active Projects */}
