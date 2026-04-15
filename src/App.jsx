@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-const XLSX = window.XLSX;
+import * as XLSX from 'xlsx';
 
 
 // ── Constants ──────────────────────────────────────────────────────────────
@@ -2933,13 +2933,67 @@ function can(account,perm){
 }
 
 // ── Sign In Screen ─────────────────────────────────────────────────────────
+function SignInScreen({onSignIn}){
+  const [email,setEmail]=useState('');
+  const [password,setPassword]=useState('');
+  const [error,setError]=useState('');
+  const [showPw,setShowPw]=useState(false);
 
+  const attempt=()=>{
+    const acc=ACCOUNTS.find(a=>a.email.toLowerCase()===email.trim().toLowerCase()&&a.password===password);
+    if(acc){setError('');onSignIn(acc)}
+    else setError('Incorrect email or password.');
+  };
+
+  const quickSignIn=acc=>{onSignIn(acc)};
+
+  return(
+    <div className="signin-screen">
+      <div className="signin-card">
+        <div className="signin-logo">
+          <div className="signin-logo-icon">
+            <svg viewBox="0 0 20 20" fill="none"><rect x="2" y="4" width="16" height="12" rx="2" stroke="#fff" strokeWidth="1.5"/><path d="M7 8l3 3 3-3" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/></svg>
+          </div>
+          <div>
+            <div className="signin-logo-brand">Mighty Sound</div>
+            <div className="signin-logo-sub">WorkBoard</div>
+          </div>
+        </div>
+        <div className="signin-title">Sign in</div>
+        <div className="signin-sub">Use your Mighty Sound account</div>
+        <input className="signin-in" type="email" placeholder="Email address" value={email} onChange={e=>{setEmail(e.target.value);setError('')}} onKeyDown={e=>e.key==='Enter'&&attempt()}/>
+        <div style={{position:'relative'}}>
+          <input className="signin-in" type={showPw?'text':'password'} placeholder="Password" value={password} onChange={e=>{setPassword(e.target.value);setError('')}} onKeyDown={e=>e.key==='Enter'&&attempt()}/>
+          <button onClick={()=>setShowPw(p=>!p)} style={{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',color:'#aaa',cursor:'pointer',fontSize:11,fontWeight:700}}>
+            {showPw?'Hide':'Show'}
+          </button>
+        </div>
+        {error&&<div className="signin-err">⚠ {error}</div>}
+        <button className="signin-btn" onClick={attempt}>Sign In</button>
+
+        <div className="signin-users">
+          <div style={{fontSize:10,fontWeight:700,color:'#ccc',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>Quick access</div>
+          {ACCOUNTS.map(acc=>(
+            <button key={acc.id} className="signin-user-btn" onClick={()=>quickSignIn(acc)}>
+              <div className="signin-user-av" style={{background:acc.color}}>{acc.avatar}</div>
+              <div>
+                <div style={{fontSize:12,fontWeight:700,color:'#111'}}>{acc.name}</div>
+                <div style={{fontSize:10,color:'#888',fontWeight:500}}>{acc.email}</div>
+              </div>
+              <span className={`role-badge ${acc.role}`}>{acc.role}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ── App ────────────────────────────────────────────────────────────────────
 export default function App(){
   const [data,setData]=useState(null);const [view,setView]=useState('table');const [sel,setSel]=useState(null);const [showAddBoard,setShowAddBoard]=useState(false);const [loaded,setLoaded]=useState(false);
   const [showConflicts,setShowConflicts]=useState(false);
-  const [account,setAccount]=useState(ACCOUNTS[0]); // default admin
+  const [account,setAccount]=useState(null); // current signed-in user
   const saveRef=useRef(null);
   const isMaster=data&&data.activeBoard==='__master__';
   const isLongform=data&&data.activeBoard==='__longform__';
@@ -2948,7 +3002,10 @@ export default function App(){
   useEffect(()=>{(async()=>{try{const r=await window.storage.get('wb5_data');setData(r&&r.value?JSON.parse(r.value):INIT)}catch{setData(INIT)}setLoaded(true)})()},[]);
   useEffect(()=>{if(!loaded||!data)return;clearTimeout(saveRef.current);saveRef.current=setTimeout(async()=>{try{await window.storage.set('wb5_data',JSON.stringify(data))}catch{}},700)},[data,loaded]);
 
-
+  // Show sign-in if not authenticated
+  if(!account){
+    return <SignInScreen onSignIn={acc=>{setAccount(acc)}}/>;
+  }
 
   // Compute gantt-derived items for Active Projects (read-only view)
   const ganttDerivedItems=useMemo(()=>{
@@ -3003,6 +3060,8 @@ export default function App(){
     }));
   },[data,skillsList]);
 
+  const updBoard=useCallback((bid,fn)=>setData(p=>({...p,boards:p.boards.map(b=>b.id===bid?(typeof fn==='function'?fn(b):{...b,...fn}):b)})),[]);
+
   const saveEngineer=useCallback((eng)=>{
     const eb=data.boards.find(b=>b.id==='b3');if(!eb)return;
     const {_group,...cleanEng}=eng;
@@ -3019,7 +3078,6 @@ export default function App(){
 
   const board=data&&!isMaster&&!isLongform&&!isCalendar?data.boards.find(b=>b.id===data.activeBoard):null;
   const setBoard=id=>{setData(p=>({...p,activeBoard:id}));setView('table');setSel(null)};
-  const updBoard=useCallback((bid,fn)=>setData(p=>({...p,boards:p.boards.map(b=>b.id===bid?(typeof fn==='function'?fn(b):{...b,...fn}):b)})),[]);
   const updLongform=fn=>setData(p=>({...p,longform:typeof fn==='function'?fn(p.longform):{...p.longform,...fn}}));
   const updMasterGantt=fn=>setData(p=>({...p,masterGantt:typeof fn==='function'?fn(p.masterGantt):[...p.masterGantt,...fn]}));
 
@@ -3078,7 +3136,7 @@ export default function App(){
           <div style={{fontSize:12,color:'rgba(255,255,255,.85)',fontWeight:700,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{account.name}</div>
           <div style={{fontSize:10,color:'rgba(255,255,255,.35)',fontWeight:500,textTransform:'capitalize'}}>{account.role}</div>
         </div>
-        
+        <button onClick={()=>setAccount(null)} style={{background:'none',border:'1px solid rgba(255,255,255,.15)',borderRadius:5,color:'rgba(255,255,255,.4)',fontSize:10,fontWeight:700,padding:'3px 7px',cursor:'pointer',flexShrink:0,letterSpacing:'.03em'}} title="Sign out">↩</button>
       </div>
     </div>
     <div className="main">
