@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut } from 'firebase/auth';
 import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -17,36 +17,30 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const googleProvider = new GoogleAuthProvider();
 
-// Request Google Calendar scope at sign-in
 googleProvider.addScope('https://www.googleapis.com/auth/calendar');
 
-// Sign in with Google popup
-export const signInWithGoogle = () => signInWithPopup(auth, googleProvider);
-
-// Sign out
+// Use redirect instead of popup to avoid COOP/cross-origin issues
+export const signInWithGoogle = () => signInWithRedirect(auth, googleProvider);
+export { getRedirectResult };
 export const signOutUser = () => signOut(auth);
 
-// Load a user's workboard data from Firestore
 export const loadUserData = async (uid) => {
   const ref = doc(db, 'users', uid, 'workboard', 'data');
   const snap = await getDoc(ref);
   return snap.exists() ? snap.data().state : null;
 };
 
-// Save a user's workboard data to Firestore
 export const saveUserData = async (uid, state) => {
   const ref = doc(db, 'users', uid, 'workboard', 'data');
   await setDoc(ref, { state, updatedAt: new Date().toISOString() });
 };
 
-// Load user profile (role etc)
 export const loadUserProfile = async (uid) => {
   const ref = doc(db, 'users', uid, 'profile', 'info');
   const snap = await getDoc(ref);
   return snap.exists() ? snap.data() : null;
 };
 
-// Create user profile on first sign-in
 export const createUserProfile = async (uid, profile) => {
   const ref = doc(db, 'users', uid, 'profile', 'info');
   await setDoc(ref, profile, { merge: true });
