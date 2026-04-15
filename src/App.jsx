@@ -1472,7 +1472,7 @@ function MasterGantt({ganttData,onUpdateGantt,onShowConflicts}){
             <div style={{display:'flex',alignItems:'center',gap:6,fontSize:11,fontWeight:600,color:sheets.syncStatus==='ok'?'#2e7d32':sheets.syncStatus==='error'?'#c62828':'#888'}}>
               <span style={{width:7,height:7,borderRadius:'50%',background:sheets.syncStatus==='ok'?'#43a047':sheets.syncStatus==='syncing'?'#fb8c00':'#c62828',display:'inline-block'}}/>
               {sheets.syncStatus==='ok'?`Synced ${sheets.lastSync?.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'})}`:sheets.syncStatus==='syncing'?'Syncing…':'Sync error'}
-              <button onClick={sheets.pollSheet} className="mg-nav-btn" style={{fontSize:10,padding:'3px 8px'}}><Icon name="refresh" size={12}/>/button>
+              <button onClick={sheets.pollSheet} className="mg-nav-btn" style={{fontSize:10,padding:'3px 8px'}}><Icon name="refresh" size={12}/></button>
             </div>
           )}
           <button className="t-btn" onClick={()=>setShowSheetsPanel(p=>!p)}
