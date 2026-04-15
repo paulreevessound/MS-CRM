@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { auth, signInWithGoogle, signOutUser, loadUserData, saveUserData, loadUserProfile, createUserProfile } from './firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 const XLSX = window.XLSX;
 
 // ── Icon System — custom SVG icons replacing all emojis ──────────────────
@@ -558,22 +558,22 @@ function useGoogleCalendar(){
   const [lastSync,setLastSync]=useState(null);
   const pollRef=useRef(null);
 
-  // Handle OAuth token from URL hash after redirect
-  useEffect(()=>{
-    const hash=new URLSearchParams(window.location.hash.replace('#',''));
-    const t=hash.get('access_token');
-    if(t){setToken(t);window.history.replaceState(null,'',window.location.pathname);}
-  },[]);
-
-  const connect=()=>{
-    const params=new URLSearchParams({
-      client_id:GCAL_CLIENT_ID,
-      redirect_uri:window.location.origin+window.location.pathname,
-      response_type:'token',
-      scope:GCAL_SCOPES+' https://www.googleapis.com/auth/spreadsheets',
-      include_granted_scopes:'true',
-    });
-    window.location.href='https://accounts.google.com/o/oauth2/v2/auth?'+params;
+  // Use Firebase popup to get Google access token with calendar scope
+  const connect=async()=>{
+    try{
+      const provider=new GoogleAuthProvider();
+      provider.addScope('https://www.googleapis.com/auth/calendar');
+      provider.addScope('https://www.googleapis.com/auth/spreadsheets');
+      provider.setCustomParameters({prompt:'consent'});
+      const result=await signInWithPopup(auth,provider);
+      const credential=GoogleAuthProvider.credentialFromResult(result);
+      if(credential?.accessToken){
+        setToken(credential.accessToken);
+      }
+    }catch(e){
+      console.warn('GCal connect failed:',e.message);
+      setSyncStatus('error');
+    }
   };
 
   const disconnect=()=>{setToken(null);setGcalEvents([]);setSyncStatus('idle');clearInterval(pollRef.current)};
@@ -1105,31 +1105,22 @@ function useGoogleSheets(ganttData,onUpdateGantt){
   const [accessToken,setAccessToken]=useState(null);
   const pollRef=useRef(null);
 
-  // OAuth implicit flow
-  const connectGoogle=()=>{
-    if(GSHEETS_CLIENT_ID==='YOUR_GOOGLE_CLIENT_ID_HERE'){
-      alert('Add your Google OAuth Client ID to enable Sheets sync. See the build notes.');
-      return;
+  // Use Firebase popup to get Google Sheets access token
+  const connectGoogle=async()=>{
+    try{
+      const provider=new GoogleAuthProvider();
+      provider.addScope('https://www.googleapis.com/auth/spreadsheets');
+      provider.setCustomParameters({prompt:'consent'});
+      const result=await signInWithPopup(auth,provider);
+      const credential=GoogleAuthProvider.credentialFromResult(result);
+      if(credential?.accessToken){
+        setAccessToken(credential.accessToken);
+        setConnected(true);
+      }
+    }catch(e){
+      console.warn('Sheets connect failed:',e.message);
     }
-    const params=new URLSearchParams({
-      client_id:GSHEETS_CLIENT_ID,
-      redirect_uri:window.location.origin+window.location.pathname,
-      response_type:'token',
-      scope:GSHEETS_SCOPES,
-      include_granted_scopes:'true',
-    });
-    window.location.href='https://accounts.google.com/o/oauth2/v2/auth?'+params;
   };
-
-  // Handle OAuth redirect token
-  useEffect(()=>{
-    const hash=new URLSearchParams(window.location.hash.replace('#',''));
-    const token=hash.get('access_token');
-    if(token){
-      setAccessToken(token);setConnected(true);
-      window.history.replaceState(null,'',window.location.pathname);
-    }
-  },[]);
 
   // Parse MASTER sheet rows → gantt projects
   // Format: Col A=Event, Col B=Engineer, Col C=Start Date, Col D=End Date, Col E=Days
