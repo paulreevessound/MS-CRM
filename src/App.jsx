@@ -574,7 +574,7 @@ function useGoogleCalendar(){
         setToken(resp.access_token);
       },
     });
-    client.requestToken();
+    client.requestAccessToken();
   };
 
   const disconnect=()=>{setToken(null);setGcalEvents([]);setSyncStatus('idle');clearInterval(pollRef.current)};
