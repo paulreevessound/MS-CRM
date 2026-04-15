@@ -2350,8 +2350,14 @@ function LongformGantt({longform,activeProd,masterGantt=[]}){
     episodes:p.episodes.map(ep=>({...ep,dueDate:ep.tasks?.slice(-1)[0]?.endDate||'',status:ep.tasks?.every(t=>t.status==='Done')?'Done':ep.tasks?.some(t=>t.status==='In Progress')?'In Progress':'Not Started'})),
     _fromMaster:true,
   })),[masterGantt]);
-  // Default: show master gantt projects; toggle to also include longform productions
-  const prodsToShow=showAll?[...ganttAsProds,...longform.productions]:ganttAsProds.length>0?ganttAsProds:(activeProdObj?[activeProdObj]:[]);
+  // Show the selected project/production, or all when showAll is toggled
+  const isMasterActive=activeProd?.startsWith('mg_');
+  const activeMasterProj=ganttAsProds.find(p=>p.id===activeProd);
+  const prodsToShow=showAll
+    ?[...ganttAsProds,...longform.productions]
+    :isMasterActive
+      ?(activeMasterProj?[activeMasterProj]:ganttAsProds)
+      :(activeProdObj?[activeProdObj]:[]);
   const WEEKS=16;const PX_WEEK=80;const todayD=today();
   const startDate=useMemo(()=>addDays(todayD,-14+offsetW*7),[offsetW,todayD]);
   const totalPx=WEEKS*PX_WEEK;const dToX=d=>daysBetween(startDate,d)*(PX_WEEK/7);const todayX=dToX(todayD);
