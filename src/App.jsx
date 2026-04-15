@@ -1886,7 +1886,7 @@ JSON structure:
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
           <h3 style={{margin:0,display:'flex',alignItems:'center',gap:8}}>
             Import Production Schedule
-            <span className="ai-badge">✦ AI</span>
+            <span className="ai-badge" style={{background:"#e8f5e9",color:"#2e7d32"}}>⚡ Auto</span>
           </h3>
           {step!=='type'&&<button onClick={()=>setStep('type')} style={{background:'none',border:'none',fontSize:11,fontWeight:700,color:'#aaa',cursor:'pointer',textTransform:'uppercase',letterSpacing:'.05em'}}>← Back</button>}
         </div>
@@ -2807,83 +2807,137 @@ function ConflictResolutionModal({conflicts,ganttData,engineers,onApply,onClose}
   const [approved,setApproved]=useState({});
   const [rejected,setRejected]=useState({});
 
-  const getSuggestions=async()=>{
+  // Task name → required skill ID mapping
+  const TASK_SKILL_MAP={
+    'Ingest':      null,          // any engineer can ingest
+    'DX Edit':     'dialogueEdit',
+    'MX Edit':     'musicEdit',
+    'SFX Edit':    'sfxEdit',
+    'Backgrounds': 'backgrounds',
+    'Pre Mix':     'preMix',
+    'Final Mix':   'finalMix',
+    'QC':          'qcChanges',
+    'Delivery':    'deliverables',
+  };
+
+  const getSuggestions=()=>{
     setStage('loading');
-    const engWorkload={};
+
+    // Build a flat list of all active tasks with project/episode context
+    const allTasks=[];
     ganttData.forEach(proj=>proj.episodes.forEach(ep=>ep.tasks.forEach(t=>{
-      if(t.assignee&&t.status!=='Done'){
-        if(!engWorkload[t.assignee])engWorkload[t.assignee]=[];
-        engWorkload[t.assignee].push(`${proj.name} ${ep.name} ${t.name} (${t.startDate}–${t.endDate})`);
-      }
+      if(t.status!=='Done') allTasks.push({...t,projName:proj.name,epName:ep.name,projCode:proj.code});
     })));
-    const engList=(engineers||[]).map(f=>{
-      const isBooked=f.values?.c4&&f.values?.c5?` — BOOKED ${f.values.c4} to ${f.values.c5}`:'';
-      const skillStr=Array.isArray(f.skills)?f.skills.join(', '):(typeof f.skills==='object'?Object.entries(f.skills||{}).filter(([,v])=>v).map(([k])=>k).join(', '):'general');
-      const rateStr=f.values?.c3?` — $${f.values.c3}/day`:'';
-      const type=f._type||'staff';
-      return`${f.name} (${type}${rateStr}) — Skills: ${skillStr||'general'}${isBooked}`;
-    }).join('\n');
-    const conflictList=conflicts.slice(0,10).join('\n');
-    const workloadSummary=Object.entries(engWorkload).map(([eng,tasks])=>`${eng}: ${tasks.length} active tasks`).join('\n');
-    const prompt=`You are a scheduling expert for Mighty Sound, an audio post production facility.
 
-CONFLICTS (engineers double-booked on same dates):
-${conflictList}
+    // Build per-engineer schedule: name → [{startDate,endDate,taskRef}]
+    const scheduleOf={};
+    allTasks.forEach(t=>{
+      if(!t.assignee)return;
+      if(!scheduleOf[t.assignee])scheduleOf[t.assignee]=[];
+      scheduleOf[t.assignee].push({s:t.startDate,e:t.endDate,ref:t});
+    });
 
-ENGINEER WORKLOAD:
-${workloadSummary}
+    // Helper: do two date ranges overlap?
+    const overlaps=(s1,e1,s2,e2)=>s1<=e2&&s2<=e1;
 
-ALL ENGINEERS (staff + freelancers with skills):
-${engList||'No engineers on file'}
+    // Helper: is engineer available on dates (ignoring a specific task ref)?
+    const isAvailable=(name,startDate,endDate,excludeRef)=>{
+      const slots=scheduleOf[name]||[];
+      return!slots.some(sl=>sl.ref!==excludeRef&&overlaps(startDate,endDate,sl.s,sl.e));
+    };
 
-RULES:
-1. Do a FULL SWEEP — resolve every conflict, not just some.
-2. Match engineers to tasks based on their skill attributes. Map task names to skills: "Ingest"→any, "DX Edit"→dialogueEdit, "MX Edit"→musicEdit, "SFX Edit"→sfxEdit, "Pre Mix"→preMix, "Final Mix"→finalMix, "QC"→qcChanges, "Delivery"→deliverables.
-3. Prefer internal staff over freelancers. Only use a freelancer if no staff member has the skill or is available.
-4. Never assign an engineer to a task if they are already booked on those dates AND overloaded.
-5. Ensure zero date overlaps for each engineer after your reassignments.
-6. For each conflict, suggest exactly ONE reassignment that eliminates it.
+    // Helper: does engineer have required skill?
+    const hasSkill=(eng,taskName)=>{
+      const reqSkill=TASK_SKILL_MAP[taskName];
+      if(!reqSkill)return true; // no skill requirement (e.g. Ingest)
+      const skills=eng.skills||{};
+      // skills can be object {skillId:true} or array of labels
+      if(typeof skills==='object'&&!Array.isArray(skills))return!!skills[reqSkill];
+      if(Array.isArray(skills))return skills.some(s=>s.toLowerCase().includes(reqSkill.toLowerCase()));
+      return false;
+    };
 
-Return ONLY a valid JSON array, no markdown:
-[
-  {
-    "conflictSummary": "one sentence describing the conflict",
-    "icon": "🔄",
-    "title": "e.g. Reassign DX Edit to Paul Reeves",
-    "reason": "why this engineer is suitable — reference their specific skills",
-    "changeType": "reassign",
-    "before": "current engineer name",
-    "after": "suggested engineer name",
-    "freelancerName": null,
-    "freelancerNote": null,
-    "ganttChange": {"projName":"exact project name","epName":"exact episode name","taskName":"exact task name","field":"assignee","value":"new engineer name"}
-  }
-]
+    // Score engineer for a task: lower = better
+    // Staff preferred over freelancer; fewer active tasks = better
+    const scoreEng=(eng,taskName)=>{
+      const taskCount=(scheduleOf[eng.name]||[]).length;
+      const typeScore=eng._type==='staff'?0:100;
+      return typeScore+taskCount;
+    };
 
-Cover ALL ${conflicts.length} conflicts. Use exact names from the data above.`;
-    try{
-      const resp=await fetch('https://api.anthropic.com/v1/messages',{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,messages:[{role:'user',content:prompt}]})
+    // Find conflicts and resolve them
+    const results=[];
+    // Track assignments we've already changed this session (simulate forward)
+    const simulatedSchedule=JSON.parse(JSON.stringify(scheduleOf));
+
+    // Re-check availability using simulated schedule
+    const simAvailable=(name,startDate,endDate,excludeRef)=>{
+      const slots=simulatedSchedule[name]||[];
+      return!slots.some(sl=>sl.ref!==excludeRef&&overlaps(startDate,endDate,sl.s,sl.e));
+    };
+
+    conflicts.forEach(conflictStr=>{
+      // Parse conflict string: "EngineerName double-booked: projA taskA (s1–e1) vs projB taskB (s2–e2)"
+      const nameMatch=conflictStr.match(/^(.+?) double-booked:/);
+      if(!nameMatch)return;
+      const conflictedEng=nameMatch[1].trim();
+
+      // Find the two conflicting tasks
+      const taskRefs=allTasks.filter(t=>{
+        if(t.assignee!==conflictedEng)return false;
+        // Check if this task is mentioned in the conflict string
+        return conflictStr.includes(t.projName)&&conflictStr.includes(t.name)&&conflictStr.includes(t.startDate);
       });
-      const result=await resp.json();
-      const text=result.content?.find(c=>c.type==='text')?.text||'[]';
-      const jsonMatch=text.match(/\[[\s\S]*\]/);
-      if(jsonMatch){
-        const parsed=JSON.parse(jsonMatch[0]);
-        setSuggestions(parsed);setStage('suggestions');
-      } else throw new Error('No JSON');
-    }catch(e){
-      // Fallback suggestions
-      setSuggestions(conflicts.slice(0,5).map((c,i)=>({
-        conflictSummary:c,icon:'🔄',
-        title:`Resolve conflict ${i+1}`,
-        reason:'Review this conflict manually and reassign or reschedule as needed.',
-        changeType:'reassign',before:c.split(':')[0]||'',after:'TBC',
-        freelancerName:null,freelancerNote:null,ganttChange:null
-      })));
-      setStage('suggestions');
-    }
+      if(taskRefs.length<2)return;
+
+      // Try to reassign the second task (keep first, reassign second)
+      const taskToMove=taskRefs[1];
+      const reqSkill=TASK_SKILL_MAP[taskToMove.name];
+
+      // Find best available alternative engineer
+      const candidates=(engineers||[])
+        .filter(eng=>eng.name!==conflictedEng)
+        .filter(eng=>hasSkill(eng,taskToMove.name))
+        .filter(eng=>simAvailable(eng.name,taskToMove.startDate,taskToMove.endDate,null))
+        .sort((a,b)=>scoreEng(a,taskToMove.name)-scoreEng(b,taskToMove.name));
+
+      if(candidates.length===0){
+        results.push({
+          conflictSummary:conflictStr,
+          icon:'⚠️',
+          title:`No available engineer for ${taskToMove.projCode} ${taskToMove.name}`,
+          reason:`All engineers with ${reqSkill||'required'} skill are occupied on ${taskToMove.startDate}–${taskToMove.endDate}. Consider adjusting dates.`,
+          changeType:'manual',before:conflictedEng,after:'TBC',
+          freelancerName:null,freelancerNote:null,ganttChange:null
+        });
+        return;
+      }
+
+      const best=candidates[0];
+      const skillLabel=reqSkill||'general';
+      const typeLabel=best._type==='staff'?'Staff':'Freelancer';
+
+      results.push({
+        conflictSummary:conflictStr,
+        icon:'🔄',
+        title:`Reassign ${taskToMove.projCode} ${taskToMove.name} → ${best.name}`,
+        reason:`${best.name} (${typeLabel}) has ${skillLabel} skill and is free ${taskToMove.startDate}–${taskToMove.endDate}.`,
+        changeType:'reassign',
+        before:conflictedEng,
+        after:best.name,
+        freelancerName:best._type==='freelancer'?best.name:null,
+        freelancerNote:best._type==='freelancer'?`Day rate: $${best.values?.c3||'TBC'}`:null,
+        ganttChange:{projName:taskToMove.projName,epName:taskToMove.epName,taskName:taskToMove.name,field:'assignee',value:best.name}
+      });
+
+      // Update simulated schedule so next conflict sees this change
+      if(!simulatedSchedule[best.name])simulatedSchedule[best.name]=[];
+      simulatedSchedule[best.name].push({s:taskToMove.startDate,e:taskToMove.endDate,ref:taskToMove});
+      simulatedSchedule[conflictedEng]=(simulatedSchedule[conflictedEng]||[]).filter(sl=>sl.ref!==taskToMove);
+    });
+
+    setSuggestions(results);
+    setStage('suggestions');
   };
 
   const applyApproved=()=>{
@@ -2904,7 +2958,7 @@ Cover ALL ${conflicts.length} conflicts. Use exact names from the data above.`;
           <div className="cr-title">
             <span>⚠️</span>
             <span>Schedule Conflicts</span>
-            <span className="ai-badge">✦ AI</span>
+            <span className="ai-badge" style={{background:"#e8f5e9",color:"#2e7d32"}}>⚡ Auto</span>
             <button onClick={onClose} style={{marginLeft:'auto',background:'none',border:'none',fontSize:20,color:'#bbb',cursor:'pointer',lineHeight:1,padding:0}}>×</button>
           </div>
           <div style={{fontSize:12,color:'#888',fontWeight:500,marginTop:4}}>
@@ -2922,8 +2976,8 @@ Cover ALL ${conflicts.length} conflicts. Use exact names from the data above.`;
           {stage==='loading'&&(
             <div style={{textAlign:'center',padding:'40px 0'}}>
               <div style={{fontSize:36,marginBottom:14}}>🤖</div>
-              <div style={{fontSize:14,fontWeight:700,color:'#333',marginBottom:6}}>AI is analysing your schedule…</div>
-              <div style={{fontSize:12,color:'#aaa',fontWeight:500}}>Checking engineer workloads, available freelancers, and optimal resolutions</div>
+              <div style={{fontSize:14,fontWeight:700,color:'#333',marginBottom:6}}>Analysing schedule…</div>
+              <div style={{fontSize:12,color:'#aaa',fontWeight:500}}>Checking engineer workloads, skills and availability</div>
               <div style={{width:200,height:3,background:'#e5e5e5',borderRadius:3,margin:'18px auto 0',overflow:'hidden'}}>
                 <div style={{height:'100%',width:'60%',background:'#111',borderRadius:3,animation:'pulse 1.2s ease-in-out infinite'}}/>
               </div>
