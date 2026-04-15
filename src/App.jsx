@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { auth, signInWithGoogle, signOutUser, loadUserData, saveUserData, loadUserProfile, createUserProfile, getRedirectResult } from './firebase';
+import { auth, signInWithGoogle, signOutUser, loadUserData, saveUserData, loadUserProfile, createUserProfile } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 const XLSX = window.XLSX;
 
@@ -3194,10 +3194,7 @@ export default function App(){
   const isLongform=data&&data.activeBoard==='__longform__';
   const isCalendar=data&&data.activeBoard==='__calendar__';
 
-  // Handle redirect result on page load
-  useEffect(()=>{
-    getRedirectResult(auth).catch(()=>{});
-  },[]);
+
 
   // Firebase auth listener
   useEffect(()=>{

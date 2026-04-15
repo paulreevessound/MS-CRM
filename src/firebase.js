@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -19,9 +19,7 @@ export const googleProvider = new GoogleAuthProvider();
 
 googleProvider.addScope('https://www.googleapis.com/auth/calendar');
 
-// Use redirect instead of popup to avoid COOP/cross-origin issues
-export const signInWithGoogle = () => signInWithRedirect(auth, googleProvider);
-export { getRedirectResult };
+export const signInWithGoogle = () => signInWithPopup(auth, googleProvider);
 export const signOutUser = () => signOut(auth);
 
 export const loadUserData = async (uid) => {
