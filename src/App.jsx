@@ -3184,7 +3184,7 @@ function MightySoundLoader(){
 }
 
 export default function App(){
-  const [data,setData]=useState(null);const [view,setView]=useState('table');const [sel,setSel]=useState(null);const [showAddBoard,setShowAddBoard]=useState(false);const [loaded,setLoaded]=useState(false);const [firestoreReady,setFirestoreReady]=useState(false);
+  const [data,setData]=useState(null);const [view,setView]=useState('table');const [sel,setSel]=useState(null);const [showAddBoard,setShowAddBoard]=useState(false);const [loaded,setLoaded]=useState(true);const [firestoreReady,setFirestoreReady]=useState(false);
   const [showConflicts,setShowConflicts]=useState(false);
   const [account,setAccount]=useState(null);
   const [authLoading,setAuthLoading]=useState(true);
@@ -3221,7 +3221,6 @@ export default function App(){
       } else {
         setAccount(null);
         setData(null);
-        setLoaded(false);
       }
       setAuthLoading(false);
     });
@@ -3251,7 +3250,7 @@ export default function App(){
 
   // Save data on change
   useEffect(()=>{
-    if(!loaded||!data||!account)return;
+    if(!data||!account)return;
     clearTimeout(saveRef.current);
     saveRef.current=setTimeout(async()=>{
       try{await saveUserData(account.uid,data);}catch{}
@@ -3348,7 +3347,7 @@ export default function App(){
   const quickAdd=()=>{if(!board||!board.groups.length)return;const it={id:uid(),name:'New item',notes:'',startDate:'',timeLogs:[],values:{}};updBoard(board.id,p=>({...p,groups:p.groups.map((g,i)=>i===0?{...g,items:[it,...g.items]}:g)}))};
   const VIEWS=[{id:'table',l:'⊞ Table'},{id:'kanban',l:'▣ Kanban'},{id:'calendar',l:'Calendar'}];
 
-  if(!loaded)return<MightySoundLoader/>;
+  // loader removed — app renders immediately with INIT data
 
   if(authLoading)return(
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',background:'#1a1a2e',color:'#fff',fontFamily:'Barlow,sans-serif',fontSize:14}}>
