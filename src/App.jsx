@@ -1546,8 +1546,25 @@ function MasterGantt({ganttData,onUpdateGantt,onShowConflicts}){
 
               {ganttData.map(proj=>(
                 <React.Fragment key={proj.id}>
-                  {/* Project row */}
-                  <div className="mg-project-timeline" style={{minWidth:totalPx,height:34,position:'relative'}}/>
+                  {/* Project row — show summary bar when collapsed */}
+                  {(()=>{
+                    const allTasks=proj.episodes.flatMap(ep=>ep.tasks);
+                    const starts=allTasks.map(t=>t.startDate).filter(Boolean).sort();
+                    const ends=allTasks.map(t=>t.endDate).filter(Boolean).sort();
+                    const projStart=starts[0]; const projEnd=ends[ends.length-1];
+                    const bLeft=projStart?dToX(projStart):null;
+                    const bRight=projEnd?dToX(projEnd):null;
+                    const bWidth=bLeft!=null&&bRight!=null?Math.max(4,bRight-bLeft):0;
+                    return(
+                      <div className="mg-project-timeline" style={{minWidth:totalPx,height:34,position:'relative'}}>
+                        {collapsed[proj.id]&&bWidth>0&&(
+                          <div style={{position:'absolute',left:bLeft,width:bWidth,top:'50%',transform:'translateY(-50%)',height:14,borderRadius:4,background:'#5c6bc0',opacity:.85,display:'flex',alignItems:'center',paddingLeft:6,overflow:'hidden',zIndex:2}}>
+                            <span style={{fontSize:9,fontWeight:700,color:'#fff',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{proj.code} {proj.name}</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                   {!collapsed[proj.id]&&proj.episodes.map(ep=>{
                     const span=getEpSpan(ep);
                     const isEpOpen=!epCollapsed[ep.id];
@@ -2205,56 +2222,95 @@ Milestone mapping rules:
 // ── LongformView ───────────────────────────────────────────────────────────
 function LongformGantt({longform,activeProd}){
   const [collapsed,setCollapsed]=useState({});const [offsetW,setOffsetW]=useState(0);
-  const prod=longform.productions.find(p=>p.id===activeProd)||longform.productions[0];
-  const WEEKS=14;const PX_WEEK=90;const todayD=today();
-  const startDate=useMemo(()=>addDays(todayD,-21+offsetW*7),[offsetW,todayD]);
+  const [showAll,setShowAll]=useState(false);
+  const activeProdObj=longform.productions.find(p=>p.id===activeProd)||longform.productions[0];
+  // Show all productions or just the active one
+  const prodsToShow=showAll?longform.productions:(activeProdObj?[activeProdObj]:[]);
+  const WEEKS=16;const PX_WEEK=80;const todayD=today();
+  const startDate=useMemo(()=>addDays(todayD,-14+offsetW*7),[offsetW,todayD]);
   const totalPx=WEEKS*PX_WEEK;const dToX=d=>daysBetween(startDate,d)*(PX_WEEK/7);const todayX=dToX(todayD);
   const weeksArr=useMemo(()=>Array.from({length:WEEKS},(_,i)=>{const d=addDays(startDate,i*7);const dt=new Date(d+'T00:00:00');return dt.toLocaleDateString('en-AU',{day:'numeric',month:'short'})}),[startDate]);
   const toggleEp=id=>setCollapsed(p=>({...p,[id]:!p[id]}));
-  if(!prod)return null;
+  const toggleProd=id=>setCollapsed(p=>({...p,['prod_'+id]:!p['prod_'+id]}));
+  const PROD_COLORS=['#5c6bc0','#e53935','#43a047','#fb8c00','#00acc1','#8e24aa','#f4511e','#3949ab'];
+  if(!prodsToShow.length)return null;
   return(<div>
-    <div className="lfg-legend">
-      {TASK_DEFS.map(t=><div key={t.name} className="lfg-legend-item"><span className="lfg-legend-dot" style={{background:t.color}}/>{t.name}</div>)}
-    </div>
-    <div style={{display:'flex',gap:8,marginBottom:12}}>
+    <div style={{display:'flex',gap:8,marginBottom:8,alignItems:'center',flexWrap:'wrap'}}>
       <button className="mg-nav-btn" onClick={()=>setOffsetW(o=>o-2)}>‹ Earlier</button>
       <span style={{fontSize:13,color:'#555',fontWeight:600}}>{weeksArr[0]} — {weeksArr[WEEKS-1]}</span>
       <button className="mg-nav-btn" onClick={()=>setOffsetW(o=>o+2)}>Later ›</button>
       <button className="mg-nav-btn" onClick={()=>setOffsetW(0)} style={{fontSize:11}}>Today</button>
-      <span style={{marginLeft:'auto',fontSize:11,color:'#bbb',fontWeight:500}}>Click episode row to expand tasks</span>
+      <div style={{marginLeft:'auto',display:'flex',gap:6}}>
+        <button className="t-btn" style={{fontWeight:700,fontSize:11,background:showAll?'#111':'#fff',color:showAll?'#fff':'#555',borderColor:showAll?'#111':'#ddd'}} onClick={()=>setShowAll(p=>!p)}>
+          {showAll?'This production':'All productions'}
+        </button>
+      </div>
+    </div>
+    <div className="lfg-legend" style={{marginBottom:10}}>
+      {TASK_DEFS.map(t=><div key={t.name} className="lfg-legend-item"><span className="lfg-legend-dot" style={{background:t.color}}/>{t.name}</div>)}
     </div>
     <div className="lfg-wrap" style={{overflowX:'auto'}}><div style={{minWidth:240+totalPx}}>
-      <div className="lfg-head"><div className="lfg-lbl-col">Episode / Task</div><div style={{display:'flex',minWidth:totalPx}}>{weeksArr.map((w,i)=><div key={i} className="lfg-week" style={{flex:`0 0 ${PX_WEEK}px`}}>{w}</div>)}</div></div>
-      {prod.episodes.map(ep=>{
-        const ts=ep.tasks||[];const isOpen=!collapsed[ep.id];
-        const s=ts.length?ts.reduce((m,t)=>t.startDate<m?t.startDate:m,ts[0].startDate):null;const e=ts.length?ts.reduce((m,t)=>t.endDate>m?t.endDate:m,ts[0].endDate):null;
-        const x1=s?Math.max(0,dToX(s)):0;const x2=e?Math.min(totalPx,dToX(e)):0;
-        return(<React.Fragment key={ep.id}>
-          <div className="lfg-ep-row" onClick={()=>toggleEp(ep.id)}>
-            <div className="lfg-ep-label">
-              <span style={{fontSize:9,color:'#aaa',transform:isOpen?'rotate(90deg)':'rotate(0)',display:'inline-block',transition:'transform .15s',flex:'0 0 auto'}}>▶</span>
-              <span style={{flex:1}}>{ep.name}</span>
-              <SBadge v={ep.status} onClick={e=>e.stopPropagation()}/>
+      <div className="lfg-head"><div className="lfg-lbl-col">Production / Episode</div><div style={{display:'flex',minWidth:totalPx}}>{weeksArr.map((w,i)=><div key={i} className="lfg-week" style={{flex:`0 0 ${PX_WEEK}px`}}>{w}</div>)}</div></div>
+      {prodsToShow.map((prod,pi)=>{
+        const prodColor=PROD_COLORS[pi%PROD_COLORS.length];
+        const isProdOpen=!collapsed['prod_'+prod.id];
+        // Compute production span
+        const allTs=prod.episodes.flatMap(ep=>ep.tasks||[]);
+        const pStart=allTs.map(t=>t.startDate).filter(Boolean).sort()[0];
+        const pEnd=allTs.map(t=>t.endDate).filter(Boolean).sort().slice(-1)[0];
+        const px1=pStart?Math.max(0,dToX(pStart)):null;
+        const px2=pEnd?Math.min(totalPx,dToX(pEnd)):null;
+        return(<React.Fragment key={prod.id}>
+          {/* Production header row */}
+          <div style={{display:'flex',cursor:'pointer',background:'#1a1a2e',borderBottom:'1px solid #333'}} onClick={()=>toggleProd(prod.id)}>
+            <div className="lfg-lbl-col" style={{color:'#fff',fontWeight:700,fontSize:12,display:'flex',alignItems:'center',gap:6,padding:'6px 10px'}}>
+              <span style={{fontSize:9,color:'rgba(255,255,255,.4)',transform:isProdOpen?'rotate(90deg)':'rotate(0)',display:'inline-block',transition:'transform .15s'}}>▶</span>
+              <span style={{width:8,height:8,borderRadius:2,background:prodColor,display:'inline-block',flexShrink:0}}/>
+              <span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{prod.name}</span>
+              <span style={{fontSize:9,color:'rgba(255,255,255,.35)',fontWeight:500,flexShrink:0}}>{prod.episodes.length} eps</span>
             </div>
-            <div className="lfg-ep-timeline" style={{minWidth:totalPx}}>
+            <div style={{flex:1,minWidth:totalPx,position:'relative',height:32}}>
               {todayX>=0&&todayX<=totalPx&&<div className="lfg-today" style={{left:todayX}}/>}
-              {x2>x1&&x2-x1>0&&<div className="lfg-ep-spine" style={{left:x1,width:x2-x1}}/>}
-              <span style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',fontSize:11,color:'#bbb',fontWeight:600}}>{fmtD(ep.dueDate)}</span>
+              {!isProdOpen&&px1!=null&&px2!=null&&px2>px1&&(
+                <div style={{position:'absolute',left:px1,width:px2-px1,top:'50%',transform:'translateY(-50%)',height:12,borderRadius:3,background:prodColor,opacity:.8,display:'flex',alignItems:'center',paddingLeft:4,overflow:'hidden'}}>
+                  <span style={{fontSize:8,fontWeight:700,color:'#fff',whiteSpace:'nowrap'}}>{fmtD(pStart)}–{fmtD(pEnd)}</span>
+                </div>
+              )}
             </div>
           </div>
-          {isOpen&&ts.map(task=>{
-            const td=taskDef(task.name);const tx1=Math.max(0,dToX(task.startDate));const tx2=Math.min(totalPx,dToX(task.endDate));const w=tx2-tx1;
-            const isDone=task.status==='Done';const isIP=task.status==='In Progress';
-            return(<div key={task.id} className="lfg-task-row">
-              <div className="lfg-task-label"><span style={{width:8,height:8,borderRadius:2,background:td.color,display:'inline-block',flex:'0 0 8px'}}/><span>{task.name}</span>{task.assignee&&<span style={{marginLeft:'auto',fontSize:9,color:'#bbb',fontWeight:600}}>{task.assignee.split(' ')[0]}</span>}</div>
-              <div className="lfg-task-timeline" style={{minWidth:totalPx}}>
-                {todayX>=0&&todayX<=totalPx&&<div className="lfg-today" style={{left:todayX}}/>}
-                {w>0&&(<div className="lfg-task-bar" style={{left:tx1,width:w,background:isDone?td.color+'dd':isIP?td.color+'55':'#f0f0f0',border:`1px solid ${td.color}${isDone?'cc':isIP?'88':'33'}`}} title={`${task.name}: ${task.status} (${task.pct}%)`}>
-                  {isIP&&task.pct>0&&<div className="lfg-bar-fill" style={{width:`${task.pct}%`,background:td.color}}/>}
-                  <div className="lfg-bar-label" style={{color:isDone?'#fff':isIP?td.color:'#bbb'}}>{w>55?task.name:''}</div>
-                </div>)}
+          {isProdOpen&&prod.episodes.map(ep=>{
+            const ts=ep.tasks||[];const isOpen=!collapsed[ep.id];
+            const s=ts.length?ts.reduce((m,t)=>t.startDate<m?t.startDate:m,ts[0].startDate):null;
+            const e=ts.length?ts.reduce((m,t)=>t.endDate>m?t.endDate:m,ts[0].endDate):null;
+            const x1=s?Math.max(0,dToX(s)):0;const x2=e?Math.min(totalPx,dToX(e)):0;
+            return(<React.Fragment key={ep.id}>
+              <div className="lfg-ep-row" onClick={()=>toggleEp(ep.id)} style={{borderLeft:`3px solid ${prodColor}`}}>
+                <div className="lfg-ep-label">
+                  <span style={{fontSize:9,color:'#aaa',transform:isOpen?'rotate(90deg)':'rotate(0)',display:'inline-block',transition:'transform .15s',flex:'0 0 auto'}}>▶</span>
+                  <span style={{flex:1}}>{ep.name}</span>
+                  <SBadge v={ep.status} onClick={e=>e.stopPropagation()}/>
+                </div>
+                <div className="lfg-ep-timeline" style={{minWidth:totalPx}}>
+                  {todayX>=0&&todayX<=totalPx&&<div className="lfg-today" style={{left:todayX}}/>}
+                  {x2>x1&&x2-x1>0&&<div className="lfg-ep-spine" style={{left:x1,width:x2-x1,background:prodColor+'44',border:`1px solid ${prodColor}66`}}/>}
+                  <span style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',fontSize:11,color:'#bbb',fontWeight:600}}>{fmtD(ep.dueDate)}</span>
+                </div>
               </div>
-            </div>);
+              {isOpen&&ts.map(task=>{
+                const td=taskDef(task.name);const tx1=Math.max(0,dToX(task.startDate));const tx2=Math.min(totalPx,dToX(task.endDate));const w=tx2-tx1;
+                const isDone=task.status==='Done';const isIP=task.status==='In Progress';
+                return(<div key={task.id} className="lfg-task-row" style={{borderLeft:`3px solid ${prodColor}44`}}>
+                  <div className="lfg-task-label"><span style={{width:8,height:8,borderRadius:2,background:td.color,display:'inline-block',flex:'0 0 8px'}}/><span>{task.name}</span>{task.assignee&&<span style={{marginLeft:'auto',fontSize:9,color:'#bbb',fontWeight:600}}>{task.assignee.split(' ')[0]}</span>}</div>
+                  <div className="lfg-task-timeline" style={{minWidth:totalPx}}>
+                    {todayX>=0&&todayX<=totalPx&&<div className="lfg-today" style={{left:todayX}}/>}
+                    {w>0&&(<div className="lfg-task-bar" style={{left:tx1,width:w,background:isDone?td.color+'dd':isIP?td.color+'55':'#f0f0f0',border:`1px solid ${td.color}${isDone?'cc':isIP?'88':'33'}`}} title={`${task.name}: ${task.status} (${task.pct}%)`}>
+                      {isIP&&task.pct>0&&<div className="lfg-bar-fill" style={{width:`${task.pct}%`,background:td.color}}/>}
+                      <div className="lfg-bar-label" style={{color:isDone?'#fff':isIP?td.color:'#bbb'}}>{w>55?task.name:''}</div>
+                    </div>)}
+                  </div>
+                </div>);
+              })}
+            </React.Fragment>);
           })}
         </React.Fragment>);
       })}
@@ -2438,7 +2494,24 @@ let ENGINEER_SKILLS=DEFAULT_ENGINEER_SKILLS;
 function AddColModal({onAdd,onClose}){const [name,setName]=useState('');const [type,setType]=useState('text');const TYPES=[{t:'text',l:'Text'},{t:'status',l:'Status'},{t:'priority',l:'Priority'},{t:'person',l:'Person'},{t:'date',l:'Date'},{t:'number',l:'Number'},{t:'currency',l:'Currency ($)'}];return(<div className="modal-ov" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()}><h3>Add column</h3><label>Name</label><input className="m-in" placeholder="Column name" value={name} onChange={e=>setName(e.target.value)} autoFocus onKeyDown={e=>e.key==='Enter'&&name&&onAdd(name,type)}/><label>Type</label><select className="m-sel" value={type} onChange={e=>setType(e.target.value)}>{TYPES.map(c=><option key={c.t} value={c.t}>{c.l}</option>)}</select><div className="m-actions"><button className="btn-g" onClick={onClose}>Cancel</button><button className="btn-p" onClick={()=>name&&onAdd(name,type)}>Add</button></div></div></div>);}
 function AddBoardModal({onAdd,onClose}){const ICONS=['📁','🎙️','🎬','📊','👥','💰','📅','🔧','📝','⚡','🎚️','🎛️','🎧','🗂️'];const [name,setName]=useState('');const [icon,setIcon]=useState('📁');return(<div className="modal-ov" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()}><h3>New board</h3><label>Name</label><input className="m-in" placeholder="Board name" value={name} onChange={e=>setName(e.target.value)} autoFocus/><label>Icon</label><div className="icon-grid">{ICONS.map(ic=><span key={ic} className={`icon-opt${icon===ic?' sel':''}`} onClick={()=>setIcon(ic)}>{ic}</span>)}</div><div className="m-actions"><button className="btn-g" onClick={onClose}>Cancel</button><button className="btn-p" onClick={()=>name&&onAdd(name,icon)}>Create</button></div></div></div>);}
 
-function AddEngineerModal({onAdd,onClose,editItem,skillsList}){
+function AddCustomSkill({onAdd}){
+  const [val,setVal]=useState('');
+  const SKILL_COLORS=['#d32f2f','#1565c0','#2e7d32','#546e7a','#bf360c','#283593','#6a1b9a','#e65100','#f9a825','#00838f'];
+  const add=()=>{
+    const v=val.trim();if(!v)return;
+    const id=v.toLowerCase().replace(/[^a-z0-9]/g,'_')+'_'+Date.now();
+    const color=SKILL_COLORS[Math.floor(Math.random()*SKILL_COLORS.length)];
+    onAdd({id,label:v,color});setVal('');
+  };
+  return(
+    <div style={{display:'flex',gap:6,marginTop:8,alignItems:'center'}}>
+      <input className="m-in" style={{marginBottom:0,fontSize:11,flex:1}} placeholder="Add custom skill…" value={val} onChange={e=>setVal(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
+      <button onClick={add} style={{background:'#111',border:'none',borderRadius:6,color:'#fff',fontSize:11,fontWeight:700,padding:'6px 12px',cursor:'pointer',flexShrink:0,whiteSpace:'nowrap'}}>+ Add</button>
+    </div>
+  );
+}
+
+function AddEngineerModal({onAdd,onClose,editItem,skillsList,onAddSkill}){
   const skills_=skillsList||DEFAULT_ENGINEER_SKILLS;
   const [name,setName]=useState(editItem?.name||'');
   const [role,setRole]=useState(editItem?.values?.c2||'');
@@ -2542,6 +2615,8 @@ function AddEngineerModal({onAdd,onClose,editItem,skillsList}){
               ))}
             </div>
           )}
+          {/* Add custom skill */}
+          <AddCustomSkill onAdd={skill=>{if(onAddSkill)onAddSkill(skill);toggleSkill(skill.id);}}/>
         </div>
 
         <div style={{marginBottom:4}}>
@@ -2726,7 +2801,7 @@ function StudioRooms({rooms,onUpdateRoom}){
 }
 
 // ── Conflict Resolution Modal ──────────────────────────────────────────────
-function ConflictResolutionModal({conflicts,ganttData,freelancers,onApply,onClose}){
+function ConflictResolutionModal({conflicts,ganttData,engineers,onApply,onClose}){
   const [stage,setStage]=useState('list');// list | loading | suggestions
   const [suggestions,setSuggestions]=useState([]);
   const [approved,setApproved]=useState({});
@@ -2741,11 +2816,12 @@ function ConflictResolutionModal({conflicts,ganttData,freelancers,onApply,onClos
         engWorkload[t.assignee].push(`${proj.name} ${ep.name} ${t.name} (${t.startDate}–${t.endDate})`);
       }
     })));
-    const engList=(freelancers||[]).map(f=>{
-      const isBooked=f.bookedFrom&&f.bookedTo?` — BOOKED ${f.bookedFrom} to ${f.bookedTo}`:'';
-      const skillStr=(f.skills||[]).join(', ')||'general';
-      const rateStr=f.rate?` — $${f.rate}/day`:'';
-      return`${f.name} (${f.type||'staff'}${rateStr}) — Skills: ${skillStr}${isBooked}`;
+    const engList=(engineers||[]).map(f=>{
+      const isBooked=f.values?.c4&&f.values?.c5?` — BOOKED ${f.values.c4} to ${f.values.c5}`:'';
+      const skillStr=Array.isArray(f.skills)?f.skills.join(', '):(typeof f.skills==='object'?Object.entries(f.skills||{}).filter(([,v])=>v).map(([k])=>k).join(', '):'general');
+      const rateStr=f.values?.c3?` — $${f.values.c3}/day`:'';
+      const type=f._type||'staff';
+      return`${f.name} (${type}${rateStr}) — Skills: ${skillStr||'general'}${isBooked}`;
     }).join('\n');
     const conflictList=conflicts.slice(0,10).join('\n');
     const workloadSummary=Object.entries(engWorkload).map(([eng,tasks])=>`${eng}: ${tasks.length} active tasks`).join('\n');
@@ -2761,10 +2837,12 @@ ALL ENGINEERS (staff + freelancers with skills):
 ${engList||'No engineers on file'}
 
 RULES:
-1. Match engineers to tasks based on their skills. e.g. Dialogue Edit needs dialogueEdit skill, Final Mix needs finalMix skill.
-2. Prefer internal staff reassignment over freelancers.
-3. Only suggest a freelancer if they have the required skill AND are not already booked.
-4. For each conflict suggest ONE specific fix.
+1. Do a FULL SWEEP — resolve every conflict, not just some.
+2. Match engineers to tasks based on their skill attributes. Map task names to skills: "Ingest"→any, "DX Edit"→dialogueEdit, "MX Edit"→musicEdit, "SFX Edit"→sfxEdit, "Pre Mix"→preMix, "Final Mix"→finalMix, "QC"→qcChanges, "Delivery"→deliverables.
+3. Prefer internal staff over freelancers. Only use a freelancer if no staff member has the skill or is available.
+4. Never assign an engineer to a task if they are already booked on those dates AND overloaded.
+5. Ensure zero date overlaps for each engineer after your reassignments.
+6. For each conflict, suggest exactly ONE reassignment that eliminates it.
 
 Return ONLY a valid JSON array, no markdown:
 [
@@ -2772,7 +2850,7 @@ Return ONLY a valid JSON array, no markdown:
     "conflictSummary": "one sentence describing the conflict",
     "icon": "🔄",
     "title": "e.g. Reassign DX Edit to Paul Reeves",
-    "reason": "why this engineer is suitable based on their skills",
+    "reason": "why this engineer is suitable — reference their specific skills",
     "changeType": "reassign",
     "before": "current engineer name",
     "after": "suggested engineer name",
@@ -2782,7 +2860,7 @@ Return ONLY a valid JSON array, no markdown:
   }
 ]
 
-Limit to ${Math.min(conflicts.length,8)} suggestions. Use exact names from the data above.`;
+Cover ALL ${conflicts.length} conflicts. Use exact names from the data above.`;
     try{
       const resp=await fetch('https://api.anthropic.com/v1/messages',{
         method:'POST',headers:{'Content-Type':'application/json'},
@@ -3088,7 +3166,7 @@ export default function App(){
 
   const addBoard=(name,icon)=>{const nb={id:uid(),name,icon,color:GCOLS[data.boards.length%GCOLS.length],columns:[{id:uid(),name:'Status',type:'status'},{id:uid(),name:'Assigned',type:'person'},{id:uid(),name:'Due Date',type:'date'}],groups:[{id:uid(),name:'Group 1',color:'#5c6bc0',collapsed:false,items:[]}]};setData(p=>({...p,boards:[...p.boards,nb],activeBoard:nb.id}));setShowAddBoard(false)};
   const quickAdd=()=>{if(!board||!board.groups.length)return;const it={id:uid(),name:'New item',notes:'',startDate:'',timeLogs:[],values:{}};updBoard(board.id,p=>({...p,groups:p.groups.map((g,i)=>i===0?{...g,items:[it,...g.items]}:g)}))};
-  const VIEWS=[{id:'table',l:'⊞ Table'},{id:'kanban',l:'▣ Kanban'},{id:'calendar',l:'📅 Calendar'},{id:'gantt',l:'📊 Gantt'}];
+  const VIEWS=[{id:'table',l:'⊞ Table'},{id:'kanban',l:'▣ Kanban'},{id:'calendar',l:'📅 Calendar'}];
 
   if(!loaded)return<div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',background:'#f0f0f0',flexDirection:'column',gap:12}}><div style={{width:48,height:48,background:'#111',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',fontSize:24}}>🎙️</div><div style={{fontSize:14,fontWeight:700,color:'#555',letterSpacing:'.05em',textTransform:'uppercase'}}>Loading WorkBoard…</div></div>;
 
@@ -3225,6 +3303,7 @@ export default function App(){
         editItem={editEngineer?{...editEngineer.item,_group:editEngineer.groupName}:null}
         skillsList={skillsList}
         onAdd={saveEngineer}
+        onAddSkill={addSkillToList}
         onClose={()=>{setShowAddEngineer(false);setEditEngineer(null)}}
       />}
       {showConflicts&&data&&(
@@ -3240,7 +3319,7 @@ export default function App(){
               return all;
             },[])}
             ganttData={data.masterGantt}
-            freelancers={freelancerList}
+            engineers={engineerList}
             onApply={change=>{applyGanttChange(change)}}
             onClose={()=>setShowConflicts(false)}
           />
