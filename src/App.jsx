@@ -3231,11 +3231,24 @@ export default function App(){
   // Load data when user signs in
   useEffect(()=>{
     if(!account)return;
+    let cancelled=false;
+    // Timeout fallback — if Firestore hangs for >6s, load with defaults
+    const timeout=setTimeout(()=>{
+      if(!cancelled){setData(INIT);setLoaded(true);}
+    },6000);
     (async()=>{
-      try{const saved=await loadUserData(account.uid);setData(saved||INIT);}
-      catch{setData(INIT);}
-      setLoaded(true);
+      try{
+        const saved=await loadUserData(account.uid);
+        if(!cancelled){setData(saved||INIT);}
+      }catch(e){
+        console.warn('Firestore load failed, using defaults:',e);
+        if(!cancelled){setData(INIT);}
+      }finally{
+        clearTimeout(timeout);
+        if(!cancelled){setLoaded(true);}
+      }
     })();
+    return()=>{cancelled=true;clearTimeout(timeout);};
   },[account?.uid, loginKey]);
 
   // Save data on change
