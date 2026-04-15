@@ -37,8 +37,16 @@ const ICON_PATHS = {
   plus:       <><line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></>,
 };
 
+// Legacy emoji → icon name map for Firestore data saved before migration
+const EMOJI_TO_ICON={'🎙️':'mic','🎚️':'fader','🎛️':'console','🎥':'camera','🎧':'headphones',
+  '🎬':'clapper','👤':'person','👥':'people','💰':'money','📁':'folder','📅':'calendar',
+  '📊':'gantt','📝':'note','📺':'screen','🔄':'refresh','🔍':'search','🔒':'lock',
+  '🔔':'bell','🔗':'link','🔧':'wrench','🗂️':'files','🗑':'trash','⚡':'lightning',
+  '⚠️':'warning','⬆':'upload','⏱':'timer','⚙️':'settings'};
+
 function Icon({name,size=16,color='currentColor',className='',style={}}){
-  const paths=ICON_PATHS[name];
+  const resolvedName=EMOJI_TO_ICON[name]||name;
+  const paths=ICON_PATHS[resolvedName];
   if(!paths)return null;
   return(
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
@@ -680,6 +688,7 @@ function WorkboardCalendar({ganttData,boards,account}){
   const [anchor,setAnchor]=useState(new Date());// the "current" date
   const [createModal,setCreateModal]=useState(null);// {x,y,date,hour}
   const [detailEvent,setDetailEvent]=useState(null);// {x,y,event}
+  const [showCalList,setShowCalList]=useState(true);
   const gcal=useGoogleCalendar();
   const scrollRef=useRef();
   const todayD=today();
@@ -805,21 +814,31 @@ function WorkboardCalendar({ganttData,boards,account}){
         </div>
       )}
 
-      {/* Calendar list sidebar */}
+      {/* Calendar list — collapsible */}
       {gcal.connected&&gcal.calendars.length>0&&(
-        <div style={{padding:'8px 14px',background:'#f8f9fa',borderBottom:'1px solid #e5e5e5',display:'flex',gap:6,flexWrap:'wrap',alignItems:'center'}}>
-          <span style={{fontSize:10,fontWeight:700,color:'#888',textTransform:'uppercase',letterSpacing:'.07em',marginRight:4}}>Calendars:</span>
-          {gcal.calendars.map(cal=>(
-            <div key={cal.id} onClick={e=>{e.stopPropagation();gcal.toggleCalendar(cal.id);setTimeout(()=>gcal.fetchEvents(),100);}}
-              style={{display:'flex',alignItems:'center',gap:5,padding:'3px 9px',borderRadius:12,cursor:'pointer',fontSize:11,fontWeight:600,
-                background:gcal.selectedCals?.includes(cal.id)?cal.color+'22':'#f0f0f0',
-                color:gcal.selectedCals?.includes(cal.id)?cal.color:'#aaa',
-                border:`1px solid ${gcal.selectedCals?.includes(cal.id)?cal.color+'44':'#ddd'}`,
-                transition:'all .13s',opacity:gcal.selectedCals?.includes(cal.id)?1:.6}}>
-              <span style={{width:8,height:8,borderRadius:'50%',background:gcal.selectedCals?.includes(cal.id)?cal.color:'#ccc',display:'inline-block',flexShrink:0}}/>
-              {cal.name}{cal.primary&&<span style={{fontSize:9,opacity:.6}}> (primary)</span>}
+        <div style={{background:'#f8f9fa',borderBottom:'1px solid #e5e5e5'}}>
+          <div onClick={e=>{e.stopPropagation();setShowCalList(p=>!p)}}
+            style={{display:'flex',alignItems:'center',gap:6,padding:'5px 14px',cursor:'pointer',userSelect:'none'}}>
+            <span style={{fontSize:9,color:'#999',transform:showCalList?'rotate(90deg)':'rotate(0)',display:'inline-block',transition:'transform .15s'}}>▶</span>
+            <span style={{fontSize:10,fontWeight:700,color:'#888',textTransform:'uppercase',letterSpacing:'.07em'}}>
+              Calendars ({gcal.selectedCals?.length||0}/{gcal.calendars.length})
+            </span>
+          </div>
+          {showCalList&&(
+            <div style={{padding:'0 14px 8px',display:'flex',gap:6,flexWrap:'wrap'}}>
+              {gcal.calendars.map(cal=>(
+                <div key={cal.id} onClick={e=>{e.stopPropagation();gcal.toggleCalendar(cal.id);setTimeout(()=>gcal.fetchEvents(),100);}}
+                  style={{display:'flex',alignItems:'center',gap:5,padding:'3px 9px',borderRadius:12,cursor:'pointer',fontSize:11,fontWeight:600,
+                    background:gcal.selectedCals?.includes(cal.id)?cal.color+'22':'#f0f0f0',
+                    color:gcal.selectedCals?.includes(cal.id)?cal.color:'#aaa',
+                    border:`1px solid ${gcal.selectedCals?.includes(cal.id)?cal.color+'44':'#ddd'}`,
+                    transition:'all .13s',opacity:gcal.selectedCals?.includes(cal.id)?1:.6}}>
+                  <span style={{width:8,height:8,borderRadius:'50%',background:gcal.selectedCals?.includes(cal.id)?cal.color:'#ccc',display:'inline-block',flexShrink:0}}/>
+                  {cal.name}{cal.primary&&<span style={{fontSize:9,opacity:.6}}> (primary)</span>}
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       )}
 
@@ -2325,13 +2344,14 @@ function LongformGantt({longform,activeProd,masterGantt=[]}){
   const [showAll,setShowAll]=useState(false);
   const activeProdObj=longform.productions.find(p=>p.id===activeProd)||longform.productions[0];
   // Show all productions or just the active one
-  // Convert masterGantt projects to production-like format for display
+  // Convert masterGantt projects to production-like format
   const ganttAsProds=useMemo(()=>masterGantt.map(p=>({
     id:'mg_'+p.id, name:p.code+' — '+p.name, type:p.type||'Film', client:p.client,
     episodes:p.episodes.map(ep=>({...ep,dueDate:ep.tasks?.slice(-1)[0]?.endDate||'',status:ep.tasks?.every(t=>t.status==='Done')?'Done':ep.tasks?.some(t=>t.status==='In Progress')?'In Progress':'Not Started'})),
     _fromMaster:true,
   })),[masterGantt]);
-  const prodsToShow=showAll?[...longform.productions,...ganttAsProds]:(activeProdObj?[activeProdObj]:[]);
+  // Default: show master gantt projects; toggle to also include longform productions
+  const prodsToShow=showAll?[...ganttAsProds,...longform.productions]:ganttAsProds.length>0?ganttAsProds:(activeProdObj?[activeProdObj]:[]);
   const WEEKS=16;const PX_WEEK=80;const todayD=today();
   const startDate=useMemo(()=>addDays(todayD,-14+offsetW*7),[offsetW,todayD]);
   const totalPx=WEEKS*PX_WEEK;const dToX=d=>daysBetween(startDate,d)*(PX_WEEK/7);const todayX=dToX(todayD);
@@ -2348,7 +2368,7 @@ function LongformGantt({longform,activeProd,masterGantt=[]}){
       <button className="mg-nav-btn" onClick={()=>setOffsetW(0)} style={{fontSize:11}}>Today</button>
       <div style={{marginLeft:'auto',display:'flex',gap:6}}>
         <button className="t-btn" style={{fontWeight:700,fontSize:11,background:showAll?'#111':'#fff',color:showAll?'#fff':'#555',borderColor:showAll?'#111':'#ddd'}} onClick={()=>setShowAll(p=>!p)}>
-          {showAll?'This production':'All productions + Master Gantt'}
+          {showAll?'Master Gantt only':'Master Gantt + Productions'}
         </button>
       </div>
     </div>
