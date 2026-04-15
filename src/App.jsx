@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { auth, signInWithGoogle, signOutUser, loadUserData, saveUserData, loadUserProfile, createUserProfile } from './firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 const XLSX = window.XLSX;
 
 
@@ -2912,13 +2914,12 @@ Limit to ${Math.min(conflicts.length,8)} suggestions. Use exact names from the d
 }
 
 // ── Accounts & Permissions ─────────────────────────────────────────────────
-const ACCOUNTS=[
-  {id:'a1',name:'Matthew Perrott',email:'matt@mightysound.studio',  password:'mighty2026',role:'admin',  avatar:'MP',color:'#5c6bc0'},
-  {id:'a2',name:'Paul Reeves',    email:'paul@mightysound.studio',   password:'mighty2026',role:'staff',  avatar:'PR',color:'#d32f2f'},
-  {id:'a3',name:'Kristen Settinelli',email:'kristen@mightysound.studio',password:'mighty2026',role:'staff',avatar:'KS',color:'#2e7d32'},
-  {id:'a4',name:'David Chen',     email:'david@chenfoley.com.au',    password:'freelance1', role:'freelancer',avatar:'DC',color:'#8e24aa'},
-  {id:'a5',name:'Emma Walsh',     email:'emma@walsh.com.au',         password:'freelance1', role:'freelancer',avatar:'EW',color:'#fb8c00'},
-];
+const ROLE_MAP={
+  'matt@mightysound.studio':    'admin',
+  'paul@mightysound.studio':    'staff',
+  'kristen@mightysound.studio': 'staff',
+};
+const getRoleForEmail=(email)=>ROLE_MAP[email?.toLowerCase()]||'staff';
 
 // Permissions per role
 const PERMS={
@@ -2933,79 +2934,82 @@ function can(account,perm){
 }
 
 // ── Sign In Screen ─────────────────────────────────────────────────────────
-function SignInScreen({onSignIn}){
-  const [email,setEmail]=useState('');
-  const [password,setPassword]=useState('');
-  const [error,setError]=useState('');
-  const [showPw,setShowPw]=useState(false);
 
-  const attempt=()=>{
-    const acc=ACCOUNTS.find(a=>a.email.toLowerCase()===email.trim().toLowerCase()&&a.password===password);
-    if(acc){setError('');onSignIn(acc)}
-    else setError('Incorrect email or password.');
-  };
-
-  const quickSignIn=acc=>{onSignIn(acc)};
-
-  return(
-    <div className="signin-screen">
-      <div className="signin-card">
-        <div className="signin-logo">
-          <div className="signin-logo-icon">
-            <svg viewBox="0 0 20 20" fill="none"><rect x="2" y="4" width="16" height="12" rx="2" stroke="#fff" strokeWidth="1.5"/><path d="M7 8l3 3 3-3" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/></svg>
-          </div>
-          <div>
-            <div className="signin-logo-brand">Mighty Sound</div>
-            <div className="signin-logo-sub">WorkBoard</div>
-          </div>
-        </div>
-        <div className="signin-title">Sign in</div>
-        <div className="signin-sub">Use your Mighty Sound account</div>
-        <input className="signin-in" type="email" placeholder="Email address" value={email} onChange={e=>{setEmail(e.target.value);setError('')}} onKeyDown={e=>e.key==='Enter'&&attempt()}/>
-        <div style={{position:'relative'}}>
-          <input className="signin-in" type={showPw?'text':'password'} placeholder="Password" value={password} onChange={e=>{setPassword(e.target.value);setError('')}} onKeyDown={e=>e.key==='Enter'&&attempt()}/>
-          <button onClick={()=>setShowPw(p=>!p)} style={{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',color:'#aaa',cursor:'pointer',fontSize:11,fontWeight:700}}>
-            {showPw?'Hide':'Show'}
-          </button>
-        </div>
-        {error&&<div className="signin-err">⚠ {error}</div>}
-        <button className="signin-btn" onClick={attempt}>Sign In</button>
-
-        <div className="signin-users">
-          <div style={{fontSize:10,fontWeight:700,color:'#ccc',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>Quick access</div>
-          {ACCOUNTS.map(acc=>(
-            <button key={acc.id} className="signin-user-btn" onClick={()=>quickSignIn(acc)}>
-              <div className="signin-user-av" style={{background:acc.color}}>{acc.avatar}</div>
-              <div>
-                <div style={{fontSize:12,fontWeight:700,color:'#111'}}>{acc.name}</div>
-                <div style={{fontSize:10,color:'#888',fontWeight:500}}>{acc.email}</div>
-              </div>
-              <span className={`role-badge ${acc.role}`}>{acc.role}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ── App ────────────────────────────────────────────────────────────────────
 export default function App(){
   const [data,setData]=useState(null);const [view,setView]=useState('table');const [sel,setSel]=useState(null);const [showAddBoard,setShowAddBoard]=useState(false);const [loaded,setLoaded]=useState(false);
   const [showConflicts,setShowConflicts]=useState(false);
-  const [account,setAccount]=useState(null); // current signed-in user
+  const [account,setAccount]=useState(null);
+  const [authLoading,setAuthLoading]=useState(true);
   const saveRef=useRef(null);
   const isMaster=data&&data.activeBoard==='__master__';
   const isLongform=data&&data.activeBoard==='__longform__';
   const isCalendar=data&&data.activeBoard==='__calendar__';
 
-  useEffect(()=>{(async()=>{try{const r=await window.storage.get('wb5_data');setData(r&&r.value?JSON.parse(r.value):INIT)}catch{setData(INIT)}setLoaded(true)})()},[]);
-  useEffect(()=>{if(!loaded||!data)return;clearTimeout(saveRef.current);saveRef.current=setTimeout(async()=>{try{await window.storage.set('wb5_data',JSON.stringify(data))}catch{}},700)},[data,loaded]);
+  // Firebase auth listener
+  useEffect(()=>{
+    const unsub=onAuthStateChanged(auth,async(firebaseUser)=>{
+      if(firebaseUser){
+        let profile=await loadUserProfile(firebaseUser.uid);
+        if(!profile){
+          profile={
+            uid:firebaseUser.uid,
+            name:firebaseUser.displayName,
+            email:firebaseUser.email,
+            avatar:firebaseUser.displayName?.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2)||'?',
+            role:getRoleForEmail(firebaseUser.email),
+            photoURL:firebaseUser.photoURL,
+            createdAt:new Date().toISOString(),
+          };
+          await createUserProfile(firebaseUser.uid,profile);
+        }
+        setAccount({...profile,photoURL:firebaseUser.photoURL});
+      } else {
+        setAccount(null);
+      }
+      setAuthLoading(false);
+    });
+    return()=>unsub();
+  },[]);
 
-  // Show sign-in if not authenticated
-  if(!account){
-    return <SignInScreen onSignIn={acc=>{setAccount(acc)}}/>;
-  }
+  // Load data when user signs in
+  useEffect(()=>{
+    if(!account)return;
+    (async()=>{
+      try{const saved=await loadUserData(account.uid);setData(saved||INIT);}
+      catch{setData(INIT);}
+      setLoaded(true);
+    })();
+  },[account?.uid]);
+
+  // Save data on change
+  useEffect(()=>{
+    if(!loaded||!data||!account)return;
+    clearTimeout(saveRef.current);
+    saveRef.current=setTimeout(async()=>{
+      try{await saveUserData(account.uid,data);}catch{}
+    },700);
+  },[data,loaded]);
+
+  if(authLoading)return(
+    <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',background:'#1a1a2e',color:'#fff',fontFamily:'Barlow,sans-serif',fontSize:14}}>
+      Loading…
+    </div>
+  );
+
+  if(!account)return(
+    <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',background:'#1a1a2e'}}>
+      <div style={{textAlign:'center',fontFamily:'Barlow,sans-serif'}}>
+        <div style={{fontSize:28,fontWeight:800,color:'#fff',marginBottom:4}}>Mighty Sound</div>
+        <div style={{fontSize:13,color:'rgba(255,255,255,.4)',fontWeight:600,letterSpacing:'.1em',textTransform:'uppercase',marginBottom:40}}>WorkBoard</div>
+        <button onClick={signInWithGoogle} style={{display:'flex',alignItems:'center',gap:12,background:'#fff',border:'none',borderRadius:8,padding:'12px 24px',fontSize:14,fontWeight:700,cursor:'pointer',color:'#333',margin:'0 auto'}}>
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.34-8.16 2.34-6.26 0-11.57-3.59-13.46-8.83l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          Sign in with Google
+        </button>
+      </div>
+    </div>
+  );
 
   // Compute gantt-derived items for Active Projects (read-only view)
   const ganttDerivedItems=useMemo(()=>{
@@ -3131,12 +3135,15 @@ export default function App(){
         {['🔔 Notifications','⚙️ Settings'].map(x=><div key={x} className="sb-item"><span className="sb-icon">{x.slice(0,2)}</span>{x.slice(3)}</div>)}
       </div>
       <div className="sb-footer">
-        <div className="user-av" style={{background:ACCOUNTS.find(a=>a.id===account.id)?.color||'#fff',color:'#fff',fontSize:10}}>{account.avatar}</div>
+        {account.photoURL
+          ?<img src={account.photoURL} style={{width:28,height:28,borderRadius:'50%',objectFit:'cover'}} alt=""/>
+          :<div className="user-av" style={{background:'#5c6bc0',color:'#fff',fontSize:10}}>{account.avatar}</div>
+        }
         <div style={{flex:1,minWidth:0}}>
           <div style={{fontSize:12,color:'rgba(255,255,255,.85)',fontWeight:700,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{account.name}</div>
           <div style={{fontSize:10,color:'rgba(255,255,255,.35)',fontWeight:500,textTransform:'capitalize'}}>{account.role}</div>
         </div>
-        <button onClick={()=>setAccount(null)} style={{background:'none',border:'1px solid rgba(255,255,255,.15)',borderRadius:5,color:'rgba(255,255,255,.4)',fontSize:10,fontWeight:700,padding:'3px 7px',cursor:'pointer',flexShrink:0,letterSpacing:'.03em'}} title="Sign out">↩</button>
+        <button onClick={signOutUser} style={{background:'none',border:'1px solid rgba(255,255,255,.15)',borderRadius:5,color:'rgba(255,255,255,.4)',fontSize:10,fontWeight:700,padding:'3px 7px',cursor:'pointer',flexShrink:0,letterSpacing:'.03em'}} title="Sign out">↩</button>
       </div>
     </div>
     <div className="main">
