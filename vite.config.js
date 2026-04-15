@@ -10,7 +10,8 @@ export default defineConfig({
         globals: {
           xlsx: 'XLSX'
         }
-      }
+      },
+      treeshake: false
     }
   }
 })
