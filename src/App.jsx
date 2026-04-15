@@ -552,10 +552,17 @@ const GCAL_CLIENT_ID='375953047409-g264eo7tghcg1g82s6f8khfg8p5f0jh4.apps.googleu
 const GCAL_SCOPES='https://www.googleapis.com/auth/calendar';
 
 function useGoogleCalendar(){
-  const [token,setToken]=useState(null);
+  const [token,setToken]=useState(()=>{
+    // Restore token from localStorage so it survives navigation
+    try{return localStorage.getItem('gcal_token')||null;}catch{return null;}
+  });
   const [gcalEvents,setGcalEvents]=useState([]);
   const [syncStatus,setSyncStatus]=useState('idle');// idle|syncing|ok|error
   const [lastSync,setLastSync]=useState(null);
+  const [calendars,setCalendars]=useState([]);// list of user's calendars
+  const [selectedCals,setSelectedCals]=useState(()=>{
+    try{return JSON.parse(localStorage.getItem('gcal_selected')||'null')||null;}catch{return null;}
+  });
   const pollRef=useRef(null);
 
   // Use Firebase popup to get Google access token with calendar scope
@@ -571,36 +578,70 @@ function useGoogleCalendar(){
       scope:'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/spreadsheets',
       callback:(resp)=>{
         if(resp.error){console.warn('GCal token error:',resp.error);setSyncStatus('error');return;}
+        try{localStorage.setItem('gcal_token',resp.access_token);}catch{}
         setToken(resp.access_token);
       },
     });
     client.requestAccessToken();
   };
 
-  const disconnect=()=>{setToken(null);setGcalEvents([]);setSyncStatus('idle');clearInterval(pollRef.current)};
+  const disconnect=()=>{setToken(null);setGcalEvents([]);setCalendars([]);setSelectedCals(null);setSyncStatus('idle');clearInterval(pollRef.current);try{localStorage.removeItem('gcal_token');localStorage.removeItem('gcal_selected');}catch{}};
 
-  const fetchEvents=useCallback(async(t=token)=>{
+  const fetchCalendarList=useCallback(async(t=token)=>{
+    if(!t)return;
+    try{
+      const resp=await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList?maxResults=50',{
+        headers:{Authorization:`Bearer ${t}`}
+      });
+      if(!resp.ok)return;
+      const data=await resp.json();
+      const cals=(data.items||[]).map(c=>({id:c.id,name:c.summary,color:c.backgroundColor||'#4285f4',primary:c.primary||false}));
+      setCalendars(cals);
+      // Auto-select all on first load
+      if(!selectedCals){
+        const ids=cals.map(c=>c.id);
+        setSelectedCals(ids);
+        try{localStorage.setItem('gcal_selected',JSON.stringify(ids));}catch{}
+      }
+    }catch(e){console.warn('Calendar list failed:',e.message)}
+  },[token,selectedCals]);
+
+  const toggleCalendar=(id)=>{
+    setSelectedCals(prev=>{
+      const next=prev?.includes(id)?prev.filter(x=>x!==id):[...(prev||[]),id];
+      try{localStorage.setItem('gcal_selected',JSON.stringify(next));}catch{}
+      return next;
+    });
+  };
+
+  const fetchEvents=useCallback(async(t=token,cals=selectedCals)=>{
     if(!t)return;
     setSyncStatus('syncing');
     try{
       const now=new Date();
       const min=new Date(now.getFullYear(),now.getMonth()-1,1).toISOString();
       const max=new Date(now.getFullYear(),now.getMonth()+3,1).toISOString();
-      const resp=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(min)}&timeMax=${encodeURIComponent(max)}&singleEvents=true&orderBy=startTime&maxResults=250`,{
-        headers:{Authorization:`Bearer ${t}`}
-      });
-      if(resp.status===401){setToken(null);setSyncStatus('error');return}
-      if(!resp.ok)throw new Error('Calendar fetch failed');
-      const data=await resp.json();
-      setGcalEvents(data.items||[]);
+      const calIds=cals||['primary'];
+      const allEvents=[];
+      await Promise.all(calIds.map(async calId=>{
+        const resp=await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?timeMin=${encodeURIComponent(min)}&timeMax=${encodeURIComponent(max)}&singleEvents=true&orderBy=startTime&maxResults=250`,{
+          headers:{Authorization:`Bearer ${t}`}
+        });
+        if(resp.status===401){setToken(null);try{localStorage.removeItem('gcal_token');}catch{}setSyncStatus('error');return;}
+        if(!resp.ok)return;
+        const data=await resp.json();
+        allEvents.push(...(data.items||[]));
+      }));
+      setGcalEvents(allEvents);
       setSyncStatus('ok');setLastSync(new Date());
     }catch(e){setSyncStatus('error');console.warn('GCal fetch failed:',e.message)}
-  },[token]);
+  },[token,selectedCals]);
 
   useEffect(()=>{
     if(token){
+      fetchCalendarList(token);
       fetchEvents(token);
-      pollRef.current=setInterval(()=>fetchEvents(token),60000);// poll every 60s
+      pollRef.current=setInterval(()=>fetchEvents(token),60000);
     }
     return()=>clearInterval(pollRef.current);
   },[token]);
@@ -630,7 +671,7 @@ function useGoogleCalendar(){
     }catch(e){console.warn('GCal delete failed:',e.message)}
   },[token]);
 
-  return{token,connected:!!token,gcalEvents,syncStatus,lastSync,connect,disconnect,fetchEvents,createEvent,deleteEvent};
+  return{token,connected:!!token,gcalEvents,syncStatus,lastSync,calendars,selectedCals,toggleCalendar,connect,disconnect,fetchEvents,createEvent,deleteEvent};
 }
 
 // ── WorkBoard Calendar (Google Calendar style) ─────────────────────────────
@@ -761,6 +802,24 @@ function WorkboardCalendar({ganttData,boards,account}){
           <button onClick={e=>{e.stopPropagation();gcal.fetchEvents()}} style={{background:'none',border:'1px solid #34a853',borderRadius:5,padding:'2px 8px',fontSize:11,fontWeight:700,color:'#34a853',cursor:'pointer',marginLeft:6}}>↻ Refresh</button>
           <button onClick={e=>{e.stopPropagation();syncGanttToGcal()}} style={{background:'none',border:'1px solid #1a73e8',borderRadius:5,padding:'2px 8px',fontSize:11,fontWeight:700,color:'#1a73e8',cursor:'pointer'}}>⬆ Push Gantt to GCal</button>
           <button onClick={e=>{e.stopPropagation();gcal.disconnect()}} style={{marginLeft:'auto',background:'none',border:'none',color:'#888',cursor:'pointer',fontSize:11,fontWeight:600}}>Disconnect</button>
+        </div>
+      )}
+
+      {/* Calendar list sidebar */}
+      {gcal.connected&&gcal.calendars.length>0&&(
+        <div style={{padding:'8px 14px',background:'#f8f9fa',borderBottom:'1px solid #e5e5e5',display:'flex',gap:6,flexWrap:'wrap',alignItems:'center'}}>
+          <span style={{fontSize:10,fontWeight:700,color:'#888',textTransform:'uppercase',letterSpacing:'.07em',marginRight:4}}>Calendars:</span>
+          {gcal.calendars.map(cal=>(
+            <div key={cal.id} onClick={e=>{e.stopPropagation();gcal.toggleCalendar(cal.id);setTimeout(()=>gcal.fetchEvents(),100);}}
+              style={{display:'flex',alignItems:'center',gap:5,padding:'3px 9px',borderRadius:12,cursor:'pointer',fontSize:11,fontWeight:600,
+                background:gcal.selectedCals?.includes(cal.id)?cal.color+'22':'#f0f0f0',
+                color:gcal.selectedCals?.includes(cal.id)?cal.color:'#aaa',
+                border:`1px solid ${gcal.selectedCals?.includes(cal.id)?cal.color+'44':'#ddd'}`,
+                transition:'all .13s',opacity:gcal.selectedCals?.includes(cal.id)?1:.6}}>
+              <span style={{width:8,height:8,borderRadius:'50%',background:gcal.selectedCals?.includes(cal.id)?cal.color:'#ccc',display:'inline-block',flexShrink:0}}/>
+              {cal.name}{cal.primary&&<span style={{fontSize:9,opacity:.6}}> (primary)</span>}
+            </div>
+          ))}
         </div>
       )}
 
@@ -2261,12 +2320,18 @@ Milestone mapping rules:
   };
 
 // ── LongformView ───────────────────────────────────────────────────────────
-function LongformGantt({longform,activeProd}){
+function LongformGantt({longform,activeProd,masterGantt=[]}){
   const [collapsed,setCollapsed]=useState({});const [offsetW,setOffsetW]=useState(0);
   const [showAll,setShowAll]=useState(false);
   const activeProdObj=longform.productions.find(p=>p.id===activeProd)||longform.productions[0];
   // Show all productions or just the active one
-  const prodsToShow=showAll?longform.productions:(activeProdObj?[activeProdObj]:[]);
+  // Convert masterGantt projects to production-like format for display
+  const ganttAsProds=useMemo(()=>masterGantt.map(p=>({
+    id:'mg_'+p.id, name:p.code+' — '+p.name, type:p.type||'Film', client:p.client,
+    episodes:p.episodes.map(ep=>({...ep,dueDate:ep.tasks?.slice(-1)[0]?.endDate||'',status:ep.tasks?.every(t=>t.status==='Done')?'Done':ep.tasks?.some(t=>t.status==='In Progress')?'In Progress':'Not Started'})),
+    _fromMaster:true,
+  })),[masterGantt]);
+  const prodsToShow=showAll?[...longform.productions,...ganttAsProds]:(activeProdObj?[activeProdObj]:[]);
   const WEEKS=16;const PX_WEEK=80;const todayD=today();
   const startDate=useMemo(()=>addDays(todayD,-14+offsetW*7),[offsetW,todayD]);
   const totalPx=WEEKS*PX_WEEK;const dToX=d=>daysBetween(startDate,d)*(PX_WEEK/7);const todayX=dToX(todayD);
@@ -2283,7 +2348,7 @@ function LongformGantt({longform,activeProd}){
       <button className="mg-nav-btn" onClick={()=>setOffsetW(0)} style={{fontSize:11}}>Today</button>
       <div style={{marginLeft:'auto',display:'flex',gap:6}}>
         <button className="t-btn" style={{fontWeight:700,fontSize:11,background:showAll?'#111':'#fff',color:showAll?'#fff':'#555',borderColor:showAll?'#111':'#ddd'}} onClick={()=>setShowAll(p=>!p)}>
-          {showAll?'This production':'All productions'}
+          {showAll?'This production':'All productions + Master Gantt'}
         </button>
       </div>
     </div>
@@ -2396,7 +2461,7 @@ function LongformPipeline({prod,onUpdate,prodId}){
   </div>);
 }
 
-function LongformView({longform,onUpdate}){
+function LongformView({longform,onUpdate,masterGantt=[]}){
   const [activeProd,setActiveProd]=useState(longform.activeProduction);
   const [lfView,setLfView]=useState('pipeline');
   const prod=longform.productions.find(p=>p.id===activeProd)||longform.productions[0];
@@ -2412,7 +2477,7 @@ function LongformView({longform,onUpdate}){
       </div>
     </div>
     {lfView==='pipeline'&&<LongformPipeline prod={prod} prodId={activeProd} onUpdate={onUpdate}/>}
-    {lfView==='gantt'&&<LongformGantt longform={longform} activeProd={activeProd}/>}
+    {lfView==='gantt'&&<LongformGantt longform={longform} activeProd={activeProd} masterGantt={masterGantt}/>}
   </div>);
 }
 
@@ -2533,7 +2598,7 @@ let ENGINEER_SKILLS=DEFAULT_ENGINEER_SKILLS;
 
 // ── Modals ─────────────────────────────────────────────────────────────────
 function AddColModal({onAdd,onClose}){const [name,setName]=useState('');const [type,setType]=useState('text');const TYPES=[{t:'text',l:'Text'},{t:'status',l:'Status'},{t:'priority',l:'Priority'},{t:'person',l:'Person'},{t:'date',l:'Date'},{t:'number',l:'Number'},{t:'currency',l:'Currency ($)'}];return(<div className="modal-ov" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()}><h3>Add column</h3><label>Name</label><input className="m-in" placeholder="Column name" value={name} onChange={e=>setName(e.target.value)} autoFocus onKeyDown={e=>e.key==='Enter'&&name&&onAdd(name,type)}/><label>Type</label><select className="m-sel" value={type} onChange={e=>setType(e.target.value)}>{TYPES.map(c=><option key={c.t} value={c.t}>{c.l}</option>)}</select><div className="m-actions"><button className="btn-g" onClick={onClose}>Cancel</button><button className="btn-p" onClick={()=>name&&onAdd(name,type)}>Add</button></div></div></div>);}
-function AddBoardModal({onAdd,onClose}){const ICONS=['folder','mic','clapper','gantt','people','money','calendar','wrench','note','lightning','fader','console','headphones','files'];const [name,setName]=useState('');const [icon,setIcon]=useState('folder');return(<div className="modal-ov" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()}><h3>New board</h3><label>Name</label><input className="m-in" placeholder="Board name" value={name} onChange={e=>setName(e.target.value)} autoFocus/><label>Icon</label><div className="icon-grid">{ICONS.map(ic=><span key={ic} className={`icon-opt${icon===ic?' sel':''}`} onClick={()=>setIcon(ic)}>{ic}</span>)}</div><div className="m-actions"><button className="btn-g" onClick={onClose}>Cancel</button><button className="btn-p" onClick={()=>name&&onAdd(name,icon)}>Create</button></div></div></div>);}
+function AddBoardModal({onAdd,onClose}){const ICONS=['folder','mic','clapper','gantt','people','money','calendar','wrench','note','lightning','fader','console','headphones','files'];const [name,setName]=useState('');const [icon,setIcon]=useState('folder');return(<div className="modal-ov" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()}><h3>New board</h3><label>Name</label><input className="m-in" placeholder="Board name" value={name} onChange={e=>setName(e.target.value)} autoFocus/><label>Icon</label><div className="icon-grid">{ICONS.map(ic=><span key={ic} className={`icon-opt${icon===ic?' sel':''}`} onClick={()=>setIcon(ic)} title={ic}><Icon name={ic} size={16}/></span>)}</div><div className="m-actions"><button className="btn-g" onClick={onClose}>Cancel</button><button className="btn-p" onClick={()=>name&&onAdd(name,icon)}>Create</button></div></div></div>);}
 
 function AddCustomSkill({onAdd}){
   const [val,setVal]=useState('');
@@ -3422,12 +3487,12 @@ export default function App(){
       ):isLongform?(
         <>
           <div className="board-header"><div className="board-title"><Icon name="clapper" size={16}/><span>Production Overview</span><span className="bcount">{data.longform.productions.reduce((s,p)=>s+p.episodes.length,0)} episodes</span></div><hr className="hdr-div" style={{marginTop:4}}/></div>
-          <div className="board-content"><LongformView longform={data?.longform||{productions:[],activeProduction:""}} onUpdate={updLongform}/></div>
+          <div className="board-content"><LongformView longform={data?.longform||{productions:[],activeProduction:""}} onUpdate={updLongform} masterGantt={data?.masterGantt||[]}/></div>
         </>
       ):board?(
         <>
           <div className="board-header">
-            <div className="board-title"><span>{board.icon}</span><span>{board.name}</span><span className="bcount">{board.groups.reduce((n,g)=>n+g.items.length,0)} items</span></div>
+            <div className="board-title"><Icon name={board.icon} size={16}/><span>{board.name}</span><span className="bcount">{board.groups.reduce((n,g)=>n+g.items.length,0)} items</span></div>
             <div className="toolbar">{VIEWS.map(v=><button key={v.id} className={`view-btn${view===v.id?' active':''}`} onClick={()=>setView(v.id)}>{v.l}</button>)}<div className="t-sep"/><button className="t-btn"><Icon name="search" size={12}/> Filter</button>
               {board.id==='b3'
                 ?<button className="t-btn hi" onClick={()=>{setEditEngineer(null);setShowAddEngineer(true)}}>+ Add Engineer</button>
