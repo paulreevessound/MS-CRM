@@ -638,7 +638,8 @@ function useGoogleCalendar(){
         if(resp.status===401){setToken(null);try{localStorage.removeItem('gcal_token');}catch{}setSyncStatus('error');return;}
         if(!resp.ok)return;
         const data=await resp.json();
-        allEvents.push(...(data.items||[]));
+        // Tag each event with its source calendar ID
+        allEvents.push(...(data.items||[]).map(ev=>({...ev,_calendarId:calId})));
       }));
       setGcalEvents(allEvents);
       setSyncStatus('ok');setLastSync(new Date());
@@ -728,16 +729,21 @@ function WorkboardCalendar({ganttData,boards,account}){
   },[ganttData]);
 
   // Google Calendar events formatted for display
-  const gcEvents=useMemo(()=>gcal.gcalEvents.map(e=>({
-    id:e.id,
-    title:e.summary||'(No title)',
-    start:e.start?.date||e.start?.dateTime?.split('T')[0],
-    end:e.end?.date||e.end?.dateTime?.split('T')[0],
-    startTime:e.start?.dateTime?new Date(e.start.dateTime):null,
-    endTime:e.end?.dateTime?new Date(e.end.dateTime):null,
-    color:'#1a73e8',textColor:'#fff',
-    _type:'gcal',_gcalId:e.id,_allDay:!e.start?.dateTime,
-  })),[gcal.gcalEvents]);
+  const gcEvents=useMemo(()=>gcal.gcalEvents.map(e=>{
+    // Look up this event's calendar colour
+    const cal=gcal.calendars.find(c=>c.id===e._calendarId);
+    const color=cal?.color||'#1a73e8';
+    return{
+      id:e.id,
+      title:e.summary||'(No title)',
+      start:e.start?.date||e.start?.dateTime?.split('T')[0],
+      end:e.end?.date||e.end?.dateTime?.split('T')[0],
+      startTime:e.start?.dateTime?new Date(e.start.dateTime):null,
+      endTime:e.end?.dateTime?new Date(e.end.dateTime):null,
+      color,textColor:'#fff',
+      _type:'gcal',_gcalId:e.id,_allDay:!e.start?.dateTime,_calendarId:e._calendarId,
+    };
+  }),[gcal.gcalEvents,gcal.calendars]);
 
   const allEvents=[...wbEvents,...gcEvents];
 
