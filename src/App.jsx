@@ -3109,6 +3109,8 @@ export default function App(){
         setAccount({...profile,photoURL:firebaseUser.photoURL});
       } else {
         setAccount(null);
+        setData(null);
+        setLoaded(false);
       }
       setAuthLoading(false);
     });
