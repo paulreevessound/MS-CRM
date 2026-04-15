@@ -470,7 +470,7 @@ function TableView({board,onUpdate,onSelect,onEditItem}){
           <div className="td-name">{edName===item.id?<input className="ni" value={item.name} autoFocus onChange={e=>updName(g.id,item.id,e.target.value)} onBlur={()=>setEdName(null)} onKeyDown={e=>e.key==='Enter'&&setEdName(null)} onClick={e=>e.stopPropagation()}/>:
             <><span className="td-nm-txt" onDoubleClick={e=>{e.stopPropagation();setEdName(item.id)}} onClick={()=>onSelect(board.id,g.id,item.id)}>{item.name}</span>
             {item.notes&&<span style={{fontSize:9,color:'#ccc'}}><Icon name="note" size={9}/></span>}
-            {item.timeLogs&&item.timeLogs.length>0&&<span style={{fontSize:9,color:'#ccc'}}><Icon name="timer" size={13}/>/span>}
+            {item.timeLogs&&item.timeLogs.length>0&&<span style={{fontSize:9,color:'#ccc'}}><Icon name="timer" size={13}/></span>}
             {onEditItem&&<button onClick={e=>{e.stopPropagation();onEditItem(item,g.name)}} style={{marginLeft:6,background:'none',border:'1px solid #ddd',borderRadius:4,padding:'1px 7px',fontSize:10,fontWeight:700,color:'#888',cursor:'pointer',flexShrink:0}} title="Edit">✏️ Edit</button>}
             </>}
           </div>
