@@ -2851,10 +2851,14 @@ function ConflictResolutionModal({conflicts,ganttData,engineers,onApply,onClose}
       const reqSkill=TASK_SKILL_MAP[taskName];
       if(!reqSkill)return true; // no skill requirement (e.g. Ingest)
       const skills=eng.skills||{};
-      // skills can be object {skillId:true} or array of labels
-      if(typeof skills==='object'&&!Array.isArray(skills))return!!skills[reqSkill];
-      if(Array.isArray(skills))return skills.some(s=>s.toLowerCase().includes(reqSkill.toLowerCase()));
-      return false;
+      return typeof skills==='object'&&!Array.isArray(skills)?!!skills[reqSkill]:false;
+    };
+
+    // Helper: is engineer blocked by their booking dates?
+    const notBlockedByBooking=(eng,startDate,endDate)=>{
+      const bf=eng.values?.c4;const bt=eng.values?.c5;
+      if(!bf||!bt)return true; // no booking dates set = available
+      return!overlaps(startDate,endDate,bf,bt);
     };
 
     // Score engineer for a task: lower = better
@@ -2898,6 +2902,7 @@ function ConflictResolutionModal({conflicts,ganttData,engineers,onApply,onClose}
       const candidates=(engineers||[])
         .filter(eng=>eng.name!==conflictedEng)
         .filter(eng=>hasSkill(eng,taskToMove.name))
+        .filter(eng=>notBlockedByBooking(eng,taskToMove.startDate,taskToMove.endDate))
         .filter(eng=>simAvailable(eng.name,taskToMove.startDate,taskToMove.endDate,null))
         .sort((a,b)=>scoreEng(a,taskToMove.name)-scoreEng(b,taskToMove.name));
 
@@ -3173,14 +3178,11 @@ export default function App(){
     const eb=data.boards.find(b=>b.id==='b3');if(!eb)return[];
     return eb.groups.flatMap(g=>g.items).map(i=>({
       name:i.name,
-      specialty:i.values?.c2||'',
-      rate:i._type==='staff'?null:i.values?.c3||'',
-      type:i._type||'staff',
-      bookedFrom:i.values?.c4||'',
-      bookedTo:i.values?.c5||'',
-      skills:(skillsList||[]).filter(s=>(i.skills||{})[s.id]).map(s=>s.label),
+      _type:i._type||'staff',
+      values:{c2:i.values?.c2||'',c3:i._type==='staff'?null:i.values?.c3||'',c4:i.values?.c4||'',c5:i.values?.c5||''},
+      skills:i.skills||{}, // keep raw {skillId:true} object
     }));
-  },[data,skillsList]);
+  },[data]);
 
   const updBoard=useCallback((bid,fn)=>setData(p=>({...p,boards:p.boards.map(b=>b.id===bid?(typeof fn==='function'?fn(b):{...b,...fn}):b)})),[]);
 
@@ -3373,7 +3375,7 @@ export default function App(){
               return all;
             },[])}
             ganttData={data.masterGantt}
-            engineers={engineerList}
+            engineers={freelancerList}
             onApply={change=>{applyGanttChange(change)}}
             onClose={()=>setShowConflicts(false)}
           />
