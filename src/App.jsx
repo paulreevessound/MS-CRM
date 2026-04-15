@@ -2444,6 +2444,76 @@ function LongformGantt({longform,activeProd,masterGantt=[]}){
   </div>);
 }
 
+
+// ── Master Gantt Pipeline View (for projects from Master Gantt) ────────────
+function MasterGanttPipeline({proj}){
+  if(!proj)return null;
+  const allTasks=proj.episodes.flatMap(ep=>ep.tasks||[]);
+  const taskTypes=TASK_DEFS.map(td=>td.name);
+  const stageAvg=taskName=>{
+    const tasks=allTasks.filter(t=>t.name===taskName);
+    if(!tasks.length)return 0;
+    return Math.round(tasks.reduce((s,t)=>s+(t.status==='Done'?100:t.status==='In Progress'?t.pct||50:0),0)/tasks.length);
+  };
+  const totalPct=Math.round(taskTypes.reduce((s,n)=>s+stageAvg(n),0)/taskTypes.length);
+  const doneEps=proj.episodes.filter(ep=>ep.tasks?.every(t=>t.status==='Done')).length;
+  return(<div>
+    <div className="lf-hdr-card">
+      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:12}}>
+        <div>
+          <div className="lf-title">{proj.code} — {proj.name}</div>
+          <div className="lf-meta">{proj.type} · {proj.client}</div>
+        </div>
+        <div style={{textAlign:'right'}}>
+          <div style={{fontSize:26,fontWeight:900,color:'#111',fontFamily:'DM Mono,monospace'}}>{totalPct}%</div>
+          <div style={{fontSize:9,color:'#aaa',textTransform:'uppercase',letterSpacing:'.08em',fontWeight:700}}>Complete</div>
+        </div>
+      </div>
+      <div style={{display:'flex',gap:14,flexWrap:'wrap'}}>
+        {[{v:proj.episodes.length,l:'Episodes'},{v:doneEps,l:'Delivered'},{v:proj.episodes.length-doneEps,l:'Remaining'}].map(s=>(
+          <div key={s.l} className="lf-stat"><div className="lf-stat-val">{s.v}</div><div className="lf-stat-lbl">{s.l}</div></div>
+        ))}
+      </div>
+      <div style={{display:'flex',gap:2,marginTop:14,alignItems:'center',flexWrap:'wrap'}}>
+        {TASK_DEFS.map((td,i)=>(
+          <React.Fragment key={td.name}>
+            {i>0&&<span style={{fontSize:10,color:'#ccc',margin:'0 1px',marginBottom:10}}>→</span>}
+            <div className="lf-stage">
+              <div className="lf-stage-name" style={{fontSize:8}}>{td.abbr}</div>
+              <div className="lf-stage-bar"><div className="lf-stage-fill" style={{width:`${stageAvg(td.name)}%`,background:td.color}}/></div>
+              <div className="lf-stage-pct">{stageAvg(td.name)}%</div>
+            </div>
+          </React.Fragment>
+        ))}
+      </div>
+    </div>
+    <div className="ep-table">
+      <div className="ep-head">
+        <div className="ep-th ep-th-name">Episode</div>
+        {TASK_DEFS.map(td=><div key={td.name} className="ep-th ep-th-stage" style={{color:td.color,fontSize:9}}>{td.abbr}</div>)}
+        <div className="ep-th ep-th-status">Status</div>
+      </div>
+      {proj.episodes.map(ep=>{
+        const epDone=ep.tasks?.every(t=>t.status==='Done');
+        const epIP=ep.tasks?.some(t=>t.status==='In Progress');
+        const epStatus=epDone?'Done':epIP?'In Progress':'Not Started';
+        return(<div key={ep.id} className="ep-row">
+          <div className="ep-name">{ep.name}</div>
+          {TASK_DEFS.map(td=>{
+            const task=ep.tasks?.find(t=>t.name===td.name);
+            const pct=!task?0:task.status==='Done'?100:task.status==='In Progress'?task.pct||50:0;
+            return(<div key={td.name} className="ep-stage">
+              <div className="ep-stg-bar"><div className="ep-stg-fill" style={{width:`${pct}%`,background:td.color}}/></div>
+              <div className="ep-stg-pct">{pct}%</div>
+            </div>);
+          })}
+          <div className="ep-status"><SBadge v={epStatus}/></div>
+        </div>);
+      })}
+    </div>
+  </div>);
+}
+
 function LongformPipeline({prod,onUpdate,prodId}){
   if(!prod)return null;
   const stageAvg=s=>Math.round(prod.episodes.reduce((sum,e)=>sum+(e.stages[s]||0),0)/Math.max(prod.episodes.length,1));
@@ -2482,12 +2552,18 @@ function LongformPipeline({prod,onUpdate,prodId}){
 }
 
 function LongformView({longform,onUpdate,masterGantt=[]}){
-  const [activeProd,setActiveProd]=useState(longform.activeProduction);
+  const defaultId=masterGantt.length?'mg_'+masterGantt[0].id:longform.activeProduction;
+  const [activeProd,setActiveProd]=useState(defaultId);
   const [lfView,setLfView]=useState('pipeline');
-  const prod=longform.productions.find(p=>p.id===activeProd)||longform.productions[0];
+  // Active item — could be from masterGantt or longform
+  const isMasterProj=activeProd?.startsWith('mg_');
+  const masterProjId=isMasterProj?activeProd.replace('mg_',''):null;
+  const masterProj=masterGantt.find(p=>p.id===masterProjId);
+  const prod=isMasterProj?null:longform.productions.find(p=>p.id===activeProd)||longform.productions[0];
   return(<div>
     <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:18}}>
       <div className="lf-tabs" style={{marginBottom:0,flex:1}}>
+        {masterGantt.map(p=><div key={'mg_'+p.id} className={`lf-tab${activeProd==='mg_'+p.id?' active':''}`} onClick={()=>setActiveProd('mg_'+p.id)} style={{borderLeft:'3px solid #5c6bc0'}}>{p.code} {p.name}</div>)}
         {longform.productions.map(p=><div key={p.id} className={`lf-tab${p.id===activeProd?' active':''}`} onClick={()=>setActiveProd(p.id)}>{p.name}</div>)}
         <div className="lf-tab" style={{borderStyle:'dashed'}}>+ New</div>
       </div>
@@ -2496,7 +2572,8 @@ function LongformView({longform,onUpdate,masterGantt=[]}){
         <button className={`lf-vbtn${lfView==='gantt'?' active':''}`} onClick={()=>setLfView('gantt')}><Icon name="gantt" size={13}/> Gantt</button>
       </div>
     </div>
-    {lfView==='pipeline'&&<LongformPipeline prod={prod} prodId={activeProd} onUpdate={onUpdate}/>}
+    {lfView==='pipeline'&&isMasterProj&&<MasterGanttPipeline proj={masterProj}/>}
+    {lfView==='pipeline'&&!isMasterProj&&<LongformPipeline prod={prod} prodId={activeProd} onUpdate={onUpdate}/>}
     {lfView==='gantt'&&<LongformGantt longform={longform} activeProd={activeProd} masterGantt={masterGantt}/>}
   </div>);
 }
