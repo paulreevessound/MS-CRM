@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import * as XLSX from 'xlsx';
+const XLSX = window.XLSX;
 
 
 // ── Constants ──────────────────────────────────────────────────────────────
