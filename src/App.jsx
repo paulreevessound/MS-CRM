@@ -3365,6 +3365,7 @@ export default function App(){
     </div>
   );
 
+  if(!data)return<MightySoundLoader/>;
   return(<div className="app">
     <div className="sidebar">
       <div className="sb-logo">
@@ -3378,7 +3379,7 @@ export default function App(){
       </div>
       <div className="sb-scroll">
         <div className="sb-section">Boards</div>
-        {data.boards
+        {data?.boards
           .filter(b=>{
             if(b.id==='b4'&&!can(account,'viewBudget'))return false; // hide Budget from freelancers
             if(b.id==='b3'&&!can(account,'viewEngineers'))return false; // hide Engineers from freelancers
@@ -3413,7 +3414,7 @@ export default function App(){
             <span className="bcount">{data.masterGantt.reduce((n,p)=>n+p.episodes.reduce((m,e)=>m+e.tasks.length,0),0)} tasks across {data.masterGantt.length} projects</span>
           </div>
           <div style={{flex:1,overflow:'hidden',minHeight:0,display:'flex',flexDirection:'column'}}>
-            <MasterGantt ganttData={data.masterGantt} onUpdateGantt={updMasterGantt} onShowConflicts={()=>setShowConflicts(true)}/>
+            <MasterGantt ganttData={data?.masterGantt||[]} onUpdateGantt={updMasterGantt} onShowConflicts={()=>setShowConflicts(true)}/>
           </div>
         </div>
       ):isCalendar?(
@@ -3423,13 +3424,13 @@ export default function App(){
             <span className="bcount">All projects · Google Calendar sync</span>
           </div>
           <div style={{flex:1,minHeight:0,display:'flex',flexDirection:'column'}}>
-            <WorkboardCalendar ganttData={data.masterGantt} boards={data.boards} account={account}/>
+            <WorkboardCalendar ganttData={data?.masterGantt||[]} boards={data?.boards||[]} account={account}/>
           </div>
         </div>
       ):isLongform?(
         <>
           <div className="board-header"><div className="board-title"><Icon name="clapper" size={16}/><span>Production Overview</span><span className="bcount">{data.longform.productions.reduce((s,p)=>s+p.episodes.length,0)} episodes</span></div><hr className="hdr-div" style={{marginTop:4}}/></div>
-          <div className="board-content"><LongformView longform={data.longform} onUpdate={updLongform}/></div>
+          <div className="board-content"><LongformView longform={data?.longform||{productions:[],activeProduction:""}} onUpdate={updLongform}/></div>
         </>
       ):board?(
         <>
@@ -3473,7 +3474,7 @@ export default function App(){
           </div>
         </>
       ):<div className="empty"><h3>Select a board</h3></div>}
-      {sel&&<ItemDetail boards={data.boards} sel={sel} onClose={()=>setSel(null)} onUpdate={updBoard} engineers={engineerList} skillsList={skillsList}/>}
+      {sel&&<ItemDetail boards={data?.boards||[]} sel={sel} onClose={()=>setSel(null)} onUpdate={updBoard} engineers={engineerList} skillsList={skillsList}/>}
       {showAddBoard&&<AddBoardModal onAdd={addBoard} onClose={()=>setShowAddBoard(false)}/>}
       {showAddEngineer&&<AddEngineerModal
         editItem={editEngineer?{...editEngineer.item,_group:editEngineer.groupName}:null}
@@ -3494,7 +3495,7 @@ export default function App(){
               }
               return all;
             },[])}
-            ganttData={data.masterGantt}
+            ganttData={data?.masterGantt||[]}
             engineers={freelancerList}
             onApply={change=>{applyGanttChange(change)}}
             onClose={()=>setShowConflicts(false)}
