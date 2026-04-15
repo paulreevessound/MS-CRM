@@ -3188,6 +3188,7 @@ export default function App(){
   const [showConflicts,setShowConflicts]=useState(false);
   const [account,setAccount]=useState(null);
   const [authLoading,setAuthLoading]=useState(true);
+  const [loginKey,setLoginKey]=useState(0);
   const saveRef=useRef(null);
   const isMaster=data&&data.activeBoard==='__master__';
   const isLongform=data&&data.activeBoard==='__longform__';
@@ -3216,6 +3217,7 @@ export default function App(){
           await createUserProfile(firebaseUser.uid,profile);
         }
         setAccount({...profile,photoURL:firebaseUser.photoURL});
+        setLoginKey(k=>k+1);
       } else {
         setAccount(null);
         setData(null);
@@ -3234,7 +3236,7 @@ export default function App(){
       catch{setData(INIT);}
       setLoaded(true);
     })();
-  },[account?.uid]);
+  },[account?.uid, loginKey]);
 
   // Save data on change
   useEffect(()=>{
