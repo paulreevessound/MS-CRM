@@ -2999,8 +2999,8 @@ export default function App(){
   const isLongform=data&&data.activeBoard==='__longform__';
   const isCalendar=data&&data.activeBoard==='__calendar__';
 
-  useEffect(()=>{(async()=>{try{const r=await window.storage.get('wb5_data');setData(r&&r.value?JSON.parse(r.value):INIT)}catch{setData(INIT)}setLoaded(true)})()},[]);
-  useEffect(()=>{if(!loaded||!data)return;clearTimeout(saveRef.current);saveRef.current=setTimeout(async()=>{try{await window.storage.set('wb5_data',JSON.stringify(data))}catch{}},700)},[data,loaded]);
+  useEffect(()=>{(async()=>{try{const r=await localStorage.get('wb5_data');setData(r&&r.value?JSON.parse(r.value):INIT)}catch{setData(INIT)}setLoaded(true)})()},[]);
+  useEffect(()=>{if(!loaded||!data)return;clearTimeout(saveRef.current);saveRef.current=setTimeout(async()=>{try{await localstorage.set('wb5_data',JSON.stringify(data))}catch{}},700)},[data,loaded]);
 
   // Show sign-in if not authenticated
   if(!account){
