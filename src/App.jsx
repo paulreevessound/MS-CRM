@@ -3295,53 +3295,68 @@ function MightySoundLoader(){
   return(
     <div style={{
       display:'flex',alignItems:'center',justifyContent:'center',
-      height:'100vh',background:'#0d0d14',flexDirection:'column',gap:0,
+      height:'100vh',background:'#0a0a0f',flexDirection:'column',gap:0,
       fontFamily:"'Barlow Condensed', 'Barlow', sans-serif",
     }}>
       <style>{`
-        @keyframes ms-bar { 0%,100%{transform:scaleY(.3)} 50%{transform:scaleY(1)} }
-        @keyframes ms-fade-in { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes ms-pulse { 0%,100%{opacity:.5} 50%{opacity:1} }
-        .ms-bar-wrap { display:flex; align-items:center; gap:5px; margin-bottom:32px; }
-        .ms-bar { width:4px; border-radius:3px; background:#fff; transform-origin:bottom; animation:ms-bar 1s ease-in-out infinite; }
-        .ms-wordmark { animation: ms-fade-in .6s ease both; animation-delay:.2s; opacity:0; }
-        .ms-sub { animation: ms-fade-in .6s ease both; animation-delay:.5s; opacity:0; }
-        .ms-dots { animation: ms-pulse 1.4s ease-in-out infinite; }
+        @keyframes ms-logo-in {
+          0%  { opacity:0; transform:scale(.85); }
+          60% { opacity:1; transform:scale(1.04); }
+          100%{ opacity:1; transform:scale(1); }
+        }
+        @keyframes ms-bar {
+          0%,100%{ transform:scaleY(.25); opacity:.4; }
+          50%    { transform:scaleY(1);   opacity:1; }
+        }
+        @keyframes ms-sub-in {
+          from{ opacity:0; transform:translateY(8px); }
+          to  { opacity:1; transform:translateY(0); }
+        }
+        @keyframes ms-pulse { 0%,100%{opacity:.3} 50%{opacity:.8} }
+        @keyframes ms-glow {
+          0%,100%{ box-shadow: 0 0 0px rgba(92,107,192,0); }
+          50%    { box-shadow: 0 0 40px rgba(92,107,192,.35); }
+        }
+        .ms-logo-wrap {
+          animation: ms-logo-in .9s cubic-bezier(.22,1,.36,1) both, ms-glow 3s ease-in-out infinite;
+          animation-delay: 0s, .9s;
+          border-radius: 18px;
+          overflow: hidden;
+          margin-bottom: 32px;
+        }
+        .ms-bar { width:3px; border-radius:3px; transform-origin:bottom; animation:ms-bar 1s ease-in-out infinite; }
+        .ms-sub { animation: ms-sub-in .5s ease both; animation-delay:.7s; opacity:0; }
+        .ms-pulse { animation: ms-pulse 1.6s ease-in-out infinite; }
       `}</style>
 
+      {/* Logo */}
+      <div className="ms-logo-wrap">
+        <img src="/logo.png" alt="Mighty Sound" style={{width:120,height:120,display:'block'}}/>
+      </div>
+
       {/* Animated waveform bars */}
-      <div className="ms-bar-wrap">
-        {[28,42,20,55,35,48,22,38,50,25,44,18,52,32,45,24,40,30].map((h,i)=>(
+      <div style={{display:'flex',alignItems:'flex-end',gap:4,height:32,marginBottom:24}}>
+        {[14,22,10,28,18,24,11,20,26,13,22,9,27,16,23,12,21,15].map((h,i)=>(
           <div key={i} className="ms-bar" style={{
             height:h,
-            opacity:.4+((i%3)*.2),
-            animationDelay:`${(i*0.08)%1}s`,
-            animationDuration:`${0.7+(i%4)*0.15}s`,
-            background: i%4===0?'#5c6bc0':i%4===1?'#fff':i%4===2?'rgba(255,255,255,.6)':'#8e96ff',
+            animationDelay:`${(i*0.09)%1}s`,
+            animationDuration:`${0.6+(i%5)*0.12}s`,
+            background:i%4===0?'#5c6bc0':i%4===1?'rgba(255,255,255,.8)':i%4===2?'rgba(255,255,255,.4)':'#8e96ff',
           }}/>
         ))}
       </div>
 
-      {/* Wordmark */}
-      <div className="ms-wordmark" style={{textAlign:'center'}}>
-        <div style={{
-          fontSize:42,fontWeight:800,color:'#fff',letterSpacing:'-.01em',
-          lineHeight:1,textTransform:'uppercase',
-        }}>
-          Mighty Sound
-        </div>
-        <div style={{
-          fontSize:13,fontWeight:600,color:'rgba(255,255,255,.35)',
-          letterSpacing:'.25em',textTransform:'uppercase',marginTop:6,
-        }}>
-          WorkBoard
-        </div>
+      {/* WorkBoard label */}
+      <div className="ms-sub" style={{
+        fontSize:11,fontWeight:700,color:'rgba(255,255,255,.3)',
+        letterSpacing:'.3em',textTransform:'uppercase',
+      }}>
+        WorkBoard
       </div>
 
-      {/* Loading indicator */}
-      <div className="ms-dots" style={{
-        marginTop:48,fontSize:11,fontWeight:600,
-        color:'rgba(255,255,255,.25)',letterSpacing:'.15em',textTransform:'uppercase',
+      <div className="ms-pulse" style={{
+        marginTop:32,fontSize:10,fontWeight:600,
+        color:'rgba(255,255,255,.2)',letterSpacing:'.15em',textTransform:'uppercase',
       }}>
         Loading
       </div>
@@ -3535,9 +3550,7 @@ export default function App(){
   return(<div className="app">
     <div className="sidebar">
       <div className="sb-logo">
-        <div className="sb-logo-icon">
-          <svg viewBox="0 0 20 20" fill="none"><rect x="2" y="4" width="16" height="12" rx="2" stroke="#000" strokeWidth="1.5"/><path d="M7 8l3 3 3-3" stroke="#000" strokeWidth="1.5" strokeLinecap="round"/></svg>
-        </div>
+        <img src="/logo.png" alt="Mighty Sound" style={{width:38,height:38,borderRadius:8,flexShrink:0,filter:'invert(1) brightness(2)'}}/>
         <div className="sb-logo-text">
           <div className="sb-logo-brand">Mighty Sound</div>
           <div className="sb-logo-sub">WorkBoard</div>
