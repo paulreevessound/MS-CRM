@@ -561,45 +561,50 @@ const GCAL_SCOPES='https://www.googleapis.com/auth/calendar';
 
 function useGoogleCalendar(){
   const [token,setToken]=useState(()=>{
-    // Restore token from localStorage so it survives navigation
-    try{return localStorage.getItem('gcal_token')||null;}catch{return null;}
+    try{
+      const t=localStorage.getItem('gcal_token');
+      const exp=localStorage.getItem('gcal_token_exp');
+      // Discard if expired (tokens last ~1hr)
+      if(t&&exp&&Date.now()<parseInt(exp))return t;
+      if(t) localStorage.removeItem('gcal_token');
+      return null;
+    }catch{return null;}
   });
   const [gcalEvents,setGcalEvents]=useState([]);
-  const [syncStatus,setSyncStatus]=useState('idle');// idle|syncing|ok|error
+  const [syncStatus,setSyncStatus]=useState('idle');
   const [lastSync,setLastSync]=useState(null);
-  const [calendars,setCalendars]=useState([]);// list of user's calendars
+  const [calendars,setCalendars]=useState([]);
+  const [needsReconnect,setNeedsReconnect]=useState(false);
   const [selectedCals,setSelectedCals]=useState(()=>{
     try{return JSON.parse(localStorage.getItem('gcal_selected')||'null')||null;}catch{return null;}
   });
   const pollRef=useRef(null);
 
-  // Use Firebase popup to get Google access token with calendar scope
-  const connect=(silent=false)=>{
+  const connect=()=>{
     if(!window.google?.accounts?.oauth2){
-      console.warn('GIS not loaded yet');
       setSyncStatus('error');
       return;
     }
     const client=window.google.accounts.oauth2.initTokenClient({
       client_id:GCAL_CLIENT_ID,
       scope:'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/spreadsheets',
-      prompt:silent?'none':'',
       callback:(resp)=>{
-        if(resp.error){
-          if(!silent){console.warn('GCal token error:',resp.error);setSyncStatus('error');}
-          return;
-        }
-        try{localStorage.setItem('gcal_token',resp.access_token);}catch{}
+        if(resp.error){console.warn('GCal token error:',resp.error);setSyncStatus('error');return;}
+        // Store token with 55min expiry (tokens last 60min, refresh at 55)
+        const exp=Date.now()+55*60*1000;
+        try{localStorage.setItem('gcal_token',resp.access_token);localStorage.setItem('gcal_token_exp',String(exp));}catch{}
         setToken(resp.access_token);
+        setNeedsReconnect(false);
       },
     });
     client.requestAccessToken();
   };
 
-  // Auto-reconnect on 401 (token expired)
-  const reconnect=useCallback(()=>connect(true),[]);
-
-  const disconnect=()=>{setToken(null);setGcalEvents([]);setCalendars([]);setSelectedCals(null);setSyncStatus('idle');clearInterval(pollRef.current);try{localStorage.removeItem('gcal_token');localStorage.removeItem('gcal_selected');}catch{}};
+  const disconnect=()=>{
+    setToken(null);setGcalEvents([]);setCalendars([]);setSelectedCals(null);
+    setNeedsReconnect(false);setSyncStatus('idle');clearInterval(pollRef.current);
+    try{localStorage.removeItem('gcal_token');localStorage.removeItem('gcal_token_exp');localStorage.removeItem('gcal_selected');}catch{}
+  };
 
   const fetchCalendarList=useCallback(async(t=token)=>{
     if(!t)return;
@@ -641,7 +646,7 @@ function useGoogleCalendar(){
         const resp=await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?timeMin=${encodeURIComponent(min)}&timeMax=${encodeURIComponent(max)}&singleEvents=true&orderBy=startTime&maxResults=250`,{
           headers:{Authorization:`Bearer ${t}`}
         });
-        if(resp.status===401){reconnect();return;}
+        if(resp.status===401){setToken(null);try{localStorage.removeItem('gcal_token');}catch{}setNeedsReconnect(true);setSyncStatus('error');return;}
         if(!resp.ok)return;
         const data=await resp.json();
         // Tag each event with its source calendar ID
@@ -659,6 +664,19 @@ function useGoogleCalendar(){
       pollRef.current=setInterval(()=>fetchEvents(token),60000);
     }
     return()=>clearInterval(pollRef.current);
+  },[token]);
+
+  // Check token expiry every minute and show reconnect banner
+  useEffect(()=>{
+    const check=setInterval(()=>{
+      const exp=localStorage.getItem('gcal_token_exp');
+      if(exp&&Date.now()>parseInt(exp)&&token){
+        setNeedsReconnect(true);
+        setToken(null);
+        try{localStorage.removeItem('gcal_token');}catch{}
+      }
+    },60000);
+    return()=>clearInterval(check);
   },[token]);
 
   const createEvent=useCallback(async(event)=>{
@@ -686,7 +704,7 @@ function useGoogleCalendar(){
     }catch(e){console.warn('GCal delete failed:',e.message)}
   },[token]);
 
-  return{token,connected:!!token,gcalEvents,syncStatus,lastSync,calendars,selectedCals,toggleCalendar,connect,disconnect,fetchEvents,createEvent,deleteEvent};
+  return{token,connected:!!token,needsReconnect,gcalEvents,syncStatus,lastSync,calendars,selectedCals,toggleCalendar,connect,disconnect,fetchEvents,createEvent,deleteEvent};
 }
 
 // ── WorkBoard Calendar (Google Calendar style) ─────────────────────────────
@@ -813,6 +831,14 @@ function WorkboardCalendar({ganttData,boards,account}){
 
   return(
     <div style={{display:'flex',flexDirection:'column',height:'100%',position:'relative'}} onClick={()=>{setCreateModal(null);setDetailEvent(null)}}>
+      {/* Reconnect banner */}
+      {gcal.needsReconnect&&(
+        <div style={{background:'#fff3e0',borderBottom:'1px solid #ffe0b2',padding:'8px 14px',display:'flex',alignItems:'center',gap:10}}>
+          <Icon name="warning" size={14} style={{color:'#e65100'}}/>
+          <span style={{fontSize:12,fontWeight:600,color:'#e65100',flex:1}}>Calendar session expired — reconnect to see your events</span>
+          <button onClick={e=>{e.stopPropagation();gcal.connect()}} style={{background:'#e65100',border:'none',borderRadius:6,color:'#fff',fontSize:11,fontWeight:700,padding:'4px 12px',cursor:'pointer'}}>Reconnect</button>
+        </div>
+      )}
       {/* Sync banner */}
       {gcal.connected&&(
         <div className="gc-sync-panel">
