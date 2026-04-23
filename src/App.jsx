@@ -65,7 +65,7 @@ function Icon({name,size=16,color='currentColor',className='',style={}}){
 const ST=[{l:'Not Started',c:'#757575',bg:'#f5f5f5'},{l:'In Progress',c:'#1565c0',bg:'#e3f2fd'},{l:'Review',c:'#6a1fa2',bg:'#f3e5f5'},{l:'Done',c:'#2e7d32',bg:'#e8f5e9'},{l:'Stuck',c:'#c62828',bg:'#ffebee'},{l:'On Hold',c:'#e65100',bg:'#fff3e0'}];
 const PRI=[{l:'Critical',c:'#c62828',bg:'#ffebee'},{l:'High',c:'#d84315',bg:'#fbe9e7'},{l:'Medium',c:'#f57f17',bg:'#fffde7'},{l:'Low',c:'#2e7d32',bg:'#e8f5e9'}];
 const PAL=['#5c6bc0','#e53935','#43a047','#fb8c00','#00acc1','#8e24aa','#f4511e','#3949ab'];
-const PEOPLE=['Matthew P','Paul R','Kristen S','Tom B','Alex R','Mia L'];
+const PEOPLE=['Matthew P','Kristen S','Tom B','Alex R','Mia L'];
 const GCOLS=['#5c6bc0','#43a047','#fb8c00','#e53935','#00acc1','#8e24aa'];
 const STAGES=['Brief','Capture','Edit','Mix','Master','QC','Deliver'];
 const STAGE_COLORS=['#00acc1','#fb8c00','#5c6bc0','#8e24aa','#43a047','#f4511e','#3949ab'];
@@ -574,8 +574,7 @@ function useGoogleCalendar(){
   const pollRef=useRef(null);
 
   // Use Firebase popup to get Google access token with calendar scope
-  const connect=()=>{
-    // Use Google Identity Services token client for reliable scope-specific tokens
+  const connect=(silent=false)=>{
     if(!window.google?.accounts?.oauth2){
       console.warn('GIS not loaded yet');
       setSyncStatus('error');
@@ -584,14 +583,21 @@ function useGoogleCalendar(){
     const client=window.google.accounts.oauth2.initTokenClient({
       client_id:GCAL_CLIENT_ID,
       scope:'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/spreadsheets',
+      prompt:silent?'none':'',
       callback:(resp)=>{
-        if(resp.error){console.warn('GCal token error:',resp.error);setSyncStatus('error');return;}
+        if(resp.error){
+          if(!silent){console.warn('GCal token error:',resp.error);setSyncStatus('error');}
+          return;
+        }
         try{localStorage.setItem('gcal_token',resp.access_token);}catch{}
         setToken(resp.access_token);
       },
     });
     client.requestAccessToken();
   };
+
+  // Auto-reconnect on 401 (token expired)
+  const reconnect=useCallback(()=>connect(true),[]);
 
   const disconnect=()=>{setToken(null);setGcalEvents([]);setCalendars([]);setSelectedCals(null);setSyncStatus('idle');clearInterval(pollRef.current);try{localStorage.removeItem('gcal_token');localStorage.removeItem('gcal_selected');}catch{}};
 
@@ -635,7 +641,7 @@ function useGoogleCalendar(){
         const resp=await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?timeMin=${encodeURIComponent(min)}&timeMax=${encodeURIComponent(max)}&singleEvents=true&orderBy=startTime&maxResults=250`,{
           headers:{Authorization:`Bearer ${t}`}
         });
-        if(resp.status===401){setToken(null);try{localStorage.removeItem('gcal_token');}catch{}setSyncStatus('error');return;}
+        if(resp.status===401){reconnect();return;}
         if(!resp.ok)return;
         const data=await resp.json();
         // Tag each event with its source calendar ID
@@ -1183,28 +1189,30 @@ const GSHEETS_CLIENT_ID='375953047409-g264eo7tghcg1g82s6f8khfg8p5f0jh4.apps.goog
 const GSHEETS_SCOPES='https://www.googleapis.com/auth/spreadsheets';
 
 function useGoogleSheets(ganttData,onUpdateGantt){
-  const [connected,setConnected]=useState(false);
-  const [sheetId,setSheetId]=useState('');
+  const [connected,setConnected]=useState(()=>!!localStorage.getItem('sheets_token'));
+  const [sheetId,setSheetId]=useState(()=>localStorage.getItem('sheets_id')||'');
   const [syncStatus,setSyncStatus]=useState('idle'); // idle | syncing | error | ok
   const [lastSync,setLastSync]=useState(null);
-  const [accessToken,setAccessToken]=useState(null);
+  const [accessToken,setAccessToken]=useState(()=>localStorage.getItem('sheets_token')||null);
   const pollRef=useRef(null);
 
-  // Use Firebase popup to get Google Sheets access token
-  const connectGoogle=async()=>{
-    try{
-      const provider=new GoogleAuthProvider();
-      provider.addScope('https://www.googleapis.com/auth/spreadsheets');
-      provider.setCustomParameters({prompt:'consent'});
-      const result=await signInWithPopup(auth,provider);
-      const credential=GoogleAuthProvider.credentialFromResult(result);
-      if(credential?.accessToken){
-        setAccessToken(credential.accessToken);
-        setConnected(true);
-      }
-    }catch(e){
-      console.warn('Sheets connect failed:',e.message);
+  // Use GIS token client for Sheets (same as calendar)
+  const connectGoogle=()=>{
+    if(!window.google?.accounts?.oauth2){
+      alert('Google Identity Services not loaded. Try refreshing.');
+      return;
     }
+    const client=window.google.accounts.oauth2.initTokenClient({
+      client_id:GSHEETS_CLIENT_ID,
+      scope:'https://www.googleapis.com/auth/spreadsheets',
+      callback:(resp)=>{
+        if(resp.error){console.warn('Sheets token error:',resp.error);return;}
+        try{localStorage.setItem('sheets_token',resp.access_token);}catch{}
+        setAccessToken(resp.access_token);
+        setConnected(true);
+      },
+    });
+    client.requestAccessToken();
   };
 
   // Parse MASTER sheet rows → gantt projects
@@ -1575,7 +1583,7 @@ function MasterGantt({ganttData,onUpdateGantt,onShowConflicts}){
                   const v=e.target.value;
                   // Extract sheet ID from URL if pasted
                   const m=v.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
-                  sheets.setSheetId(m?m[1]:v);
+                  const sid=m?m[1]:v;sheets.setSheetId(sid);try{localStorage.setItem('sheets_id',sid);}catch{};
                 }}/>
             </div>
             <button className="btn-p" onClick={sheets.pollSheet} style={{padding:'6px 14px',fontSize:12,flexShrink:0}}>Sync Now</button>
@@ -3017,6 +3025,38 @@ function StudioRooms({rooms,onUpdateRoom}){
 
 // ── Conflict Resolution Modal ──────────────────────────────────────────────
 function ConflictResolutionModal({conflicts,ganttData,engineers,onApply,onClose}){
+  // Fetch OOO/leave events from Google Calendar for all engineers
+  const [calOOO,setCalOOO]=useState({});// {engineerName: [{start,end,title}]}
+
+  useEffect(()=>{
+    const token=localStorage.getItem('gcal_token');
+    if(!token)return;
+    // Fetch next 6 months of events titled OOO/leave/annual leave/holiday
+    const min=new Date().toISOString();
+    const max=new Date(Date.now()+180*86400000).toISOString();
+    fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(min)}&timeMax=${encodeURIComponent(max)}&singleEvents=true&maxResults=100&q=OOO leave annual holiday`,{
+      headers:{Authorization:`Bearer ${token}`}
+    }).then(r=>r.ok?r.json():null).then(data=>{
+      if(!data?.items)return;
+      const ooo={};
+      data.items.forEach(ev=>{
+        const s=ev.start?.date||ev.start?.dateTime?.split('T')[0];
+        const e=ev.end?.date||ev.end?.dateTime?.split('T')[0];
+        if(!s||!e)return;
+        // Try to match event to an engineer by name in title/description
+        engineers.forEach(eng=>{
+          const firstName=eng.name.split(' ')[0].toLowerCase();
+          const title=(ev.summary||'').toLowerCase();
+          const desc=(ev.description||'').toLowerCase();
+          if(title.includes(firstName)||desc.includes(firstName)||title.includes('ooo')||title.includes('leave')||title.includes('holiday')||title.includes('annual')){
+            if(!ooo[eng.name])ooo[eng.name]=[];
+            ooo[eng.name].push({start:s,end:e,title:ev.summary});
+          }
+        });
+      });
+      setCalOOO(ooo);
+    }).catch(()=>{});
+  },[engineers]);
   const [stage,setStage]=useState('list');// list | loading | suggestions
   const [suggestions,setSuggestions]=useState([]);
   const [approved,setApproved]=useState({});
@@ -3119,6 +3159,11 @@ function ConflictResolutionModal({conflicts,ganttData,engineers,onApply,onClose}
         .filter(eng=>hasSkill(eng,taskToMove.name))
         .filter(eng=>notBlockedByBooking(eng,taskToMove.startDate,taskToMove.endDate))
         .filter(eng=>simAvailable(eng.name,taskToMove.startDate,taskToMove.endDate,null))
+        .filter(eng=>{
+          // Check Google Calendar OOO/leave
+          const ooo=calOOO[eng.name]||[];
+          return!ooo.some(ev=>overlaps(taskToMove.startDate,taskToMove.endDate,ev.start,ev.end));
+        })
         .sort((a,b)=>scoreEng(a,taskToMove.name)-scoreEng(b,taskToMove.name));
 
       if(candidates.length===0){
@@ -3141,7 +3186,7 @@ function ConflictResolutionModal({conflicts,ganttData,engineers,onApply,onClose}
         conflictSummary:conflictStr,
         icon:'refresh',
         title:`Reassign ${taskToMove.projCode} ${taskToMove.name} → ${best.name}`,
-        reason:`${best.name} (${typeLabel}) has ${skillLabel} skill and is free ${taskToMove.startDate}–${taskToMove.endDate}.`,
+        reason:`${best.name} (${typeLabel}) has ${skillLabel} skill, is free ${taskToMove.startDate}–${taskToMove.endDate}${calOOO[best.name]?.length?' and has no OOO/leave conflicts':' (calendar checked for OOO)'}.`,
         changeType:'reassign',
         before:conflictedEng,
         after:best.name,
@@ -3331,7 +3376,7 @@ function MightySoundLoader(){
 
       {/* Logo */}
       <div className="ms-logo-wrap">
-        <img src="/logo.png" alt="Mighty Sound" style={{width:120,height:120,display:'block'}}/>
+        <img src="/logo.png" alt="Mighty Sound" style={{width:120,height:120,display:'block'}} onError={e=>{e.target.style.display='none';e.target.nextSibling.style.display='flex'}}/><div style={{display:'none',width:120,height:120,background:'#1a1a2e',borderRadius:16,alignItems:'center',justifyContent:'center'}}><Icon name="waveform" size={64} style={{color:'#5c6bc0'}}/></div>
       </div>
 
       {/* Animated waveform bars */}
@@ -3550,7 +3595,7 @@ export default function App(){
   return(<div className="app">
     <div className="sidebar">
       <div className="sb-logo">
-        <img src="/logo.png" alt="Mighty Sound" style={{width:38,height:38,borderRadius:8,flexShrink:0,filter:'invert(1) brightness(2)'}}/>
+        <img src="/logo.png" alt="Mighty Sound" style={{width:38,height:38,borderRadius:8,flexShrink:0,filter:'invert(1) brightness(2)'}} onError={e=>{e.target.style.display='none';e.target.nextSibling.style.display='flex'}}/><div style={{display:'none',width:38,height:38,borderRadius:8,background:'#5c6bc0',alignItems:'center',justifyContent:'center',flexShrink:0}}><Icon name="waveform" size={22} style={{color:'#fff'}}/></div>
         <div className="sb-logo-text">
           <div className="sb-logo-brand">Mighty Sound</div>
           <div className="sb-logo-sub">WorkBoard</div>
