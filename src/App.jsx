@@ -439,6 +439,26 @@ const INIT={
   }
 };
 
+
+// ── Blank state for full reset ────────────────────────────────────────────
+const BLANK={
+  activeBoard:'b1',
+  boards:[
+    {id:'b1',name:'Active Projects',icon:'mic',color:'#5c6bc0',
+     columns:[{id:'c1',name:'Status',type:'status'},{id:'c2',name:'Engineer',type:'person'},{id:'c3',name:'Client',type:'text'},{id:'c4',name:'Due Date',type:'date'},{id:'c5',name:'Budget',type:'currency'},{id:'c6',name:'Hours',type:'number'}],
+     groups:[{id:'g1',name:'In Progress',color:'#5c6bc0',collapsed:false,items:[]},{id:'g2',name:'Upcoming',color:'#43a047',collapsed:false,items:[]},{id:'g3',name:'Completed',color:'#43a047',collapsed:true,items:[]}]},
+    {id:'b3',name:'Engineers',icon:'headphones',color:'#8e24aa',
+     columns:[{id:'c1',name:'Status',type:'status'},{id:'c2',name:'Role',type:'text'},{id:'c3',name:'Rate ($/day)',type:'currency'},{id:'c4',name:'Booked From',type:'date'},{id:'c5',name:'Booked To',type:'date'}],
+     groups:[{id:'g1',name:'Staff',color:'#5c6bc0',collapsed:false,items:[]},{id:'g2',name:'Freelancers',color:'#8e24aa',collapsed:false,items:[]}]},
+    {id:'b4',name:'Budget Tracker',icon:'money',color:'#fb8c00',
+     columns:[{id:'c1',name:'Status',type:'status'},{id:'c2',name:'Client',type:'text'},{id:'c3',name:'Quoted',type:'currency'},{id:'c4',name:'Invoiced',type:'currency'},{id:'c5',name:'Paid',type:'currency'},{id:'c6',name:'Due Date',type:'date'}],
+     groups:[{id:'g1',name:'Outstanding',color:'#fb8c00',collapsed:false,items:[]},{id:'g2',name:'Paid',color:'#43a047',collapsed:false,items:[]}]},
+  ],
+  masterGantt:[],
+  longform:{activeProduction:'',productions:[]},
+  engineerSkills:[],
+};
+
 // ── Simple Components ──────────────────────────────────────────────────────
 function SBadge({v,t='status',onClick}){return<span className="sbadge" style={sStyle(v,t)} onClick={onClick}>{v||'— set'}</span>}
 function SPop({t,cur,onSel,onClose}){const ref=useRef();useEffect(()=>{const h=e=>{if(ref.current&&!ref.current.contains(e.target))onClose()};setTimeout(()=>document.addEventListener('mousedown',h),0);return()=>document.removeEventListener('mousedown',h)},[]);return<div className="pop" ref={ref}>{sOpts(t).map(o=><div key={o.l} className="pop-item" onClick={()=>{onSel(o.l);onClose()}}><span className="pop-dot" style={{background:o.c}}/>{o.l}{o.l===cur&&<span style={{marginLeft:'auto',fontSize:10,color:'#bbb'}}>✓</span>}</div>)}</div>}
@@ -3830,7 +3850,7 @@ export default function App(){
         <div className="sb-item"><span className="sb-icon"><Icon name="bell" size={14}/></span>Notifications</div>
         <div className="sb-item" onClick={()=>{
           if(window.confirm('Reset ALL WorkBoard data?\n\nThis will clear all boards, projects, gantt data and settings. This cannot be undone.')){
-            setData(INIT);
+            setData(BLANK);
           }
         }} style={{color:'rgba(255,100,100,.7)'}}><span className="sb-icon"><Icon name="refresh" size={14}/></span>Reset All Data</div>
       </div>
