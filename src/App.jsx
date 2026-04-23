@@ -757,6 +757,7 @@ function WorkboardCalendar({ganttData,boards,account}){
     // Look up this event's calendar colour
     const cal=gcal.calendars.find(c=>c.id===e._calendarId);
     const color=cal?.color||'#1a73e8';
+    const calName=cal?.name||'';
     return{
       id:e.id,
       title:e.summary||'(No title)',
@@ -766,6 +767,18 @@ function WorkboardCalendar({ganttData,boards,account}){
       endTime:e.end?.dateTime?new Date(e.end.dateTime):null,
       color,textColor:'#fff',
       _type:'gcal',_gcalId:e.id,_allDay:!e.start?.dateTime,_calendarId:e._calendarId,
+      // Rich event fields from Google Calendar API
+      _description:e.description||'',
+      _location:e.location||'',
+      _calName:calName,
+      _organizer:e.organizer?.displayName||e.organizer?.email||'',
+      _attendees:e.attendees||[],
+      _hangoutLink:e.hangoutLink||'',
+      _htmlLink:e.htmlLink||'',
+      _status:e.status||'',
+      _recurrence:!!(e.recurrence||e.recurringEventId),
+      _startDateTime:e.start?.dateTime||null,
+      _endDateTime:e.end?.dateTime||null,
     };
   }),[gcal.gcalEvents,gcal.calendars]);
 
@@ -1012,32 +1025,122 @@ function WorkboardCalendar({ganttData,boards,account}){
 
       {/* ── EVENT DETAIL POPUP ── */}
       {detailEvent&&(
-        <div className="gc-event-detail" style={{left:detailEvent.x,top:detailEvent.y}} onClick={e=>e.stopPropagation()}>
-          <button onClick={()=>setDetailEvent(null)} style={{float:'right',background:'none',border:'none',fontSize:18,color:'#aaa',cursor:'pointer',lineHeight:1}}>×</button>
-          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
-            <div style={{width:12,height:12,borderRadius:3,background:detailEvent.event.color,flexShrink:0}}/>
-            <div style={{fontSize:14,fontWeight:700,color:'#111',flex:1,paddingRight:20}}>{detailEvent.event.title}</div>
+        <div className="gc-event-detail" style={{left:Math.min(detailEvent.x,window.innerWidth-320),top:Math.min(detailEvent.y,window.innerHeight-400),width:300,maxHeight:480,overflowY:'auto'}} onClick={e=>e.stopPropagation()}>
+          {/* Header */}
+          <div style={{display:'flex',alignItems:'flex-start',gap:8,marginBottom:10}}>
+            <div style={{width:14,height:14,borderRadius:3,background:detailEvent.event.color,flexShrink:0,marginTop:2}}/>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontSize:15,fontWeight:700,color:'#111',lineHeight:1.3,wordBreak:'break-word'}}>{detailEvent.event.title}</div>
+              {detailEvent.event._recurrence&&<div style={{fontSize:10,color:'#888',marginTop:2}}>↻ Recurring</div>}
+            </div>
+            <button onClick={()=>setDetailEvent(null)} style={{background:'none',border:'none',fontSize:18,color:'#aaa',cursor:'pointer',lineHeight:1,flexShrink:0}}>×</button>
           </div>
-          <div style={{fontSize:12,color:'#555',marginBottom:4}}>
-            <Icon name="calendar" size={12}/> {detailEvent.event.start}{detailEvent.event.start!==detailEvent.event.end?` → ${detailEvent.event.end}`:''}
+
+          {/* Date/time */}
+          <div style={{display:'flex',alignItems:'center',gap:6,fontSize:12,color:'#555',marginBottom:6}}>
+            <Icon name="calendar" size={13}/>
+            <span>
+              {detailEvent.event._allDay
+                ? detailEvent.event.start===detailEvent.event.end
+                  ? detailEvent.event.start
+                  : `${detailEvent.event.start} → ${detailEvent.event.end}`
+                : (() => {
+                    const s=detailEvent.event.startTime;const e=detailEvent.event.endTime;
+                    const fmt=d=>d?.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});
+                    return `${detailEvent.event.start} ${fmt(s)} – ${fmt(e)}`;
+                  })()
+              }
+            </span>
           </div>
+
+          {/* Calendar name */}
+          {detailEvent.event._calName&&(
+            <div style={{display:'flex',alignItems:'center',gap:6,fontSize:12,color:'#555',marginBottom:6}}>
+              <span style={{width:10,height:10,borderRadius:'50%',background:detailEvent.event.color,display:'inline-block',flexShrink:0}}/>
+              <span>{detailEvent.event._calName}</span>
+            </div>
+          )}
+
+          {/* Location */}
+          {detailEvent.event._location&&(
+            <div style={{display:'flex',alignItems:'flex-start',gap:6,fontSize:12,color:'#555',marginBottom:6}}>
+              <Icon name="link" size={13} style={{marginTop:1,flexShrink:0}}/>
+              <span style={{wordBreak:'break-word'}}>{detailEvent.event._location}</span>
+            </div>
+          )}
+
+          {/* Meet link */}
+          {detailEvent.event._hangoutLink&&(
+            <a href={detailEvent.event._hangoutLink} target="_blank" rel="noreferrer"
+              style={{display:'flex',alignItems:'center',gap:6,fontSize:12,color:'#1a73e8',marginBottom:6,textDecoration:'none',fontWeight:600}}>
+              <Icon name="screen" size={13}/>
+              Join Google Meet
+            </a>
+          )}
+
+          {/* Description */}
+          {detailEvent.event._description&&(
+            <div style={{fontSize:12,color:'#555',marginBottom:6,padding:'8px',background:'#f8f8f8',borderRadius:6,whiteSpace:'pre-wrap',maxHeight:100,overflowY:'auto',lineHeight:1.5}}>
+              {detailEvent.event._description}
+            </div>
+          )}
+
+          {/* Organizer */}
+          {detailEvent.event._organizer&&(
+            <div style={{display:'flex',alignItems:'center',gap:6,fontSize:12,color:'#555',marginBottom:6}}>
+              <Icon name="person" size={13}/>
+              <span>Organised by <b>{detailEvent.event._organizer}</b></span>
+            </div>
+          )}
+
+          {/* Attendees */}
+          {detailEvent.event._attendees?.length>0&&(
+            <div style={{marginBottom:8}}>
+              <div style={{fontSize:10,fontWeight:700,color:'#aaa',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:5}}>
+                {detailEvent.event._attendees.length} Guest{detailEvent.event._attendees.length!==1?'s':''}
+              </div>
+              <div style={{display:'flex',flexDirection:'column',gap:3,maxHeight:100,overflowY:'auto'}}>
+                {detailEvent.event._attendees.slice(0,8).map((a,i)=>(
+                  <div key={i} style={{display:'flex',alignItems:'center',gap:6,fontSize:11}}>
+                    <span style={{width:16,height:16,borderRadius:'50%',background:a.responseStatus==='accepted'?'#43a047':a.responseStatus==='declined'?'#e53935':'#bbb',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:8,color:'#fff',fontWeight:700}}>
+                      {a.responseStatus==='accepted'?'✓':a.responseStatus==='declined'?'✕':'?'}
+                    </span>
+                    <span style={{color:'#555',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.displayName||a.email}</span>
+                  </div>
+                ))}
+                {detailEvent.event._attendees.length>8&&<div style={{fontSize:10,color:'#aaa'}}>+{detailEvent.event._attendees.length-8} more</div>}
+              </div>
+            </div>
+          )}
+
+          {/* WorkBoard fields */}
           {detailEvent.event.assignee&&<div style={{fontSize:12,color:'#555',marginBottom:4,display:'flex',alignItems:'center',gap:4}}><Icon name="person" size={12}/> {detailEvent.event.assignee}</div>}
-          {detailEvent.event.status&&<div style={{fontSize:12,color:'#555',marginBottom:4,display:'flex',alignItems:'center',gap:4}}><Icon name="lightning" size={12}/> {detailEvent.event.status}</div>}
-          {detailEvent.event._type==='gcal'&&(
-            <button onClick={()=>{gcal.deleteEvent(detailEvent.event._gcalId);setDetailEvent(null)}}
-              style={{marginTop:8,background:'#fff5f5',border:'1px solid #fcc',borderRadius:5,padding:'4px 10px',color:'#c62828',fontSize:11,fontWeight:700,cursor:'pointer'}}>
-              Delete from Google Calendar
-            </button>
-          )}
-          {detailEvent.event._type==='workboard'&&gcal.connected&&(
-            <button onClick={async()=>{
-              await gcal.createEvent({summary:detailEvent.event.title,start:{date:detailEvent.event.start},end:{date:detailEvent.event.end},colorId:'1'});
-              setDetailEvent(null);
-            }}
-              style={{marginTop:8,background:'#e8f5e9',border:'1px solid #a5d6a7',borderRadius:5,padding:'4px 10px',color:'#2e7d32',fontSize:11,fontWeight:700,cursor:'pointer'}}>
-              <Icon name="calendar" size={12}/> Add to Google Calendar
-            </button>
-          )}
+          {detailEvent.event.status&&<div style={{fontSize:12,color:'#555',marginBottom:6,display:'flex',alignItems:'center',gap:4}}><Icon name="lightning" size={12}/> {detailEvent.event.status}</div>}
+
+          {/* Actions */}
+          <div style={{display:'flex',flexDirection:'column',gap:6,marginTop:8,paddingTop:8,borderTop:'1px solid #f0f0f0'}}>
+            {detailEvent.event._htmlLink&&(
+              <a href={detailEvent.event._htmlLink} target="_blank" rel="noreferrer"
+                style={{display:'flex',alignItems:'center',gap:6,fontSize:11,color:'#1a73e8',fontWeight:600,textDecoration:'none'}}>
+                <Icon name="calendar" size={12}/> Open in Google Calendar
+              </a>
+            )}
+            {detailEvent.event._type==='gcal'&&(
+              <button onClick={()=>{gcal.deleteEvent(detailEvent.event._gcalId);setDetailEvent(null)}}
+                style={{background:'#fff5f5',border:'1px solid #fcc',borderRadius:5,padding:'5px 10px',color:'#c62828',fontSize:11,fontWeight:700,cursor:'pointer',textAlign:'left'}}>
+                Delete from Google Calendar
+              </button>
+            )}
+            {detailEvent.event._type==='workboard'&&gcal.connected&&(
+              <button onClick={async()=>{
+                await gcal.createEvent({summary:detailEvent.event.title,start:{date:detailEvent.event.start},end:{date:detailEvent.event.end},colorId:'1'});
+                setDetailEvent(null);
+              }}
+                style={{background:'#e8f5e9',border:'1px solid #a5d6a7',borderRadius:5,padding:'5px 10px',color:'#2e7d32',fontSize:11,fontWeight:700,cursor:'pointer',textAlign:'left'}}>
+                <Icon name="calendar" size={12}/> Add to Google Calendar
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>
