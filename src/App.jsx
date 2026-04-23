@@ -1577,7 +1577,8 @@ function MasterGantt({ganttData,onUpdateGantt,onShowConflicts}){
 
   // Drag/resize state
   const dragRef=useRef(null);
-  const [dragConflicts,setDragConflicts]=useState([]); // [{taskId, conflictWith}]
+  const [dragConflicts,setDragConflicts]=useState(new Set());
+  const dragConflictsRef=useRef(new Set()); // ref so onUp closure can read latest value
 
   // Compute conflicts for current ganttData
   const computeConflicts=useCallback((data)=>{
@@ -1620,15 +1621,18 @@ function MasterGantt({ganttData,onUpdateGantt,onShowConflicts}){
           episodes:proj.episodes.map(ep=>ep.id!==d.epId?ep:{...ep,
             tasks:ep.tasks.map(t=>t.id!==d.taskId?t:{...t,startDate:newStart,endDate:newEnd})})});
         // Compute live conflicts
-        setDragConflicts(computeConflicts(updated));
+        const c=computeConflicts(updated);dragConflictsRef.current=c;setDragConflicts(c);
         return updated;
       });
     };
     const onUp=()=>{
+      const hadConflicts=dragConflictsRef.current?.size>0;
       dragRef.current=null;
       setDragConflicts(new Set());
       document.removeEventListener('mousemove',onMove);
       document.removeEventListener('mouseup',onUp);
+      // Auto-open conflict resolution if drag created conflicts
+      if(hadConflicts) onShowConflicts();
     };
     document.addEventListener('mousemove',onMove);
     document.addEventListener('mouseup',onUp);
