@@ -1569,6 +1569,71 @@ function MasterGantt({ganttData,onUpdateGantt,onShowConflicts}){
     return Math.max(0,days*(cfg.pxPer/cfg.step));
   },[ORIGIN,cfg]);
 
+  // Reverse: pixel offset → date string
+  const xToD=useCallback(x=>{
+    const days=Math.round(x/(cfg.pxPer/cfg.step));
+    return addDays(ORIGIN,days);
+  },[ORIGIN,cfg]);
+
+  // Drag/resize state
+  const dragRef=useRef(null);
+  const [dragConflicts,setDragConflicts]=useState([]); // [{taskId, conflictWith}]
+
+  // Compute conflicts for current ganttData
+  const computeConflicts=useCallback((data)=>{
+    const allTasks=[];
+    data.forEach(proj=>proj.episodes.forEach(ep=>ep.tasks.forEach(t=>{
+      if(t.status!=='Done')allTasks.push({...t,projName:proj.name,epName:ep.name});
+    })));
+    const conflicts=new Set();
+    for(let i=0;i<allTasks.length;i++){
+      for(let j=i+1;j<allTasks.length;j++){
+        const a=allTasks[i],b=allTasks[j];
+        if(a.assignee&&a.assignee===b.assignee&&a.startDate<=b.endDate&&b.startDate<=a.endDate){
+          conflicts.add(a.id);conflicts.add(b.id);
+        }
+      }
+    }
+    return conflicts;
+  },[]);
+
+  const startDrag=(e,type,projId,epId,task)=>{
+    e.preventDefault();e.stopPropagation();
+    const scrollX=scrollRef.current?.scrollLeft||0;
+    dragRef.current={type,projId,epId,taskId:task.id,
+      startX:e.clientX+scrollX,
+      origStart:task.startDate,origEnd:task.endDate};
+    const onMove=ev=>{
+      if(!dragRef.current)return;
+      const curX=ev.clientX+(scrollRef.current?.scrollLeft||0);
+      const dx=curX-dragRef.current.startX;
+      const daysDelta=Math.round(dx/(cfg.pxPer/cfg.step));
+      if(daysDelta===dragRef.current.lastDelta)return;
+      dragRef.current.lastDelta=daysDelta;
+      const d=dragRef.current;
+      let newStart=d.origStart,newEnd=d.origEnd;
+      if(d.type==='move'){newStart=addDays(d.origStart,daysDelta);newEnd=addDays(d.origEnd,daysDelta);}
+      else if(d.type==='resize-right'){newEnd=addDays(d.origEnd,daysDelta);if(newEnd<=newStart)newEnd=addDays(newStart,1);}
+      else if(d.type==='resize-left'){newStart=addDays(d.origStart,daysDelta);if(newStart>=newEnd)newStart=addDays(newEnd,-1);}
+      onUpdateGantt(prev=>{
+        const updated=prev.map(proj=>proj.id!==d.projId?proj:{...proj,
+          episodes:proj.episodes.map(ep=>ep.id!==d.epId?ep:{...ep,
+            tasks:ep.tasks.map(t=>t.id!==d.taskId?t:{...t,startDate:newStart,endDate:newEnd})})});
+        // Compute live conflicts
+        setDragConflicts(computeConflicts(updated));
+        return updated;
+      });
+    };
+    const onUp=()=>{
+      dragRef.current=null;
+      setDragConflicts(new Set());
+      document.removeEventListener('mousemove',onMove);
+      document.removeEventListener('mouseup',onUp);
+    };
+    document.addEventListener('mousemove',onMove);
+    document.addEventListener('mouseup',onUp);
+  };
+
   // Scroll to today on mount or view change
   useEffect(()=>{
     if(scrollRef.current){
@@ -1694,6 +1759,7 @@ function MasterGantt({ganttData,onUpdateGantt,onShowConflicts}){
           </button>
           <button className="t-btn" onClick={()=>setShowImport(true)} style={{fontWeight:700,fontSize:12}}><Icon name="upload" size={12}/> Import</button>
           <button className="t-btn" onClick={()=>exportICS(ganttData)} style={{fontWeight:700,fontSize:12}}><Icon name="calendar" size={12}/> .ics</button>
+
         </div>
       </div>
 
@@ -1844,13 +1910,20 @@ function MasterGantt({ganttData,onUpdateGantt,onShowConflicts}){
                         const isIP=task.status==='In Progress';
                         return(<div key={task.id} className="mg-task-timeline" style={{minWidth:totalPx,height:30,position:'relative',borderBottom:'1px solid #f5f5f5',background:'#fff'}}>
                           {bs&&bs.width>0&&(
-                            <div className="mg-task-bar" style={{left:bs.left,width:bs.width}}>
+                            <div className="mg-task-bar" style={{left:bs.left,width:bs.width,cursor:'grab',outline:(dragConflicts instanceof Set&&dragConflicts.has(task.id))?'2px solid #e53935':'none',outlineOffset:1,zIndex:(dragConflicts instanceof Set&&dragConflicts.has(task.id))?5:1}}
+                              onMouseDown={e=>startDrag(e,'move',proj.id,ep.id,task)}>
+                              {/* Left resize handle */}
+                              <div style={{position:'absolute',left:0,top:0,width:6,height:'100%',cursor:'ew-resize',zIndex:10,borderRadius:'3px 0 0 3px'}}
+                                onMouseDown={e=>startDrag(e,'resize-left',proj.id,ep.id,task)}/>
                               <div className="mg-bar-bg" style={{background:td.color,opacity:isDone?0.92:isIP?0.72:0.32}}/>
                               <div className="mg-bar-content" style={{color:isDone||isIP?td.text:'#555'}}>
                                 <span className="mg-bar-abbr">{bs.width>55?task.name:td.abbr}</span>
                                 {task.assignee&&<span className="mg-bar-eng">{inits(task.assignee)}</span>}
                               </div>
                               {isIP&&task.pct>0&&<div style={{position:'absolute',bottom:0,left:0,height:3,width:`${task.pct}%`,background:td.color,opacity:.9}}/>}
+                              {/* Right resize handle */}
+                              <div style={{position:'absolute',right:0,top:0,width:6,height:'100%',cursor:'ew-resize',zIndex:10,borderRadius:'0 3px 3px 0'}}
+                                onMouseDown={e=>startDrag(e,'resize-right',proj.id,ep.id,task)}/>
                             </div>
                           )}
                         </div>);
@@ -3745,7 +3818,12 @@ export default function App(){
         <div className={`sb-item${data.activeBoard==='__calendar__'?' active':''}`} onClick={()=>setBoard('__calendar__')}><span className="sb-icon"><Icon name="calendar" size={14}/></span>Calendar<span className="sb-badge" style={{background:'rgba(26,115,232,.2)',color:'rgba(26,115,232,.9)'}}>GCal</span></div>
         <div className={`sb-item${isLongform?' active':''}`} onClick={()=>setBoard('__longform__')}><span className="sb-icon"><Icon name="clapper" size={14}/></span>Production Overview</div>
         <div className="sb-section" style={{marginTop:12}}>Workspace</div>
-        {[['bell','Notifications'],['settings','Settings']].map(([icon,label])=><div key={label} className="sb-item"><span className="sb-icon"><Icon name={icon} size={14}/></span>{label}</div>)}
+        <div className="sb-item"><span className="sb-icon"><Icon name="bell" size={14}/></span>Notifications</div>
+        <div className="sb-item" onClick={()=>{
+          if(window.confirm('Reset ALL WorkBoard data?\n\nThis will clear all boards, projects, gantt data and settings. This cannot be undone.')){
+            setData(INIT);
+          }
+        }} style={{color:'rgba(255,100,100,.7)'}}><span className="sb-icon"><Icon name="refresh" size={14}/></span>Reset All Data</div>
       </div>
       <div className="sb-footer">
         {account.photoURL
@@ -3756,7 +3834,7 @@ export default function App(){
           <div style={{fontSize:12,color:'rgba(255,255,255,.85)',fontWeight:700,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{account.name}</div>
           <div style={{fontSize:10,color:'rgba(255,255,255,.35)',fontWeight:500,textTransform:'capitalize'}}>{account.role}</div>
         </div>
-        <button onClick={signOutUser} style={{background:'none',border:'1px solid rgba(255,255,255,.15)',borderRadius:5,color:'rgba(255,255,255,.4)',fontSize:10,fontWeight:700,padding:'3px 7px',cursor:'pointer',flexShrink:0,letterSpacing:'.03em'}} title="Sign out">↩</button>
+        <button onClick={signOutUser} style={{background:'rgba(255,255,255,.08)',border:'1px solid rgba(255,255,255,.2)',borderRadius:5,color:'rgba(255,255,255,.7)',fontSize:10,fontWeight:700,padding:'4px 8px',cursor:'pointer',flexShrink:0,letterSpacing:'.03em'}} title="Sign out">Sign out</button>
       </div>
     </div>
     <div className="main">
