@@ -3413,10 +3413,12 @@ function ConflictResolutionModal({conflicts,ganttData,engineers,onApply,onClose}
 
   const applyApproved=()=>{
     const toApply=suggestions.filter((_,i)=>approved[i]&&!rejected[i]);
-    toApply.forEach(sug=>{
-      if(!sug.ganttChange)return;
-      onApply(sug.ganttChange);
-    });
+    toApply.forEach(sug=>{if(!sug.ganttChange)return;onApply(sug.ganttChange);});
+    onClose();
+  };
+
+  const applyAll=()=>{
+    suggestions.forEach(sug=>{if(!sug.ganttChange)return;onApply(sug.ganttChange);});
     onClose();
   };
 
@@ -3504,11 +3506,14 @@ function ConflictResolutionModal({conflicts,ganttData,engineers,onApply,onClose}
           </>}
           {stage==='loading'&&<button className="btn-g" onClick={onClose}>Cancel</button>}
           {stage==='suggestions'&&<>
+            <button className="btn-p" style={{background:'#2e7d32',borderColor:'#2e7d32'}} onClick={applyAll}>
+              ✓ Apply All ({suggestions.filter(s=>s.ganttChange).length})
+            </button>
             <button className="btn-p" onClick={applyApproved} disabled={approvedCount===0} style={{opacity:approvedCount>0?1:.4}}>
-              Apply {approvedCount>0?approvedCount+' ':''}{approvedCount===1?'change':'changes'}
+              Apply Selected {approvedCount>0?`(${approvedCount})`:''}
             </button>
             <button className="btn-g" onClick={()=>setStage('list')}>← Back</button>
-            <span style={{marginLeft:'auto',fontSize:11,color:'#aaa',fontWeight:500}}>{approvedCount}/{suggestions.length} approved</span>
+            <span style={{marginLeft:'auto',fontSize:11,color:'#aaa',fontWeight:500}}>{approvedCount}/{suggestions.length} selected</span>
           </>}
         </div>
       </div>
