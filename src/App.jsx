@@ -96,347 +96,27 @@ const tk=(id,nm,sd,ed,st,pct,who)=>({id,name:nm,startDate:sd,endDate:ed,status:s
 const taskDef=name=>TASK_DEFS.find(t=>t.name===name)||TASK_DEFS[0];
 
 // ── Initial Master Gantt — pre-populated from live schedule ────────────────
-const INIT_MASTER_GANTT=[
-  {id:'mg1',code:'MS1039',name:'Shark Net',client:'Pocket Money Productions',type:'film',
-   episodes:[{id:'e1',name:'Film',tasks:[
-     tk('sn1','Ingest',   '2026-05-04','2026-05-04','Done',100,'Paul R'),
-     tk('sn2','DX Edit',  '2026-05-04','2026-05-29','In Progress',60,'Paul R'),
-     tk('sn3','MX Edit',  '2026-06-10','2026-06-14','Not Started',0,'Matthew P'),
-     tk('sn4','SFX Edit', '2026-06-02','2026-06-09','Not Started',0,'Matthew P'),
-     tk('sn5','Pre Mix',  '2026-06-15','2026-06-21','Not Started',0,'Paul R'),
-     tk('sn6','Final Mix','2026-06-22','2026-06-26','Not Started',0,'Paul R'),
-     tk('sn7','QC',       '2026-06-27','2026-06-28','Not Started',0,'Kristen S'),
-     tk('sn8','Delivery', '2026-06-29','2026-06-29','Not Started',0,'Kristen S'),
-   ]}]},
-  {id:'mg2',code:'MS0972',name:'Inside Sydney Fish Markets',client:'Butter Films',type:'series',
-   episodes:[
-     {id:'e1',name:'Ep 1',tasks:[
-       tk('f1a','Ingest',   '2026-05-25','2026-05-25','Not Started',0,'Paul R'),
-       tk('f1b','DX Edit',  '2026-05-26','2026-05-27','Not Started',0,'Paul R'),
-       tk('f1c','MX Edit',  '2026-05-27','2026-05-28','Not Started',0,'Paul R'),
-       tk('f1d','SFX Edit', '2026-05-28','2026-05-29','Not Started',0,'Paul R'),
-       tk('f1e','Pre Mix',  '2026-05-29','2026-05-30','Not Started',0,'Paul R'),
-       tk('f1f','Final Mix','2026-05-30','2026-06-01','Not Started',0,'Paul R'),
-       tk('f1g','QC',       '2026-06-01','2026-06-02','Not Started',0,'Kristen S'),
-       tk('f1h','Delivery', '2026-06-02','2026-06-02','Not Started',0,'Kristen S'),
-     ]},
-     {id:'e2',name:'Ep 2',tasks:[
-       tk('f2a','Ingest',   '2026-06-29','2026-06-29','Not Started',0,'Paul R'),
-       tk('f2b','DX Edit',  '2026-06-30','2026-07-01','Not Started',0,'Paul R'),
-       tk('f2c','MX Edit',  '2026-07-01','2026-07-02','Not Started',0,'Paul R'),
-       tk('f2d','SFX Edit', '2026-07-02','2026-07-03','Not Started',0,'Paul R'),
-       tk('f2e','Pre Mix',  '2026-07-03','2026-07-04','Not Started',0,'Paul R'),
-       tk('f2f','Final Mix','2026-07-04','2026-07-06','Not Started',0,'Paul R'),
-       tk('f2g','QC',       '2026-07-06','2026-07-07','Not Started',0,'Kristen S'),
-       tk('f2h','Delivery', '2026-08-24','2026-08-24','Not Started',0,'Kristen S'),
-     ]},
-     {id:'e3',name:'Ep 3',tasks:[
-       tk('f3a','Ingest',   '2026-07-06','2026-07-06','Not Started',0,'Paul R'),
-       tk('f3b','DX Edit',  '2026-07-07','2026-07-08','Not Started',0,'Paul R'),
-       tk('f3c','MX Edit',  '2026-07-08','2026-07-10','Not Started',0,'Paul R'),
-       tk('f3d','SFX Edit', '2026-07-10','2026-07-11','Not Started',0,'Paul R'),
-       tk('f3e','Pre Mix',  '2026-07-11','2026-07-12','Not Started',0,'Paul R'),
-       tk('f3f','Final Mix','2026-07-12','2026-07-14','Not Started',0,'Paul R'),
-       tk('f3g','QC',       '2026-07-14','2026-07-14','Not Started',0,'Kristen S'),
-       tk('f3h','Delivery', '2026-08-31','2026-08-31','Not Started',0,'Kristen S'),
-     ]},
-     {id:'e4',name:'Ep 4',tasks:[
-       tk('f4a','Ingest',   '2026-07-28','2026-07-28','Not Started',0,'Paul R'),
-       tk('f4b','DX Edit',  '2026-07-29','2026-07-30','Not Started',0,'Paul R'),
-       tk('f4c','MX Edit',  '2026-07-30','2026-07-31','Not Started',0,'Paul R'),
-       tk('f4d','SFX Edit', '2026-07-31','2026-08-01','Not Started',0,'Paul R'),
-       tk('f4e','Pre Mix',  '2026-08-01','2026-08-02','Not Started',0,'Paul R'),
-       tk('f4f','Final Mix','2026-08-03','2026-08-05','Not Started',0,'Paul R'),
-       tk('f4g','QC',       '2026-08-05','2026-08-05','Not Started',0,'Kristen S'),
-       tk('f4h','Delivery', '2026-09-07','2026-09-07','Not Started',0,'Kristen S'),
-     ]},
-     {id:'e5',name:'Ep 5',tasks:[
-       tk('f5a','Ingest',   '2026-08-10','2026-08-10','Not Started',0,'Paul R'),
-       tk('f5b','DX Edit',  '2026-08-11','2026-08-12','Not Started',0,'Paul R'),
-       tk('f5c','MX Edit',  '2026-08-12','2026-08-14','Not Started',0,'Paul R'),
-       tk('f5d','SFX Edit', '2026-08-14','2026-08-15','Not Started',0,'Paul R'),
-       tk('f5e','Pre Mix',  '2026-08-15','2026-08-16','Not Started',0,'Paul R'),
-       tk('f5f','Final Mix','2026-08-16','2026-08-18','Not Started',0,'Paul R'),
-       tk('f5g','QC',       '2026-08-18','2026-08-18','Not Started',0,'Kristen S'),
-       tk('f5h','Delivery', '2026-09-14','2026-09-14','Not Started',0,'Kristen S'),
-     ]},
-     {id:'e6',name:'Ep 6',tasks:[
-       tk('f6a','Ingest',   '2026-08-24','2026-08-24','Not Started',0,'Paul R'),
-       tk('f6b','DX Edit',  '2026-08-25','2026-08-26','Not Started',0,'Paul R'),
-       tk('f6c','MX Edit',  '2026-08-26','2026-08-28','Not Started',0,'Paul R'),
-       tk('f6d','SFX Edit', '2026-08-28','2026-08-29','Not Started',0,'Paul R'),
-       tk('f6e','Pre Mix',  '2026-08-29','2026-08-30','Not Started',0,'Paul R'),
-       tk('f6f','Final Mix','2026-08-30','2026-09-01','Not Started',0,'Paul R'),
-       tk('f6g','QC',       '2026-09-01','2026-09-01','Not Started',0,'Kristen S'),
-       tk('f6h','Delivery', '2026-09-21','2026-09-21','Not Started',0,'Kristen S'),
-     ]},
-   ]},
-  {id:'mg3',code:'MS1052',name:'Dancing Reality Show',client:'BBC Studios',type:'series',
-   episodes:[
-     {id:'d1',name:'Ep 1',tasks:[
-       tk('d1a','Ingest',   '2026-05-30','2026-05-30','Not Started',0,'Matthew P'),
-       tk('d1b','DX Edit',  '2026-05-30','2026-06-04','Not Started',0,'Matthew P'),
-       tk('d1c','MX Edit',  '2026-06-04','2026-06-09','Not Started',0,'Matthew P'),
-       tk('d1d','SFX Edit', '2026-06-09','2026-06-12','Not Started',0,'Matthew P'),
-       tk('d1e','Pre Mix',  '2026-06-12','2026-06-15','Not Started',0,'Matthew P'),
-       tk('d1f','Final Mix','2026-06-15','2026-06-18','Not Started',0,'Matthew P'),
-       tk('d1g','QC',       '2026-06-23','2026-06-23','Not Started',0,'Kristen S'),
-       tk('d1h','Delivery', '2026-07-04','2026-07-05','Not Started',0,'Kristen S'),
-     ]},
-     {id:'d2',name:'Ep 2',tasks:[
-       tk('d2a','Ingest',   '2026-06-12','2026-06-12','Not Started',0,'Matthew P'),
-       tk('d2b','DX Edit',  '2026-06-12','2026-06-16','Not Started',0,'Matthew P'),
-       tk('d2c','MX Edit',  '2026-06-16','2026-06-20','Not Started',0,'Matthew P'),
-       tk('d2d','SFX Edit', '2026-06-20','2026-06-22','Not Started',0,'Matthew P'),
-       tk('d2e','Pre Mix',  '2026-06-22','2026-06-24','Not Started',0,'Matthew P'),
-       tk('d2f','Final Mix','2026-06-24','2026-06-25','Not Started',0,'Matthew P'),
-       tk('d2g','QC',       '2026-06-30','2026-06-30','Not Started',0,'Kristen S'),
-       tk('d2h','Delivery', '2026-07-11','2026-07-12','Not Started',0,'Kristen S'),
-     ]},
-     {id:'d3',name:'Ep 3',tasks:[
-       tk('d3a','Ingest',   '2026-06-23','2026-06-23','Not Started',0,'Matthew P'),
-       tk('d3b','DX Edit',  '2026-06-23','2026-06-26','Not Started',0,'Matthew P'),
-       tk('d3c','MX Edit',  '2026-06-26','2026-06-29','Not Started',0,'Matthew P'),
-       tk('d3d','SFX Edit', '2026-06-29','2026-07-01','Not Started',0,'Matthew P'),
-       tk('d3e','Pre Mix',  '2026-07-01','2026-07-02','Not Started',0,'Matthew P'),
-       tk('d3f','Final Mix','2026-07-02','2026-07-03','Not Started',0,'Matthew P'),
-       tk('d3g','QC',       '2026-07-07','2026-07-07','Not Started',0,'Kristen S'),
-       tk('d3h','Delivery', '2026-07-18','2026-07-19','Not Started',0,'Kristen S'),
-     ]},
-     {id:'d4',name:'Ep 4',tasks:[
-       tk('d4a','Ingest',   '2026-06-24','2026-06-24','Not Started',0,'Matthew P'),
-       tk('d4b','DX Edit',  '2026-06-24','2026-06-29','Not Started',0,'Matthew P'),
-       tk('d4c','MX Edit',  '2026-06-29','2026-07-03','Not Started',0,'Matthew P'),
-       tk('d4d','SFX Edit', '2026-07-03','2026-07-06','Not Started',0,'Matthew P'),
-       tk('d4e','Pre Mix',  '2026-07-06','2026-07-08','Not Started',0,'Matthew P'),
-       tk('d4f','Final Mix','2026-07-08','2026-07-09','Not Started',0,'Matthew P'),
-       tk('d4g','QC',       '2026-07-14','2026-07-14','Not Started',0,'Kristen S'),
-       tk('d4h','Delivery', '2026-07-25','2026-07-26','Not Started',0,'Kristen S'),
-     ]},
-     {id:'d5',name:'Ep 5',tasks:[
-       tk('d5a','Ingest',   '2026-06-26','2026-06-26','Not Started',0,'Matthew P'),
-       tk('d5b','DX Edit',  '2026-06-26','2026-07-02','Not Started',0,'Matthew P'),
-       tk('d5c','MX Edit',  '2026-07-02','2026-07-07','Not Started',0,'Matthew P'),
-       tk('d5d','SFX Edit', '2026-07-07','2026-07-10','Not Started',0,'Matthew P'),
-       tk('d5e','Pre Mix',  '2026-07-10','2026-07-13','Not Started',0,'Matthew P'),
-       tk('d5f','Final Mix','2026-07-13','2026-07-16','Not Started',0,'Matthew P'),
-       tk('d5g','QC',       '2026-07-21','2026-07-22','Not Started',0,'Kristen S'),
-       tk('d5h','Delivery', '2026-08-01','2026-08-02','Not Started',0,'Kristen S'),
-     ]},
-     {id:'d6',name:'Ep 6',tasks:[
-       tk('d6a','Ingest',   '2026-07-03','2026-07-03','Not Started',0,'Matthew P'),
-       tk('d6b','DX Edit',  '2026-07-03','2026-07-09','Not Started',0,'Matthew P'),
-       tk('d6c','MX Edit',  '2026-07-09','2026-07-14','Not Started',0,'Matthew P'),
-       tk('d6d','SFX Edit', '2026-07-14','2026-07-17','Not Started',0,'Matthew P'),
-       tk('d6e','Pre Mix',  '2026-07-17','2026-07-21','Not Started',0,'Matthew P'),
-       tk('d6f','Final Mix','2026-07-21','2026-07-23','Not Started',0,'Matthew P'),
-       tk('d6g','QC',       '2026-07-28','2026-07-28','Not Started',0,'Kristen S'),
-       tk('d6h','Delivery', '2026-08-08','2026-08-09','Not Started',0,'Kristen S'),
-     ]},
-     {id:'d7',name:'Ep 7',tasks:[
-       tk('d7a','Ingest',   '2026-07-10','2026-07-10','Not Started',0,'Matthew P'),
-       tk('d7b','DX Edit',  '2026-07-10','2026-07-16','Not Started',0,'Matthew P'),
-       tk('d7c','MX Edit',  '2026-07-16','2026-07-22','Not Started',0,'Matthew P'),
-       tk('d7d','SFX Edit', '2026-07-22','2026-07-26','Not Started',0,'Matthew P'),
-       tk('d7e','Pre Mix',  '2026-07-26','2026-07-29','Not Started',0,'Matthew P'),
-       tk('d7f','Final Mix','2026-07-29','2026-07-30','Not Started',0,'Matthew P'),
-       tk('d7g','QC',       '2026-08-04','2026-08-04','Not Started',0,'Kristen S'),
-       tk('d7h','Delivery', '2026-08-15','2026-08-16','Not Started',0,'Kristen S'),
-     ]},
-     {id:'d8',name:'Ep 8',tasks:[
-       tk('d8a','Ingest',   '2026-07-31','2026-07-31','Not Started',0,'Matthew P'),
-       tk('d8b','DX Edit',  '2026-07-31','2026-08-02','Not Started',0,'Matthew P'),
-       tk('d8c','MX Edit',  '2026-08-02','2026-08-04','Not Started',0,'Matthew P'),
-       tk('d8d','SFX Edit', '2026-08-04','2026-08-05','Not Started',0,'Matthew P'),
-       tk('d8e','Pre Mix',  '2026-08-05','2026-08-06','Not Started',0,'Matthew P'),
-       tk('d8f','Final Mix','2026-08-06','2026-08-06','Not Started',0,'Matthew P'),
-       tk('d8g','QC',       '2026-08-13','2026-08-14','Not Started',0,'Kristen S'),
-       tk('d8h','Delivery', '2026-08-22','2026-08-23','Not Started',0,'Kristen S'),
-     ]},
-   ]},
-  {id:'mg4',code:'MS1073',name:'Deadliest Dinners S1',client:'Foxtel',type:'series',
-   episodes:[
-     {id:'dd1',name:'Ep 1',tasks:[
-       tk('dd1a','Ingest',   '2026-06-04','2026-06-04','Not Started',0,'Paul R'),
-       tk('dd1b','DX Edit',  '2026-06-04','2026-06-08','Not Started',0,'Paul R'),
-       tk('dd1c','MX Edit',  '2026-06-08','2026-06-11','Not Started',0,'Paul R'),
-       tk('dd1d','SFX Edit', '2026-06-11','2026-06-14','Not Started',0,'Paul R'),
-       tk('dd1e','Pre Mix',  '2026-06-14','2026-06-16','Not Started',0,'Paul R'),
-       tk('dd1f','Final Mix','2026-06-16','2026-06-19','Not Started',0,'Paul R'),
-       tk('dd1g','QC',       '2026-06-30','2026-06-30','Not Started',0,'Kristen S'),
-       tk('dd1h','Delivery', '2026-07-01','2026-07-01','Not Started',0,'Kristen S'),
-     ]},
-     {id:'dd2',name:'Ep 2',tasks:[
-       tk('dd2a','Ingest',   '2026-06-11','2026-06-11','Not Started',0,'Paul R'),
-       tk('dd2b','DX Edit',  '2026-06-12','2026-06-15','Not Started',0,'Paul R'),
-       tk('dd2c','MX Edit',  '2026-06-15','2026-06-19','Not Started',0,'Paul R'),
-       tk('dd2d','SFX Edit', '2026-06-19','2026-06-22','Not Started',0,'Paul R'),
-       tk('dd2e','Pre Mix',  '2026-06-22','2026-06-24','Not Started',0,'Paul R'),
-       tk('dd2f','Final Mix','2026-06-24','2026-06-27','Not Started',0,'Paul R'),
-       tk('dd2g','QC',       '2026-07-07','2026-07-07','Not Started',0,'Kristen S'),
-       tk('dd2h','Delivery', '2026-07-08','2026-07-08','Not Started',0,'Kristen S'),
-     ]},
-     {id:'dd3',name:'Ep 3',tasks:[
-       tk('dd3a','Ingest',   '2026-06-16','2026-06-16','Not Started',0,'Paul R'),
-       tk('dd3b','DX Edit',  '2026-06-17','2026-06-20','Not Started',0,'Paul R'),
-       tk('dd3c','MX Edit',  '2026-06-20','2026-06-24','Not Started',0,'Paul R'),
-       tk('dd3d','SFX Edit', '2026-06-24','2026-06-27','Not Started',0,'Paul R'),
-       tk('dd3e','Pre Mix',  '2026-06-27','2026-07-01','Not Started',0,'Paul R'),
-       tk('dd3f','Final Mix','2026-07-01','2026-07-04','Not Started',0,'Paul R'),
-       tk('dd3g','QC',       '2026-07-14','2026-07-14','Not Started',0,'Kristen S'),
-       tk('dd3h','Delivery', '2026-07-15','2026-07-15','Not Started',0,'Kristen S'),
-     ]},
-     {id:'dd4',name:'Ep 4',tasks:[
-       tk('dd4a','Ingest',   '2026-07-08','2026-07-08','Not Started',0,'Paul R'),
-       tk('dd4b','DX Edit',  '2026-07-08','2026-07-10','Not Started',0,'Paul R'),
-       tk('dd4c','MX Edit',  '2026-07-10','2026-07-12','Not Started',0,'Paul R'),
-       tk('dd4d','SFX Edit', '2026-07-12','2026-07-13','Not Started',0,'Paul R'),
-       tk('dd4e','Pre Mix',  '2026-07-13','2026-07-14','Not Started',0,'Paul R'),
-       tk('dd4f','Final Mix','2026-07-14','2026-07-14','Not Started',0,'Paul R'),
-       tk('dd4g','QC',       '2026-07-21','2026-07-21','Not Started',0,'Kristen S'),
-       tk('dd4h','Delivery', '2026-07-22','2026-07-22','Not Started',0,'Kristen S'),
-     ]},
-     {id:'dd5',name:'Ep 5',tasks:[
-       tk('dd5a','Ingest',   '2026-07-14','2026-07-14','Not Started',0,'Paul R'),
-       tk('dd5b','DX Edit',  '2026-07-14','2026-07-15','Not Started',0,'Paul R'),
-       tk('dd5c','MX Edit',  '2026-07-15','2026-07-16','Not Started',0,'Paul R'),
-       tk('dd5d','SFX Edit', '2026-07-16','2026-07-17','Not Started',0,'Paul R'),
-       tk('dd5e','Pre Mix',  '2026-07-17','2026-07-17','Not Started',0,'Paul R'),
-       tk('dd5f','Final Mix','2026-07-17','2026-07-18','Not Started',0,'Paul R'),
-       tk('dd5g','QC',       '2026-07-28','2026-07-28','Not Started',0,'Kristen S'),
-       tk('dd5h','Delivery', '2026-07-29','2026-07-29','Not Started',0,'Kristen S'),
-     ]},
-     {id:'dd6',name:'Ep 6',tasks:[
-       tk('dd6a','Ingest',   '2026-07-21','2026-07-21','Not Started',0,'Paul R'),
-       tk('dd6b','DX Edit',  '2026-07-21','2026-07-22','Not Started',0,'Paul R'),
-       tk('dd6c','MX Edit',  '2026-07-22','2026-07-23','Not Started',0,'Paul R'),
-       tk('dd6d','SFX Edit', '2026-07-23','2026-07-24','Not Started',0,'Paul R'),
-       tk('dd6e','Pre Mix',  '2026-07-24','2026-07-24','Not Started',0,'Paul R'),
-       tk('dd6f','Final Mix','2026-07-24','2026-07-25','Not Started',0,'Paul R'),
-       tk('dd6g','QC',       '2026-08-04','2026-08-04','Not Started',0,'Kristen S'),
-       tk('dd6h','Delivery', '2026-08-05','2026-08-05','Not Started',0,'Kristen S'),
-     ]},
-     {id:'dd7',name:'Ep 7',tasks:[
-       tk('dd7a','Ingest',   '2026-07-28','2026-07-28','Not Started',0,'Paul R'),
-       tk('dd7b','DX Edit',  '2026-07-28','2026-07-29','Not Started',0,'Paul R'),
-       tk('dd7c','MX Edit',  '2026-07-29','2026-07-30','Not Started',0,'Paul R'),
-       tk('dd7d','SFX Edit', '2026-07-30','2026-07-31','Not Started',0,'Paul R'),
-       tk('dd7e','Pre Mix',  '2026-07-31','2026-08-01','Not Started',0,'Paul R'),
-       tk('dd7f','Final Mix','2026-08-01','2026-08-01','Not Started',0,'Paul R'),
-       tk('dd7g','QC',       '2026-08-11','2026-08-11','Not Started',0,'Kristen S'),
-       tk('dd7h','Delivery', '2026-08-12','2026-08-12','Not Started',0,'Kristen S'),
-     ]},
-     {id:'dd8',name:'Ep 8',tasks:[
-       tk('dd8a','Ingest',   '2026-08-11','2026-08-11','Not Started',0,'Paul R'),
-       tk('dd8b','DX Edit',  '2026-08-11','2026-08-12','Not Started',0,'Paul R'),
-       tk('dd8c','MX Edit',  '2026-08-12','2026-08-13','Not Started',0,'Paul R'),
-       tk('dd8d','SFX Edit', '2026-08-13','2026-08-14','Not Started',0,'Paul R'),
-       tk('dd8e','Pre Mix',  '2026-08-14','2026-08-14','Not Started',0,'Paul R'),
-       tk('dd8f','Final Mix','2026-08-14','2026-08-15','Not Started',0,'Paul R'),
-       tk('dd8g','QC',       '2026-08-20','2026-08-20','Not Started',0,'Kristen S'),
-       tk('dd8h','Delivery', '2026-08-21','2026-08-22','Not Started',0,'Kristen S'),
-     ]},
-   ]},
-  {id:'mg5',code:'MS0733',name:'FTLOP S3',client:'Context Media',type:'series',
-   episodes:[
-     {id:'ft1',name:'Series',tasks:[
-       tk('ft1a','Ingest',   '2026-08-24','2026-08-28','Not Started',0,'Paul R'),
-       tk('ft1b','DX Edit',  '2026-08-28','2026-09-07','Not Started',0,'Paul R'),
-       tk('ft1c','MX Edit',  '2026-09-07','2026-09-14','Not Started',0,'Paul R'),
-       tk('ft1d','SFX Edit', '2026-09-14','2026-09-21','Not Started',0,'Paul R'),
-       tk('ft1e','Pre Mix',  '2026-09-21','2026-09-28','Not Started',0,'Paul R'),
-       tk('ft1f','Final Mix','2026-09-28','2026-10-07','Not Started',0,'Matthew P'),
-       tk('ft1g','QC',       '2026-10-07','2026-10-14','Not Started',0,'Kristen S'),
-       tk('ft1h','Delivery', '2026-10-21','2026-10-26','Not Started',0,'Kristen S'),
-     ]},
-   ]},
-];
+const INIT_MASTER_GANTT=[];
 
-const DEFAULT_ENGINEER_SKILLS=[
-  {id:'dialogueEdit', label:'Dialogue Edit', color:'#d32f2f'},
-  {id:'musicEdit',    label:'Music Edit',    color:'#1565c0'},
-  {id:'sfxEdit',      label:'SFX Edit',      color:'#2e7d32'},
-  {id:'backgrounds',  label:'Backgrounds',   color:'#546e7a'},
-  {id:'preMix',       label:'Pre Mix',       color:'#bf360c'},
-  {id:'finalMix',     label:'Final Mix',     color:'#283593'},
-  {id:'revisions',    label:'Revisions',     color:'#6a1b9a'},
-  {id:'qcChanges',    label:'QC Changes',    color:'#e65100'},
-  {id:'deliverables', label:'Deliverables',  color:'#f9a825'},
-];
-
-// ── Initial App Data ───────────────────────────────────────────────────────
 const INIT={
   activeBoard:'b1',
   boards:[
     {id:'b1',name:'Active Projects',icon:'mic',color:'#5c6bc0',
      columns:[{id:'c1',name:'Status',type:'status'},{id:'c2',name:'Engineer',type:'person'},{id:'c3',name:'Client',type:'text'},{id:'c4',name:'Due Date',type:'date'},{id:'c5',name:'Budget',type:'currency'},{id:'c6',name:'Hours',type:'number'}],
      groups:[
-       {id:'g1',name:'In Progress',color:'#5c6bc0',collapsed:false,items:[
-         {id:'i1',name:'TVC Mix — Nike Campaign',notes:'Final stem delivery. -1.0dBTP, -14 LUFS.',startDate:'2026-04-08',timeLogs:[{id:'t1',date:'2026-04-10',mins:180,person:'Paul R',note:'Initial mix'},{id:'t2',date:'2026-04-11',mins:240,person:'Paul R',note:'Stem balancing'}],values:{c1:'In Progress',c2:'Paul R',c3:'Nike ANZ',c4:'2026-04-20',c5:4500,c6:12}},
-         {id:'i2',name:'Documentary Mix — Wanderers',notes:'Ep 3 of 5. ADR session Tue 14th.',startDate:'2026-03-24',timeLogs:[{id:'t3',date:'2026-04-07',mins:420,person:'Matthew P',note:'Ep1-2'},{id:'t4',date:'2026-04-09',mins:360,person:'Matthew P',note:'Ep3 grade'}],values:{c1:'Review',c2:'Matthew P',c3:'Wanderers Film Co',c4:'2026-04-18',c5:8200,c6:28}},
-       ]},
-       {id:'g2',name:'Upcoming',color:'#43a047',collapsed:false,items:[
-         {id:'i3',name:'Radio Spots — CommBank',notes:'3x 30sec spots. Talent booked.',startDate:'2026-04-22',timeLogs:[],values:{c1:'Not Started',c2:'Tom B',c3:'CommBank',c4:'2026-04-28',c5:2100,c6:6}},
-         {id:'i4',name:'Podcast Series — The Brief',notes:'10 ep. -16 LUFS.',startDate:'2026-04-28',timeLogs:[],values:{c1:'Not Started',c2:'Paul R',c3:'The Brief Podcast',c4:'2026-05-05',c5:3600,c6:20}},
-       ]},
-       {id:'g3',name:'Completed',color:'#43a047',collapsed:true,items:[
-         {id:'i5',name:'Feature Mix — Still Water',notes:'Delivered 4 Apr. Archive to NAS.',startDate:'2026-03-10',timeLogs:[{id:'t5',date:'2026-03-20',mins:480,person:'Matthew P',note:'Full mix'}],values:{c1:'Done',c2:'Matthew P',c3:'Still Water Prods',c4:'2026-04-05',c5:14000,c6:45}},
-       ]},
+       {id:'g1',name:'In Progress',color:'#5c6bc0',collapsed:false,items:[]},
+       {id:'g2',name:'Upcoming',color:'#43a047',collapsed:false,items:[]},
+       {id:'g3',name:'Completed',color:'#43a047',collapsed:true,items:[]},
      ]},
     {id:'b3',name:'Engineers',icon:'headphones',color:'#8e24aa',
      columns:[{id:'c1',name:'Status',type:'status'},{id:'c2',name:'Role',type:'text'},{id:'c3',name:'Rate ($/day)',type:'currency'},{id:'c4',name:'Booked From',type:'date'},{id:'c5',name:'Booked To',type:'date'}],
      groups:[
-       {id:'g1',name:'Staff',color:'#5c6bc0',collapsed:false,items:[
-         {id:'i1',name:'Paul Reeves',notes:'Senior Sound Engineer. paul@mightysound.studio',startDate:'',timeLogs:[],_type:'staff',
-          skills:{dialogueEdit:true,musicEdit:true,sfxEdit:true,backgrounds:true,preMix:true,finalMix:true,revisions:true,qcChanges:true,deliverables:true},
-          values:{c1:'Available',c2:'Senior Engineer',c3:null,c4:'',c5:''}},
-         {id:'i2',name:'Matthew Perrott',notes:'Founder / Lead Mix Engineer. matt@mightysound.studio',startDate:'',timeLogs:[],_type:'staff',
-          skills:{dialogueEdit:true,musicEdit:true,sfxEdit:true,backgrounds:true,preMix:true,finalMix:true,revisions:true,qcChanges:true,deliverables:true},
-          values:{c1:'Available',c2:'Lead Mix Engineer',c3:null,c4:'',c5:''}},
-         {id:'i3',name:'Kristen Settinelli',notes:'QC & Delivery specialist. kristen@mightysound.studio',startDate:'',timeLogs:[],_type:'staff',
-          skills:{dialogueEdit:false,musicEdit:false,sfxEdit:false,backgrounds:false,preMix:false,finalMix:false,revisions:true,qcChanges:true,deliverables:true},
-          values:{c1:'Available',c2:'QC & Delivery',c3:null,c4:'',c5:''}},
-       ]},
-       {id:'g2',name:'Freelancers',color:'#8e24aa',collapsed:false,items:[
-         {id:'i4',name:'David Chen',notes:'Preferred for Foley. david@chenfoley.com.au',startDate:'',timeLogs:[],_type:'freelancer',
-          skills:{dialogueEdit:false,musicEdit:false,sfxEdit:true,backgrounds:true,preMix:false,finalMix:false,revisions:false,qcChanges:false,deliverables:false},
-          values:{c1:'Available',c2:'Foley Artist',c3:760,c4:'',c5:''}},
-         {id:'i5',name:'Emma Walsh',notes:'Mon–Thu only. ADR supervisor.',startDate:'',timeLogs:[],_type:'freelancer',
-          skills:{dialogueEdit:true,musicEdit:false,sfxEdit:false,backgrounds:false,preMix:true,finalMix:true,revisions:true,qcChanges:false,deliverables:false},
-          values:{c1:'Available',c2:'ADR Supervisor',c3:880,c4:'',c5:''}},
-       ]},
+       {id:'g1',name:'Staff',color:'#5c6bc0',collapsed:false,items:[]},
+       {id:'g2',name:'Freelancers',color:'#8e24aa',collapsed:false,items:[]},
      ]},
-    {id:'b4',name:'Budget Tracker',icon:'money',color:'#fb8c00',
-     columns:[{id:'c1',name:'Status',type:'status'},{id:'c2',name:'Client',type:'text'},{id:'c3',name:'Quoted',type:'currency'},{id:'c4',name:'Invoiced',type:'currency'},{id:'c5',name:'Paid',type:'currency'},{id:'c6',name:'Due Date',type:'date'}],
-     groups:[
-       {id:'g1',name:'Outstanding',color:'#fb8c00',collapsed:false,items:[
-         {id:'i1',name:'Nike TVC Mix',notes:'Invoice #1042. Net 30.',startDate:'',timeLogs:[],values:{c1:'In Progress',c2:'Nike ANZ',c3:4500,c4:4500,c5:0,c6:'2026-05-15'}},
-         {id:'i2',name:'Wanderers Documentary',notes:'Milestone 2 of 3. Balance on delivery.',startDate:'',timeLogs:[],values:{c1:'Review',c2:'Wanderers Film Co',c3:8200,c4:4100,c5:4100,c6:'2026-04-30'}},
-       ]},
-       {id:'g2',name:'Paid',color:'#43a047',collapsed:false,items:[
-         {id:'i3',name:'Still Water Feature Mix',notes:'Paid in full 8 Apr.',startDate:'',timeLogs:[],values:{c1:'Done',c2:'Still Water Prods',c3:14000,c4:14000,c5:14000,c6:'2026-04-10'}},
-       ]},
-     ]},
-  ],
+],
   masterGantt: INIT_MASTER_GANTT,
-  longform:{
-    activeProduction:'p1',
-    productions:[
-      {id:'p1',name:'Wanderers — Documentary Series',type:'Documentary (5-Part)',client:'Wanderers Film Co',engineer:'Matthew P',budget:8200,
-       episodes:[
-         {id:'e1',name:'Ep 1 — The Journey Begins',dueDate:'2026-03-20',status:'Done',stages:{Brief:100,Capture:100,Edit:100,Mix:100,Master:100,QC:100,Deliver:100},tasks:[tk('w1a','Ingest','2026-03-01','2026-03-03','Done',100,'Matthew P'),tk('w1b','DX Edit','2026-03-03','2026-03-06','Done',100,'Matthew P'),tk('w1c','MX Edit','2026-03-06','2026-03-09','Done',100,'Matthew P'),tk('w1d','SFX Edit','2026-03-09','2026-03-12','Done',100,'Matthew P'),tk('w1e','Pre Mix','2026-03-12','2026-03-14','Done',100,'Matthew P'),tk('w1f','Final Mix','2026-03-14','2026-03-17','Done',100,'Matthew P'),tk('w1g','QC','2026-03-17','2026-03-19','Done',100,'Kristen S'),tk('w1h','Delivery','2026-03-19','2026-03-20','Done',100,'Kristen S')]},
-         {id:'e2',name:'Ep 2 — Into the Wild',dueDate:'2026-04-05',status:'Review',stages:{Brief:100,Capture:100,Edit:100,Mix:100,Master:80,QC:0,Deliver:0},tasks:[tk('w2a','Ingest','2026-03-15','2026-03-17','Done',100,'Matthew P'),tk('w2b','DX Edit','2026-03-17','2026-03-20','Done',100,'Matthew P'),tk('w2c','MX Edit','2026-03-20','2026-03-23','Done',100,'Matthew P'),tk('w2d','SFX Edit','2026-03-23','2026-03-26','Done',100,'Matthew P'),tk('w2e','Pre Mix','2026-03-26','2026-03-28','Done',100,'Matthew P'),tk('w2f','Final Mix','2026-03-28','2026-04-01','Done',100,'Matthew P'),tk('w2g','QC','2026-04-01','2026-04-04','In Progress',40,'Kristen S'),tk('w2h','Delivery','2026-04-04','2026-04-05','Not Started',0,'Kristen S')]},
-         {id:'e3',name:'Ep 3 — The Summit',dueDate:'2026-04-18',status:'In Progress',stages:{Brief:100,Capture:100,Edit:65,Mix:0,Master:0,QC:0,Deliver:0},tasks:[tk('w3a','Ingest','2026-03-28','2026-03-30','Done',100,'Matthew P'),tk('w3b','DX Edit','2026-03-30','2026-04-02','Done',100,'Matthew P'),tk('w3c','MX Edit','2026-04-02','2026-04-07','In Progress',65,'Matthew P'),tk('w3d','SFX Edit','2026-04-07','2026-04-10','Not Started',0,'Matthew P'),tk('w3e','Pre Mix','2026-04-10','2026-04-12','Not Started',0,'Matthew P'),tk('w3f','Final Mix','2026-04-12','2026-04-15','Not Started',0,'Matthew P'),tk('w3g','QC','2026-04-15','2026-04-17','Not Started',0,'Kristen S'),tk('w3h','Delivery','2026-04-17','2026-04-18','Not Started',0,'Kristen S')]},
-         {id:'e4',name:'Ep 4 — Coming Home',dueDate:'2026-05-02',status:'In Progress',stages:{Brief:100,Capture:45,Edit:0,Mix:0,Master:0,QC:0,Deliver:0},tasks:[tk('w4a','Ingest','2026-04-08','2026-04-12','In Progress',45,'Matthew P'),tk('w4b','DX Edit','2026-04-12','2026-04-16','Not Started',0,'Matthew P'),tk('w4c','MX Edit','2026-04-16','2026-04-20','Not Started',0,'Matthew P'),tk('w4d','SFX Edit','2026-04-20','2026-04-23','Not Started',0,'Tom B'),tk('w4e','Pre Mix','2026-04-23','2026-04-25','Not Started',0,'Matthew P'),tk('w4f','Final Mix','2026-04-25','2026-04-29','Not Started',0,'Matthew P'),tk('w4g','QC','2026-04-29','2026-05-01','Not Started',0,'Kristen S'),tk('w4h','Delivery','2026-05-01','2026-05-02','Not Started',0,'Kristen S')]},
-         {id:'e5',name:'Ep 5 — Legacy',dueDate:'2026-05-16',status:'Not Started',stages:{Brief:80,Capture:0,Edit:0,Mix:0,Master:0,QC:0,Deliver:0},tasks:[tk('w5a','Ingest','2026-04-18','2026-04-21','Not Started',0,'Matthew P'),tk('w5b','DX Edit','2026-04-21','2026-04-25','Not Started',0,'Matthew P'),tk('w5c','MX Edit','2026-04-25','2026-04-29','Not Started',0,'Matthew P'),tk('w5d','SFX Edit','2026-04-29','2026-05-03','Not Started',0,'Tom B'),tk('w5e','Pre Mix','2026-05-03','2026-05-05','Not Started',0,'Matthew P'),tk('w5f','Final Mix','2026-05-05','2026-05-09','Not Started',0,'Matthew P'),tk('w5g','QC','2026-05-09','2026-05-12','Not Started',0,'Kristen S'),tk('w5h','Delivery','2026-05-12','2026-05-16','Not Started',0,'Kristen S')]},
-       ]},
-      {id:'p2',name:'The Brief — Podcast Series',type:'Podcast (10-Part)',client:'The Brief Podcast',engineer:'Paul R',budget:3600,
-       episodes:[
-         {id:'b1',name:'Ep 01 — The State of Play',dueDate:'2026-05-01',status:'Review',stages:{Brief:100,Capture:100,Edit:100,Mix:100,Master:100,QC:20,Deliver:0},tasks:[tk('b1a','Ingest','2026-04-18','2026-04-19','Done',100,'Paul R'),tk('b1b','DX Edit','2026-04-19','2026-04-21','Done',100,'Paul R'),tk('b1c','MX Edit','2026-04-21','2026-04-22','Done',100,'Paul R'),tk('b1d','SFX Edit','2026-04-22','2026-04-23','Done',100,'Paul R'),tk('b1e','Pre Mix','2026-04-23','2026-04-24','Done',100,'Paul R'),tk('b1f','Final Mix','2026-04-24','2026-04-27','Done',100,'Paul R'),tk('b1g','QC','2026-04-27','2026-04-30','In Progress',20,'Kristen S'),tk('b1h','Delivery','2026-04-30','2026-05-01','Not Started',0,'Kristen S')]},
-         {id:'b2',name:'Ep 02 — Follow the Money',dueDate:'2026-05-08',status:'In Progress',stages:{Brief:100,Capture:90,Edit:40,Mix:0,Master:0,QC:0,Deliver:0},tasks:[tk('b2a','Ingest','2026-04-24','2026-04-25','Done',100,'Paul R'),tk('b2b','DX Edit','2026-04-25','2026-04-28','In Progress',40,'Paul R'),tk('b2c','MX Edit','2026-04-28','2026-04-30','Not Started',0,'Paul R'),tk('b2d','SFX Edit','2026-04-30','2026-05-01','Not Started',0,'Paul R'),tk('b2e','Pre Mix','2026-05-01','2026-05-02','Not Started',0,'Paul R'),tk('b2f','Final Mix','2026-05-02','2026-05-05','Not Started',0,'Paul R'),tk('b2g','QC','2026-05-05','2026-05-07','Not Started',0,'Kristen S'),tk('b2h','Delivery','2026-05-07','2026-05-08','Not Started',0,'Kristen S')]},
-       ]},
-    ]
-  }
+  longform:{activeProduction:'',productions:[]}
 };
 
 
@@ -450,9 +130,6 @@ const BLANK={
     {id:'b3',name:'Engineers',icon:'headphones',color:'#8e24aa',
      columns:[{id:'c1',name:'Status',type:'status'},{id:'c2',name:'Role',type:'text'},{id:'c3',name:'Rate ($/day)',type:'currency'},{id:'c4',name:'Booked From',type:'date'},{id:'c5',name:'Booked To',type:'date'}],
      groups:[{id:'g1',name:'Staff',color:'#5c6bc0',collapsed:false,items:[]},{id:'g2',name:'Freelancers',color:'#8e24aa',collapsed:false,items:[]}]},
-    {id:'b4',name:'Budget Tracker',icon:'money',color:'#fb8c00',
-     columns:[{id:'c1',name:'Status',type:'status'},{id:'c2',name:'Client',type:'text'},{id:'c3',name:'Quoted',type:'currency'},{id:'c4',name:'Invoiced',type:'currency'},{id:'c5',name:'Paid',type:'currency'},{id:'c6',name:'Due Date',type:'date'}],
-     groups:[{id:'g1',name:'Outstanding',color:'#fb8c00',collapsed:false,items:[]},{id:'g2',name:'Paid',color:'#43a047',collapsed:false,items:[]}]},
   ],
   masterGantt:[],
   longform:{activeProduction:'',productions:[]},
@@ -3836,7 +3513,6 @@ export default function App(){
         <div className="sb-section">Boards</div>
         {data?.boards
           .filter(b=>{
-            if(b.id==='b4'&&!can(account,'viewBudget'))return false; // hide Budget from freelancers
             if(b.id==='b3'&&!can(account,'viewEngineers'))return false; // hide Engineers from freelancers
             return true;
           })
@@ -3906,9 +3582,7 @@ export default function App(){
           </div>
           <div className="board-content">
             {/* Permission gate for budget board */}
-            {board.id==='b4'&&!can(account,'viewBudget')&&(
-              <div className="perm-denied">You don't have permission to view budget information.</div>
-            )}
+            
 
             {/* Gantt-derived projects — only on Active Projects */}
             {board.id==='b1'&&ganttDerivedItems.length>0&&view==='table'&&(
